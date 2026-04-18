@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Notre Chalet</title>
+<meta name="description" content="Planifier les séjours, tâches, bagages et courses au chalet.">
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#72481E">
+<meta name="color-scheme" content="light">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<!-- iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chalet">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+/* ══════════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════════ */
+:root {
+  /* Palette */
+  --bg:         #F2EDE6;
+  --surface:    #FFFFFF;
+  --surface-2:  #F9F5F0;
+  --border:     #E3D6C9;
+
+  /* Primary — bois chaud */
+  --p:          #72481E;
+  --p-dk:       #4E2F0D;
+  --p-tint:     rgba(114,72,30,.10);
+  --p-tint-2:   rgba(114,72,30,.06);
+
+  /* Secondary — forêt */
+  --s:          #3A6648;
+  --s-dk:       #264835;
+  --s-tint:     rgba(58,102,72,.12);
+
+  /* Accent — ambre */
+  --a:          #C07B18;
+  --a-tint:     rgba(192,123,24,.12);
+
+  /* Sémantique */
+  --err:        #B83232;
+  --err-tint:   rgba(184,50,50,.09);
+  --warn:       #C97010;
+  --warn-tint:  rgba(201,112,16,.10);
+  --ok:         #2E7048;
+  --ok-tint:    rgba(46,112,72,.10);
+
+  /* Texte */
+  --t:          #1E1108;
+  --t2:         #64503E;
+  --t3:         #9C8372;
+  --white:      #FFFFFF;
+
+  /* Espace (base 4px) */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px;
+
+  /* Coins */
+  --r-s:8px; --r-m:12px; --r-l:16px; --r-xl:20px; --r-2xl:24px; --r-f:9999px;
+
+  /* Ombres */
+  --sh-s: 0 1px 4px rgba(30,17,8,.07);
+  --sh-m: 0 2px 14px rgba(30,17,8,.09);
+  --sh-fab: 0 6px 26px rgba(114,72,30,.42);
+
+  /* Polices */
+  --ff: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Helvetica, sans-serif;
+
+  /* Layout */
+  --nav-h: 72px;
+}
+
+/* ══════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--ff);
+  background:var(--bg);
+  color:var(--t);
+  min-height:100vh;
+  padding-bottom:calc(var(--nav-h) + 8px);
+  -webkit-tap-highlight-color:transparent;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:transparent}
+input,select,textarea{font-family:inherit}
+
+/* ══════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════ */
+.app-header{
+  background:linear-gradient(148deg,#72481E 0%,#3E2208 100%);
+  color:var(--white);
+  padding:18px var(--s5) var(--s4);
+  position:sticky;top:0;z-index:100;
+  overflow:hidden;
+}
+/* Silhouette montagne */
+.app-header::after{
+  content:'';
+  position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 90' preserveAspectRatio='none'%3E%3Cpath d='M0 90 L70 28 L120 52 L190 8 L250 42 L310 14 L370 46 L420 22 L480 38 L480 90Z' fill='rgba(255,255,255,0.055)'/%3E%3Cpath d='M0 90 L100 55 L170 72 L240 32 L310 60 L390 40 L480 58 L480 90Z' fill='rgba(255,255,255,0.04)'/%3E%3C/svg%3E")
+  no-repeat bottom/100%;
+  pointer-events:none;
+}
+.hdr-inner{display:flex;align-items:flex-end;justify-content:space-between;position:relative;z-index:1}
+.hdr-left{}
+.hdr-title{font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1}
+.hdr-date{font-size:11.5px;opacity:.72;margin-top:3px;font-weight:400}
+.hdr-btn{
+  width:36px;height:36px;border-radius:var(--r-m);
+  display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.85);transition:background .15s;
+}
+.hdr-btn:active{background:rgba(255,255,255,.15)}
+
+/* ══════════════════════════════════════════
+   NAV BAS
+══════════════════════════════════════════ */
+.btm-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  height:var(--nav-h);
+  background:rgba(255,255,255,.94);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border-top:1px solid rgba(227,214,201,.65);
+  display:flex;z-index:1000;
+  padding-bottom:env(safe-area-inset-bottom,0);
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;
+  color:var(--t3);padding:8px 1px 6px;transition:color .2s;
+  min-width:0;
+}
+.nav-btn.active{color:var(--p)}
+.nav-pill{
+  width:42px;height:30px;border-radius:var(--r-m);
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s,transform .15s;
+}
+.nav-btn.active .nav-pill{
+  background:var(--p-tint);
+  transform:translateY(-1px);
+}
+.nav-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
+.nav-lbl{font-size:10px;font-weight:700;letter-spacing:.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+
+/* ══════════════════════════════════════════
+   FAB
+══════════════════════════════════════════ */
+.fab{
+  position:fixed;bottom:calc(var(--nav-h) + 14px);right:var(--s5);
+  width:54px;height:54px;border-radius:var(--r-f);
+  background:var(--p);color:var(--white);
+  box-shadow:var(--sh-fab);
+  display:none;align-items:center;justify-content:center;
+  z-index:500;transition:transform .15s,box-shadow .15s;
+}
+.fab svg{width:24px;height:24px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round}
+.fab:active{transform:scale(.91);box-shadow:0 2px 10px rgba(114,72,30,.35)}
+
+/* ══════════════════════════════════════════
+   SECTIONS
+══════════════════════════════════════════ */
+.sec{display:none;padding:var(--s4) var(--s4) var(--s2);animation:secIn .22s ease}
+.sec.on{display:block}
+@keyframes secIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s4)}
+.sec-title{font-size:24px;font-weight:800;letter-spacing:-.5px}
+.sec-action{font-size:13px;font-weight:600;color:var(--t3)}
+
+/* ══════════════════════════════════════════
+   CARDS
+══════════════════════════════════════════ */
+.card{
+  background:var(--surface);
+  border-radius:var(--r-xl);
+  padding:var(--s4);
+  margin-bottom:var(--s3);
+  box-shadow:var(--sh-m);
+}
+.card-lbl{
+  font-size:11px;font-weight:700;letter-spacing:.7px;
+  text-transform:uppercase;color:var(--t3);
+  margin-bottom:var(--s3);
+}
+
+/* ══════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════ */
+.cd-card{
+  background:linear-gradient(148deg,#3A6648 0%,#1F3D28 100%);
+  border-radius:var(--r-xl);padding:var(--s5);
+  margin-bottom:var(--s3);position:relative;overflow:hidden;color:white;
+}
+.cd-card::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 140'%3E%3Cpath d='M0 140 L50 62 L90 88 L140 18 L190 72 L230 32 L270 78 L300 48 L300 140Z' fill='rgba(255,255,255,0.07)'/%3E%3Cpath d='M0 140 L80 98 L130 118 L200 65 L250 100 L300 78 L300 140Z' fill='rgba(255,255,255,0.05)'/%3E%3C/svg%3E")
+  no-repeat right bottom/contain;pointer-events:none;
+}
+.cd-inner{position:relative;z-index:1}
+.cd-lbl{font-size:11.5px;font-weight:500;opacity:.82;margin-bottom:4px;letter-spacing:.2px}
+.cd-days{font-size:50px;font-weight:900;letter-spacing:-2.5px;line-height:1}
+.cd-sub{font-size:13px;opacity:.82;margin-top:5px;font-weight:500}
+
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s2);margin-bottom:var(--s3)}
+.stat-card{background:var(--surface);border-radius:var(--r-xl);padding:var(--s4) var(--s2);box-shadow:var(--sh-m);text-align:center;min-width:0}
+.stat-num{font-size:30px;font-weight:900;letter-spacing:-1.2px;color:var(--p);line-height:1}
+.stat-lbl{font-size:11px;color:var(--t3);font-weight:500;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ══════════════════════════════════════════
+   TÂCHES
+══════════════════════════════════════════ */
+.pills{display:flex;gap:6px;overflow-x:auto;margin-bottom:var(--s3);scrollbar-width:none;padding-bottom:2px}
+.pills::-webkit-scrollbar{display:none}
+.pill{
+  padding:6px 14px;border-radius:var(--r-f);
+  border:1.5px solid var(--border);background:var(--surface);
+  font-size:12px;font-weight:700;white-space:nowrap;color:var(--t2);
+  transition:all .15s;
+}
+.pill.on{background:var(--p);border-color:var(--p);color:white}
+
+.t-item{display:flex;align-items:flex-start;gap:var(--s3);padding:var(--s3) 0;border-bottom:1px solid var(--border)}
+.t-item:last-child{border-bottom:none;padding-bottom:0}
+.t-item:first-child{padding-top:0}
+
+/* Cercle animé */
+.t-circle{
+  width:24px;height:24px;border-radius:var(--r-f);
+  border:2px solid var(--border);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  margin-top:2px;cursor:pointer;transition:all .22s;position:relative;
+}
+.t-circle.done{background:var(--s);border-color:var(--s)}
+.t-circle .ck{
+  width:12px;height:12px;stroke:white;fill:none;stroke-width:2.5;
+  stroke-linecap:round;stroke-linejoin:round;
+  opacity:0;transform:scale(.4);transition:all .22s;
+}
+.t-circle.done .ck{opacity:1;transform:scale(1)}
+
+.t-body{flex:1;min-width:0}
+.t-name{font-size:15px;font-weight:500;line-height:1.3}
+.t-name.done{text-decoration:line-through;color:var(--t3)}
+.t-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.t-note{font-size:12px;color:var(--t3);margin-top:4px;line-height:1.45}
+
+.chip{font-size:11px;font-weight:700;padding:2px 9px;border-radius:var(--r-f);white-space:nowrap}
+.ch-high  {background:var(--err-tint);color:var(--err)}
+.ch-medium{background:var(--warn-tint);color:var(--warn)}
+.ch-low   {background:var(--ok-tint);color:var(--ok)}
+.ch-cat   {background:rgba(90,50,150,.08);color:#6B3FB0}
+.ch-who   {background:var(--p-tint-2);color:var(--t2)}
+.ch-date  {background:var(--surface-2);color:var(--t3)}
+.ch-late  {background:var(--err-tint);color:var(--err)}
+
+.del-btn{
+  color:var(--border);flex-shrink:0;min-width:44px;min-height:44px;
+  border-radius:var(--r-s);display:flex;align-items:center;justify-content:center;
+  transition:color .15s,background .15s;
+}
+.del-btn:hover,.del-btn:active{color:var(--err);background:var(--err-tint)}
+.del-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ══════════════════════════════════════════
+   BAGAGES
+══════════════════════════════════════════ */
+.prog-hdr{display:flex;justify-content:space-between;align-items:center}
+.prog-bar{height:6px;background:var(--border);border-radius:var(--r-f);margin-top:8px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--s),#5CA87A);border-radius:var(--r-f);transition:width .4s ease}
+
+.cat-grp{margin-bottom:var(--s3)}
+.cat-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;border-radius:var(--r-l);margin-bottom:7px;
+  background:linear-gradient(135deg,var(--p) 0%,var(--p-dk) 100%);
+  color:white;
+}
+.cat-hd-l{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.cat-hd-l svg{width:15px;height:15px;stroke:rgba(255,255,255,.8);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cat-hd-r{font-size:12px;opacity:.72;font-weight:500}
+
+.pk-item{
+  display:flex;align-items:center;gap:var(--s3);
+  padding:10px 13px;background:var(--surface);
+  border-radius:var(--r-m);margin-bottom:5px;
+  box-shadow:var(--sh-s);
+}
+.pk-box{
+  width:22px;height:22px;border-radius:6px;
+  border:2px solid var(--border);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;
+}
+.pk-box.on{background:var(--s);border-color:var(--s)}
+.pk-box .ck{
+  width:11px;height:11px;stroke:white;fill:none;stroke-width:2.5;
+  stroke-linecap:round;stroke-linejoin:round;
+  opacity:0;transform:scale(.4);transition:all .22s;
+}
+.pk-box.on .ck{opacity:1;transform:scale(1)}
+.pk-name{flex:1;font-size:14px;font-weight:500}
+.pk-name.done{text-decoration:line-through;color:var(--t3)}
+.pk-qty{font-size:12px;color:var(--t3)}
+.pk-who{font-size:11px;color:var(--t3);display:block;margin-top:1px;font-weight:500}
+
+/* ══════════════════════════════════════════
+   CALENDRIER
+══════════════════════════════════════════ */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s4)}
+.cal-nav-btn{
+  width:36px;height:36px;border-radius:var(--r-m);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--p);transition:background .15s;position:relative;
+}
+/* Agrandit la zone tactile sans agrandir visuellement */
+.cal-nav-btn::before{content:'';position:absolute;inset:-6px;}
+.cal-nav-btn:active{background:var(--p-tint)}
+.cal-nav-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cal-title{font-size:17px;font-weight:800;letter-spacing:-.3px}
+
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dh{text-align:center;font-size:11px;font-weight:700;color:var(--t3);padding:4px 0 8px}
+.cal-day{
+  aspect-ratio:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;border-radius:var(--r-m);
+  font-size:13px;font-weight:500;cursor:pointer;
+  position:relative;transition:background .15s;
+}
+.cal-day:hover:not(.today){background:var(--p-tint-2)}
+.cal-day.today{background:var(--p);color:white;font-weight:800}
+.cal-day.sejour:not(.today){background:var(--s-tint);color:var(--s);font-weight:700}
+.cal-day.dot::after{
+  content:'';position:absolute;bottom:4px;
+  width:4px;height:4px;background:var(--a);border-radius:var(--r-f);
+}
+.cal-day.today.dot::after{background:rgba(255,255,255,.75)}
+.cal-day.other{opacity:.22;cursor:default;pointer-events:none}
+
+.ev-item{display:flex;align-items:center;gap:var(--s3);padding:10px 0;border-bottom:1px solid var(--border)}
+.ev-item:last-child{border-bottom:none;padding-bottom:0}
+.ev-dot{width:10px;height:10px;border-radius:var(--r-f);flex-shrink:0}
+.ev-body{flex:1}
+.ev-title{font-size:14px;font-weight:600}
+.ev-date{font-size:12px;color:var(--t3);margin-top:2px}
+
+/* ══════════════════════════════════════════
+   PHOTOS
+══════════════════════════════════════════ */
+.photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.photo-wrap{position:relative}
+.photo-thumb{width:100%;aspect-ratio:1;border-radius:var(--r-l);object-fit:cover;display:block;cursor:pointer}
+.photo-del{
+  position:absolute;top:7px;right:7px;
+  width:36px;height:36px;border-radius:var(--r-f);
+  background:rgba(0,0,0,.52);color:white;font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.photo-del svg{width:12px;height:12px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round}
+
+.album-row{display:flex;align-items:center;gap:var(--s4);padding:4px 0}
+.album-icon{
+  width:50px;height:50px;border-radius:var(--r-l);flex-shrink:0;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  display:flex;align-items:center;justify-content:center;
+}
+.album-icon svg{width:24px;height:24px;stroke:white;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.album-lbl{font-size:14px;color:var(--t3)}
+.album-link{font-size:14px;font-weight:700;color:var(--p)}
+.album-cfg{font-size:13px;font-weight:700;color:var(--p);display:block;margin-top:3px;cursor:pointer}
+
+.add-photo{
+  display:flex;align-items:center;gap:var(--s3);
+  padding:var(--s3) var(--s3);background:var(--surface-2);
+  border-radius:var(--r-m);margin-top:var(--s3);
+  border:1.5px dashed var(--border);cursor:pointer;
+}
+.add-photo svg{width:20px;height:20px;stroke:var(--t3);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.add-photo span{font-size:13px;font-weight:700;color:var(--t3)}
+
+/* ══════════════════════════════════════════
+   PARAMÈTRES
+══════════════════════════════════════════ */
+.set-item{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border)}
+.set-item:last-child{border-bottom:none}
+.set-left{display:flex;align-items:center;gap:var(--s3)}
+.set-icon-wrap{
+  width:34px;height:34px;border-radius:var(--r-s);
+  display:flex;align-items:center;justify-content:center;
+}
+.set-icon-wrap svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.set-lbl{font-size:15px;font-weight:500}
+.set-val{font-size:13px;color:var(--t3);font-weight:500}
+.set-btn{font-size:14px;font-weight:700;color:var(--p)}
+
+.sync-banner{
+  background:var(--p-tint-2);border:1px solid var(--p-tint);
+  border-radius:var(--r-l);padding:var(--s4);margin-bottom:var(--s4);
+  display:flex;gap:var(--s3);align-items:flex-start;
+}
+.sync-banner svg{width:20px;height:20px;stroke:var(--p);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:1px}
+.sync-txt{font-size:13px;color:var(--t2);line-height:1.6}
+
+.notes-ta{
+  width:100%;min-height:165px;padding:13px;
+  border:1.5px solid var(--border);border-radius:var(--r-m);
+  font-size:14px;line-height:1.65;resize:none;
+  background:var(--surface-2);color:var(--t);outline:none;
+  transition:border-color .2s;
+}
+.notes-ta:focus{border-color:var(--p);background:white}
+
+/* ══════════════════════════════════════════
+   EMPTY STATES
+══════════════════════════════════════════ */
+.empty{text-align:center;padding:40px 16px;color:var(--t3)}
+.empty-ico{width:58px;height:58px;margin:0 auto 14px;opacity:.3}
+.empty-ico svg{width:58px;height:58px;stroke:var(--t3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.empty-title{font-size:15px;font-weight:700;color:var(--t2)}
+.empty-sub{font-size:13px;margin-top:5px;line-height:1.45}
+
+/* ══════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════ */
+.m-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.42);
+  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  z-index:2000;display:none;align-items:flex-end;justify-content:center;
+}
+.m-overlay.on{display:flex}
+.modal{
+  background:var(--surface);border-radius:var(--r-2xl) var(--r-2xl) 0 0;
+  padding:8px var(--s5) 46px;
+  width:100%;max-width:600px;max-height:93vh;overflow-y:auto;
+}
+.m-handle{width:36px;height:4px;background:var(--border);border-radius:var(--r-f);margin:12px auto 20px}
+.m-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s5)}
+.m-title{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.m-close{
+  width:32px;height:32px;border-radius:var(--r-f);
+  background:var(--surface-2);display:flex;align-items:center;justify-content:center;
+}
+.m-close svg{width:14px;height:14px;stroke:var(--t3);fill:none;stroke-width:2.5;stroke-linecap:round}
+
+.fg{margin-bottom:var(--s4)}
+.fg label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--t3);margin-bottom:7px}
+.fi,.fs{
+  width:100%;padding:12px 14px;
+  border:1.5px solid var(--border);border-radius:var(--r-m);
+  font-size:15px;background:var(--surface-2);color:var(--t);
+  outline:none;appearance:none;transition:border-color .2s,background .2s;
+}
+.fi:focus,.fs:focus{border-color:var(--p);background:white}
+
+.btn-p{width:100%;padding:15px;background:var(--p);color:white;border-radius:var(--r-l);font-size:16px;font-weight:700;transition:opacity .15s}
+.btn-p:active{opacity:.85}
+.btn-g{width:100%;padding:14px;background:transparent;color:var(--t3);border-radius:var(--r-l);font-size:15px;font-weight:600;margin-top:8px}
+.btn-g:active{background:var(--surface-2)}
+
+/* ══════════════════════════════════════════
+   LIGHTBOX
+══════════════════════════════════════════ */
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9999;display:flex;align-items:center;justify-content:center}
+.lb img{max-width:96%;max-height:92vh;border-radius:var(--r-l)}
+.lb-close{
+  position:fixed;top:16px;right:16px;
+  width:40px;height:40px;border-radius:var(--r-f);
+  background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);
+}
+.lb-close svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header class="app-header">
+  <div class="hdr-inner">
+    <div class="hdr-left">
+      <div class="hdr-title" id="hdrTitle">Notre Chalet</div>
+      <div class="hdr-date" id="hdrDate"></div>
+    </div>
+    <button class="hdr-btn" onclick="go('settings')" aria-label="Paramètres">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ══ SECTIONS ══ -->
+
+<!-- Dashboard -->
+<main id="sec-dashboard" class="sec on">
+  <div class="cd-card">
+    <div class="cd-inner">
+      <div class="cd-lbl">Prochaine visite au chalet</div>
+      <div class="cd-days" id="cdDays">—</div>
+      <div class="cd-sub" id="cdSub">Aucun séjour planifié</div>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="stTasks">0</div><div class="stat-lbl">Tâches en cours</div></div>
+    <div class="stat-card"><div class="stat-num" id="stPacked">—</div><div class="stat-lbl">Bagages prêts</div></div>
+    <div class="stat-card"><div class="stat-num" id="stCourses">0</div><div class="stat-lbl">À acheter</div></div>
+  </div>
+  <div class="card">
+    <div class="card-lbl">Tâches urgentes</div>
+    <div id="dbUrgent"></div>
+  </div>
+  <div class="card">
+    <div class="card-lbl">Liste de courses</div>
+    <div id="dbCourses"></div>
+  </div>
+  <div class="card">
+    <div class="card-lbl">Prochains séjours</div>
+    <div id="dbEvents"></div>
+  </div>
+</main>
+
+<!-- Tâches -->
+<main id="sec-tasks" class="sec">
+  <div class="sec-hdr"><div class="sec-title">Tâches</div></div>
+  <div class="pills" id="taskPills">
+    <button class="pill on" onclick="setFilter('all',this)">Toutes</button>
+    <button class="pill" onclick="setFilter('pending',this)">À faire</button>
+    <button class="pill" onclick="setFilter('done',this)">Faites</button>
+    <button class="pill" onclick="setFilter('high',this)">Urgentes</button>
+    <button class="pill" onclick="setFilter('marc',this)" id="pillM">Marc</button>
+    <button class="pill" onclick="setFilter('copine',this)" id="pillC">Ma copine</button>
+  </div>
+  <div class="card" id="taskList"></div>
+</main>
+
+<!-- Bagages -->
+<main id="sec-packing" class="sec">
+  <div class="sec-hdr">
+    <div class="sec-title">À apporter</div>
+    <button class="sec-action" onclick="resetPack()">Tout décocher</button>
+  </div>
+  <div class="card" style="padding:14px 16px">
+    <div class="prog-hdr">
+      <span style="font-size:13px;font-weight:700">Progression</span>
+      <span style="font-size:13px;font-weight:800;color:var(--s)" id="packPct">0/0</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="packBar" style="width:0%"></div></div>
+  </div>
+  <div id="packList"></div>
+</main>
+
+<!-- Courses -->
+<main id="sec-courses" class="sec">
+  <div class="sec-hdr">
+    <div class="sec-title">Épicerie</div>
+    <button class="sec-action" id="btnClearBought" onclick="clearBought()" style="display:none">Retirer les achetés</button>
+  </div>
+  <div class="card" style="padding:14px 16px">
+    <div class="prog-hdr">
+      <span style="font-size:13px;font-weight:700">Liste de courses</span>
+      <span style="font-size:13px;font-weight:800;color:var(--a)" id="crsPct">0/0</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="crsBar" style="width:0%;background:var(--a)"></div></div>
+  </div>
+  <div class="pills" id="crsPills">
+    <button class="pill on" onclick="setCrsFilter('all',this)">Tout</button>
+    <button class="pill" onclick="setCrsFilter('todo',this)">À acheter</button>
+    <button class="pill" onclick="setCrsFilter('done',this)">Achetés</button>
+  </div>
+  <div id="crsList"></div>
+</main>
+
+<!-- Calendrier -->
+<main id="sec-calendar" class="sec">
+  <div class="card" style="padding:16px">
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="shiftM(-1)" aria-label="Mois précédent">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="cal-title" id="calTitle"></div>
+      <button class="cal-nav-btn" onclick="shiftM(1)" aria-label="Mois suivant">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+  <div class="card">
+    <div class="card-lbl">Événements du mois</div>
+    <div id="evList"></div>
+  </div>
+</main>
+
+<!-- Photos -->
+<main id="sec-photos" class="sec">
+  <div class="sec-hdr"><div class="sec-title">Photos</div></div>
+  <div class="card">
+    <div class="card-lbl">Album partagé</div>
+    <div class="album-row">
+      <div class="album-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </div>
+      <div>
+        <div id="albumDisplay" class="album-lbl">Aucun album configuré</div>
+        <button class="album-cfg" onclick="openM('albumModal')">Configurer l'album →</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-lbl">Photos favorites</div>
+    <div class="photo-grid" id="photoGrid"></div>
+    <label class="add-photo">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <span>Ajouter une photo</span>
+      <input type="file" accept="image/*" onchange="addPhoto(this)" style="display:none">
+    </label>
+  </div>
+</main>
+
+<!-- Paramètres -->
+<main id="sec-settings" class="sec">
+  <div class="sec-title" style="margin-bottom:18px">Paramètres</div>
+
+  <div class="card">
+    <div class="card-lbl">Chalet</div>
+    <div class="set-item">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:var(--p-tint);color:var(--p)">
+          <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1z"/><path d="M9 21V12h6v9"/></svg>
+        </div>
+        <span class="set-lbl">Nom du chalet</span>
+      </div>
+      <button class="set-btn" id="btnCN" onclick="edit('chaletName')">Notre Chalet</button>
+    </div>
+    <div class="set-item">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:rgba(90,50,150,.08);color:#6B3FB0">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <span class="set-lbl">Votre prénom</span>
+      </div>
+      <button class="set-btn" id="btnMN" onclick="edit('marcName')">Marc</button>
+    </div>
+    <div class="set-item">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:rgba(90,50,150,.08);color:#6B3FB0">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <span class="set-lbl">Prénom de votre copine</span>
+      </div>
+      <button class="set-btn" id="btnCop" onclick="edit('copineName')">Ma copine</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-lbl">Synchronisation</div>
+    <div class="sync-banner">
+      <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
+      <div class="sync-txt">Exportez le fichier JSON et envoyez-le par iMessage ou AirDrop à votre copine. Elle n'a qu'à l'importer ici.</div>
+    </div>
+    <div class="set-item">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:var(--ok-tint);color:var(--ok)">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <span class="set-lbl">Exporter les données</span>
+      </div>
+      <button class="set-btn" onclick="exportData()">Exporter</button>
+    </div>
+    <div class="set-item">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:var(--a-tint);color:var(--a)">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </div>
+        <span class="set-lbl">Importer des données</span>
+      </div>
+      <label class="set-btn">Importer<input type="file" accept=".json" onchange="importData(this)" style="display:none"></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-lbl">Notes partagées</div>
+    <p style="font-size:12.5px;color:var(--t3);margin-bottom:10px;line-height:1.5">Code WiFi, contacts d'urgence, infos pratiques…</p>
+    <textarea class="notes-ta" id="notesArea" placeholder="Ex: WiFi: ChaletNord / motdepasse123&#10;Voisin: Jean-Pierre 418-555-0000" oninput="saveNotes()"></textarea>
+  </div>
+</main>
+
+<!-- ══ NAV BAS ══ -->
+<nav class="btm-nav">
+  <button class="nav-btn active" id="nav-dashboard" onclick="go('dashboard')">
+    <div class="nav-pill">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1z"/><path d="M9 21V12h6v9"/></svg>
+    </div>
+    <span class="nav-lbl">Accueil</span>
+  </button>
+  <button class="nav-btn" id="nav-tasks" onclick="go('tasks')">
+    <div class="nav-pill">
+      <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    </div>
+    <span class="nav-lbl">Tâches</span>
+  </button>
+  <button class="nav-btn" id="nav-packing" onclick="go('packing')">
+    <div class="nav-pill">
+      <svg viewBox="0 0 24 24"><path d="M9 4h6a1 1 0 011 1v1H8V5a1 1 0 011-1z"/><rect x="4" y="6" width="16" height="15" rx="3"/><path d="M9 13h6M12 10v6"/></svg>
+    </div>
+    <span class="nav-lbl">Bagages</span>
+  </button>
+  <button class="nav-btn" id="nav-courses" onclick="go('courses')">
+    <div class="nav-pill">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.57L23 6H6"/></svg>
+    </div>
+    <span class="nav-lbl">Courses</span>
+  </button>
+  <button class="nav-btn" id="nav-calendar" onclick="go('calendar')">
+    <div class="nav-pill">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="4"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+    </div>
+    <span class="nav-lbl">Agenda</span>
+  </button>
+  <button class="nav-btn" id="nav-photos" onclick="go('photos')">
+    <div class="nav-pill">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    </div>
+    <span class="nav-lbl">Photos</span>
+  </button>
+</nav>
+
+<!-- FAB -->
+<button class="fab" id="fab" onclick="fabAct()" aria-label="Ajouter">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
+
+<!-- ══ MODALS ══ -->
+
+<!-- Tâche -->
+<div class="m-overlay" id="taskModal">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-hdr">
+      <div class="m-title">Nouvelle tâche</div>
+      <button class="m-close" aria-label="Fermer" onclick="closeM('taskModal')"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="fg"><label>Titre *</label><input class="fi" id="tTitle" placeholder="Ex: Vérifier la pompe à eau"></div>
+    <div class="fg"><label>Catégorie</label>
+      <select class="fs" id="tCat">
+        <option value="maintenance">Maintenance</option>
+        <option value="travaux">Travaux</option>
+        <option value="nettoyage">Nettoyage</option>
+        <option value="courses">Courses</option>
+        <option value="exterieur">Extérieur</option>
+        <option value="autre">Autre</option>
+      </select>
+    </div>
+    <div class="fg"><label>Priorité</label>
+      <select class="fs" id="tPrio">
+        <option value="medium">Moyenne</option>
+        <option value="high">Haute</option>
+        <option value="low">Basse</option>
+      </select>
+    </div>
+    <div class="fg"><label>Assigné à</label>
+      <select class="fs" id="tPerson">
+        <option value="ensemble">Ensemble</option>
+        <option value="marc" id="tPM">Marc</option>
+        <option value="copine" id="tPC">Ma copine</option>
+      </select>
+    </div>
+    <div class="fg"><label>Date limite</label><input type="date" class="fi" id="tDate"></div>
+    <div class="fg"><label>Notes</label><input class="fi" id="tNotes" placeholder="Détails optionnels…"></div>
+    <button class="btn-p" onclick="saveTask()">Ajouter la tâche</button>
+    <button class="btn-g" onclick="closeM('taskModal')">Annuler</button>
+  </div>
+</div>
+
+<!-- Article -->
+<div class="m-overlay" id="packModal">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-hdr">
+      <div class="m-title">Ajouter un article</div>
+      <button class="m-close" aria-label="Fermer" onclick="closeM('packModal')"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="fg"><label>Nom *</label><input class="fi" id="pName" placeholder="Ex: Serviettes de plage"></div>
+    <div class="fg"><label>Quantité</label><input class="fi" id="pQty" placeholder="Ex: 2" inputmode="numeric"></div>
+    <div class="fg"><label>Catégorie</label>
+      <select class="fs" id="pCat">
+        <option value="cuisine">Cuisine</option>
+        <option value="chambre">Chambre</option>
+        <option value="sdb">Salle de bain</option>
+        <option value="exterieur">Extérieur</option>
+        <option value="electronique">Électronique</option>
+        <option value="nourriture">Nourriture</option>
+        <option value="vetements">Vêtements</option>
+        <option value="autre">Autre</option>
+      </select>
+    </div>
+    <div class="fg"><label>Qui apporte ?</label>
+      <select class="fs" id="pPerson">
+        <option value="ensemble">Ensemble</option>
+        <option value="marc" id="pPM">Marc</option>
+        <option value="copine" id="pPC">Ma copine</option>
+      </select>
+    </div>
+    <button class="btn-p" onclick="savePack()">Ajouter l'article</button>
+    <button class="btn-g" onclick="closeM('packModal')">Annuler</button>
+  </div>
+</div>
+
+<!-- Course -->
+<div class="m-overlay" id="crsModal">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-hdr">
+      <div class="m-title">Ajouter à l'épicerie</div>
+      <button class="m-close" aria-label="Fermer" onclick="closeM('crsModal')"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="fg"><label>Article *</label><input class="fi" id="cName" placeholder="Ex: Lait 2%"></div>
+    <div style="display:flex;gap:10px">
+      <div class="fg" style="flex:1"><label>Quantité</label><input class="fi" id="cQty" placeholder="Ex: 2" inputmode="decimal"></div>
+      <div class="fg" style="flex:1"><label>Unité</label>
+        <select class="fs" id="cUnit">
+          <option value="">—</option>
+          <option value="g">g</option>
+          <option value="kg">kg</option>
+          <option value="ml">ml</option>
+          <option value="L">L</option>
+          <option value="pot">pot</option>
+          <option value="sac">sac</option>
+          <option value="paquet">paquet</option>
+          <option value="boîte">boîte</option>
+          <option value="pqt">pqt</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Catégorie</label>
+      <select class="fs" id="cCat">
+        <option value="fruits_legumes">Fruits & légumes</option>
+        <option value="viande">Viandes & poissons</option>
+        <option value="frais">Produits frais</option>
+        <option value="boulangerie">Boulangerie</option>
+        <option value="epicerie" selected>Épicerie</option>
+        <option value="surgeles">Surgelés</option>
+        <option value="boissons">Boissons</option>
+        <option value="menager">Ménager</option>
+        <option value="autre">Autre</option>
+      </select>
+    </div>
+    <div class="fg"><label>Note</label><input class="fi" id="cNote" placeholder="Ex: marque préférée"></div>
+    <div class="fg"><label>Ajouté par</label>
+      <select class="fs" id="cAdded">
+        <option value="ensemble">Ensemble</option>
+        <option value="marc" id="cAM">Marc</option>
+        <option value="copine" id="cAC">Ma copine</option>
+      </select>
+    </div>
+    <button class="btn-p" onclick="saveCourse()">Ajouter</button>
+    <button class="btn-g" onclick="closeM('crsModal')">Annuler</button>
+  </div>
+</div>
+
+<!-- Événement -->
+<div class="m-overlay" id="evModal">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-hdr">
+      <div class="m-title">Ajouter un événement</div>
+      <button class="m-close" aria-label="Fermer" onclick="closeM('evModal')"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="fg"><label>Titre *</label><input class="fi" id="evTitle" placeholder="Ex: Weekend au chalet"></div>
+    <div class="fg"><label>Type</label>
+      <select class="fs" id="evType">
+        <option value="sejour">Séjour au chalet</option>
+        <option value="task">Tâche / Deadline</option>
+        <option value="note">Rappel</option>
+      </select>
+    </div>
+    <div class="fg"><label>Date de début *</label><input type="date" class="fi" id="evStart"></div>
+    <div class="fg"><label>Date de fin (si séjour)</label><input type="date" class="fi" id="evEnd"></div>
+    <button class="btn-p" onclick="saveEvent()">Ajouter</button>
+    <button class="btn-g" onclick="closeM('evModal')">Annuler</button>
+  </div>
+</div>
+
+<!-- Album -->
+<div class="m-overlay" id="albumModal">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-hdr">
+      <div class="m-title">Album partagé</div>
+      <button class="m-close" aria-label="Fermer" onclick="closeM('albumModal')"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <p style="font-size:14px;color:var(--t3);line-height:1.6;margin-bottom:18px">Entrez le lien de votre album Google Photos ou iCloud partagé. Vous pouvez tous les deux y ajouter des photos directement.</p>
+    <div class="fg"><label>Lien de l'album</label><input type="url" class="fi" id="albumUrl" placeholder="https://photos.google.com/share/…"></div>
+    <button class="btn-p" onclick="saveAlbum()">Enregistrer</button>
+    <button class="btn-g" onclick="closeM('albumModal')">Annuler</button>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   ICÔNES SVG
+══════════════════════════════════════════ */
+const IC = {
+  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>`,
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  fire:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c0 5.5-5 7-5 12a5 5 0 0010 0c0-5-5-6.5-5-12z"/><path d="M12 12c0 2.5-2 3-2 5a2 2 0 004 0c0-2-2-2.5-2-5z"/></svg>`,
+  cal:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="4"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>`,
+  // Catégories bagages
+  cuisine:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V3M15 11V3M12 11V3"/><path d="M5 11h14a2 2 0 011.95 2.45l-1.68 8.4A2 2 0 0117.3 23H6.7a2 2 0 01-1.97-1.65l-1.68-8.4A2 2 0 015 11z"/></svg>`,
+  chambre:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16M22 4v16M2 8h20M2 16h20M6 8v8M18 8v8"/></svg>`,
+  sdb:         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16a2 2 0 012 2v4a4 4 0 01-4 4H6a4 4 0 01-4-4v-4a2 2 0 012-2z"/><path d="M6 12V5a2 2 0 012-2h1"/></svg>`,
+  exterieur:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>`,
+  electronique:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M12 12v4M10 14h4"/></svg>`,
+  nourriture:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V3M16 6V3M7 14l2 2 4-4 2 2 3-3"/><rect x="2" y="6" width="20" height="15" rx="2"/></svg>`,
+  vetements:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46L16 2l-4 4-4-4-4.38 1.46A2 2 0 002 5.33V21h20V5.33a2 2 0 00-1.62-1.87z"/></svg>`,
+  autre:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+  maintenance: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>`,
+  travaux:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>`,
+  nettoyage:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l3 9 9 3-9 3-3 9 12-9z"/></svg>`,
+  courses:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.57L23 6H6"/></svg>`,
+  // Catégories courses (icônes)
+  fruits_legumes:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4c-4 0-7 3-7 7 0 5 4 9 7 9s7-4 7-9c0-4-3-7-7-7z"/><path d="M12 4c1-2 3-3 5-2"/></svg>`,
+  viande:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14c0-5 4-9 9-9 4 0 7 3 7 7 0 3-2 5-5 5-2 0-3-1-3-3 0-2 2-3 4-3"/><path d="M4 14c0 4 3 6 6 6"/></svg>`,
+  frais:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="15" x2="17" y2="15"/></svg>`,
+  boulangerie:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14c0-5 4-7 8-7s8 2 8 7c0 2-2 4-4 4H8c-2 0-4-2-4-4z"/><path d="M8 14v3M12 14v3M16 14v3"/></svg>`,
+  epicerie:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="14" rx="2"/><path d="M8 7V5a4 4 0 018 0v2"/></svg>`,
+  surgeles:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>`,
+  boissons:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10l-1 18a2 2 0 01-2 2H10a2 2 0 01-2-2L7 3z"/><line x1="7" y1="9" x2="17" y2="9"/></svg>`,
+  menager:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l1 4h3v4H5V7h3z"/><path d="M5 11l2 10h10l2-10"/></svg>`,
+  // Empty states
+  emptyTask:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>`,
+  emptyCrs:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.57L23 6H6"/></svg>`,
+  emptyPack:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 011 1v1H8V5a1 1 0 011-1z"/><rect x="4" y="6" width="16" height="15" rx="3"/><path d="M9 13h6M12 10v6"/></svg>`,
+  emptyPhoto:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
+  emptyEv:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="4"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>`,
+};
+
+// Libellés
+const TASK_CATS = {
+  maintenance:'Maintenance', travaux:'Travaux', nettoyage:'Nettoyage',
+  courses:'Courses', exterieur:'Extérieur', autre:'Autre'
+};
+const PACK_CATS = {
+  cuisine:'Cuisine', chambre:'Chambre', sdb:'Salle de bain',
+  exterieur:'Extérieur', electronique:'Électronique',
+  nourriture:'Nourriture', vetements:'Vêtements', autre:'Autre'
+};
+const COURSE_CATS = {
+  fruits_legumes:'Fruits & légumes',
+  viande:       'Viandes & poissons',
+  frais:        'Produits frais',
+  boulangerie:  'Boulangerie',
+  epicerie:     'Épicerie',
+  surgeles:     'Surgelés',
+  boissons:     'Boissons',
+  menager:      'Ménager',
+  autre:        'Autre'
+};
+const COURSE_UNITS = ['', 'g', 'kg', 'ml', 'L', 'pot', 'sac', 'paquet', 'boîte', 'pqt'];
+const EV_COL = {sejour:'#3A6648', task:'#C07B18', note:'#72481E'};
+const MO_FR  = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const MO_SH  = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+const JR_FR  = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+
+/* ══════════════════════════════════════════
+   ÉTAT
+══════════════════════════════════════════ */
+const SCHEMA_VERSION = 4;
+const DEFAULT_STATE = {
+  schemaVersion: SCHEMA_VERSION,
+  chaletName:'Notre Chalet', marcName:'Marc', copineName:'Ma copine',
+  tasks:[], packing:[], events:[], albumUrl:'', photos:[], notes:'', courses:[]
+};
+let S = JSON.parse(JSON.stringify(DEFAULT_STATE));
+let curSec = 'dashboard';
+let taskFilter = 'all';
+let calDate = new Date();
+
+/* ══════════════════════════════════════════
+   STOCKAGE
+══════════════════════════════════════════ */
+// Valide et complète un objet d'état pour qu'il ait la forme attendue.
+function normalizeState(raw){
+  const base = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  if(!raw || typeof raw !== 'object') return base;
+  const out = Object.assign(base, raw);
+  // Forcer les types attendus
+  ['tasks','packing','events','photos','courses'].forEach(k => { if(!Array.isArray(out[k])) out[k] = []; });
+  ['chaletName','marcName','copineName','albumUrl','notes'].forEach(k => {
+    if(typeof out[k] !== 'string') out[k] = base[k];
+  });
+  // Sanitize URL d'album (se protéger contre javascript: etc.)
+  out.albumUrl = safeUrl(out.albumUrl);
+  // Assurer que chaque item a un id (converti en string) et les champs de base
+  const ensureId = (o, defaults) => {
+    const merged = Object.assign({id:uid()}, defaults, o);
+    merged.id = String(merged.id); // uniformise vers string (cohérent avec uid() et compat ancien schema)
+    return merged;
+  };
+  out.tasks   = out.tasks.filter(t => t && typeof t === 'object').map(t => ensureId(t, {title:'', done:false, priority:'medium', person:'marc', category:'autre'}));
+  out.packing = out.packing.filter(p => p && typeof p === 'object').map(p => ensureId(p, {name:'', packed:false, qty:'1', category:'autre', person:'ensemble'}));
+  out.events  = out.events.filter(e => e && typeof e === 'object').map(e => ensureId(e, {title:'', type:'note', startDate:'', endDate:''}));
+  out.courses = out.courses.filter(c => c && typeof c === 'object').map(c => ensureId(c, {name:'', qty:'1', unit:'', category:'autre', note:'', bought:false, addedBy:'ensemble'}));
+  out.photos  = out.photos.filter(p => p && typeof p === 'object' && typeof p.data === 'string');
+  out.schemaVersion = SCHEMA_VERSION;
+  return out;
+}
+function save(){
+  try{localStorage.setItem('chalet_v3',JSON.stringify(S));return true}
+  catch(e){
+    console.error('Sauvegarde échouée:', e);
+    alert("Espace de stockage plein. Essaie de supprimer des photos (elles prennent beaucoup de place) ou d'exporter puis effacer des anciennes données.");
+    return false;
+  }
+}
+function load(){
+  try{
+    const d=localStorage.getItem('chalet_v3');
+    if(!d) return;
+    const parsed = JSON.parse(d);
+    S = normalizeState(parsed);
+  }catch(e){
+    console.error('Chargement échoué, état par défaut appliqué:', e);
+    S = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  }
+}
+
+/* ══════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════ */
+function go(name){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
+  const sec=document.getElementById('sec-'+name);
+  const nav=document.getElementById('nav-'+name);
+  if(sec)sec.classList.add('on');
+  if(nav)nav.classList.add('active');
+  curSec=name;
+  const fab=document.getElementById('fab');
+  fab.style.display=['tasks','packing','courses','calendar'].includes(name)?'flex':'none';
+  if(name==='dashboard')rDash();
+  if(name==='tasks')rTasks();
+  if(name==='packing')rPacking();
+  if(name==='courses')rCourses();
+  if(name==='calendar')rCal();
+  if(name==='photos')rPhotos();
+  if(name==='settings')rSettings();
+}
+
+function fabAct(){
+  if(curSec==='tasks')openM('taskModal');
+  if(curSec==='packing')openM('packModal');
+  if(curSec==='courses')openM('crsModal');
+  if(curSec==='calendar'){
+    const t=fmtDate(new Date());
+    document.getElementById('evStart').value=t;
+    document.getElementById('evEnd').value=t;
+    openM('evModal');
+  }
+}
+
+function openM(id){document.getElementById(id).classList.add('on')}
+function closeM(id){document.getElementById(id).classList.remove('on')}
+document.querySelectorAll('.m-overlay').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('on')});
+});
+
+/* ══════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════ */
+function esc(s){return s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function safeUrl(u){if(!u)return'';const s=String(u).trim();return /^https?:\/\//i.test(s)?s:''}
+function uid(){return Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)}
+function fmtDate(d){return d.toISOString().split('T')[0]}
+function dispDate(ds){
+  if(!ds)return'';
+  const d=new Date(ds+'T12:00:00');
+  return `${d.getDate()} ${MO_SH[d.getMonth()]}`;
+}
+function pName(p){return p==='marc'?S.marcName:p==='copine'?S.copineName:'Ensemble'}
+function isLate(ds){return ds&&new Date(ds+'T12:00:00')<new Date()}
+function isSoon(ds){if(!ds)return false;const diff=(new Date(ds+'T12:00:00')-new Date())/86400000;return diff>=0&&diff<=7}
+
+/* ══════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════ */
+function rDash(){
+  const today=new Date();today.setHours(0,0,0,0);
+  // Compte à rebours
+  const nxt=S.events.filter(e=>e.type==='sejour'&&new Date(e.startDate)>=today)
+    .sort((a,b)=>a.startDate.localeCompare(b.startDate))[0];
+  if(nxt){
+    const diff=Math.ceil((new Date(nxt.startDate)-today)/86400000);
+    document.getElementById('cdDays').textContent=diff===0?"Aujourd'hui !":"J−"+diff;
+    document.getElementById('cdSub').textContent=esc(nxt.title)+' · '+dispDate(nxt.startDate);
+  }else{
+    document.getElementById('cdDays').textContent='—';
+    document.getElementById('cdSub').textContent='Aucun séjour planifié';
+  }
+  // Stats
+  document.getElementById('stTasks').textContent=S.tasks.filter(t=>!t.done).length;
+  const tot=S.packing.length,pk=S.packing.filter(i=>i.packed).length;
+  document.getElementById('stPacked').textContent=tot?Math.round(pk/tot*100)+'%':'—';
+  document.getElementById('stCourses').textContent=(S.courses||[]).filter(c=>!c.bought).length;
+
+  // Tâches urgentes
+  const urg=S.tasks.filter(t=>!t.done&&(t.priority==='high'||isSoon(t.dueDate))).slice(0,4);
+  const urgEl=document.getElementById('dbUrgent');
+  urgEl.innerHTML=urg.length?urg.map(t=>`
+    <div class="t-item">
+      <div class="t-circle ${t.done?'done':''}" onclick="qToggle('${t.id}')">
+        <svg class="ck" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="t-body">
+        <div class="t-name">${esc(t.title)}</div>
+        <div class="t-chips">
+          <span class="chip ch-${t.priority}">${t.priority==='high'?'Haute':'Moyenne'}</span>
+          ${t.dueDate?`<span class="chip ${isLate(t.dueDate)&&!t.done?'ch-late':'ch-date'}">${dispDate(t.dueDate)}</span>`:''}
+        </div>
+      </div>
+    </div>`).join('')
+    :`<div class="empty" style="padding:16px 0"><div class="empty-title">Aucune tâche urgente</div></div>`;
+
+  // Courses à acheter (top 5)
+  const crs=(S.courses||[]).filter(c=>!c.bought).slice(0,5);
+  const crsEl=document.getElementById('dbCourses');
+  const crsTot=(S.courses||[]).filter(c=>!c.bought).length;
+  crsEl.innerHTML=crs.length?crs.map(c=>`
+    <div class="t-item">
+      <div class="t-circle" onclick="qToggleCourse('${c.id}')">
+        <svg class="ck" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="t-body">
+        <div class="t-name">${esc(c.name)}${(c.qty&&c.qty!=='1')||c.unit?` <span style="color:var(--t3);font-weight:600">· ${esc(c.qty||'')}${c.unit?' '+esc(c.unit):''}</span>`:''}</div>
+        <div class="t-chips"><span class="chip ch-cat">${esc(COURSE_CATS[c.category]||c.category)}</span></div>
+      </div>
+    </div>`).join('')+(crsTot>5?`<div style="font-size:12px;color:var(--t3);margin-top:6px;text-align:center">+ ${crsTot-5} autre${crsTot-5>1?'s':''}</div>`:'')
+    :`<div class="empty" style="padding:16px 0"><div class="empty-title">Rien à acheter 🎉</div></div>`;
+
+  // Événements
+  const evs=S.events.filter(e=>new Date(e.endDate||e.startDate)>=today)
+    .sort((a,b)=>a.startDate.localeCompare(b.startDate)).slice(0,5);
+  const evEl=document.getElementById('dbEvents');
+  evEl.innerHTML=evs.length?evs.map(e=>`
+    <div class="ev-item">
+      <div class="ev-dot" style="background:${EV_COL[e.type]||'#ccc'}"></div>
+      <div class="ev-body">
+        <div class="ev-title">${esc(e.title)}</div>
+        <div class="ev-date">${dispDate(e.startDate)}${e.endDate&&e.endDate!==e.startDate?' → '+dispDate(e.endDate):''}</div>
+      </div>
+    </div>`).join('')
+    :`<div class="empty" style="padding:16px 0"><div class="empty-title">Aucun séjour à venir</div></div>`;
+}
+function qToggle(id){const t=S.tasks.find(x=>x.id===id);if(t){t.done=!t.done;save();rDash()}}
+function qToggleCourse(id){const c=S.courses.find(x=>x.id===id);if(c){c.bought=!c.bought;save();rDash()}}
+
+/* ══════════════════════════════════════════
+   TÂCHES
+══════════════════════════════════════════ */
+function setFilter(f,btn){
+  taskFilter=f;
+  document.querySelectorAll('#taskPills .pill').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');rTasks();
+}
+function saveTask(){
+  const title=document.getElementById('tTitle').value.trim();
+  if(!title){alert('Entrez un titre');return}
+  S.tasks.push({
+    id:uid(),title,
+    category:document.getElementById('tCat').value,
+    priority:document.getElementById('tPrio').value,
+    person:document.getElementById('tPerson').value,
+    dueDate:document.getElementById('tDate').value,
+    notes:document.getElementById('tNotes').value.trim(),
+    done:false
+  });
+  save();closeM('taskModal');
+  ['tTitle','tDate','tNotes'].forEach(id=>document.getElementById(id).value='');
+  rTasks();rDash();
+}
+function toggleTask(id){
+  const t=S.tasks.find(x=>x.id===id);if(t){t.done=!t.done;save();rTasks();rDash()}
+}
+function delTask(id){
+  if(!confirm('Supprimer cette tâche ?'))return;
+  S.tasks=S.tasks.filter(x=>x.id!==id);save();rTasks();rDash();
+}
+function rTasks(){
+  let tasks=[...S.tasks];
+  if(taskFilter==='pending')tasks=tasks.filter(t=>!t.done);
+  else if(taskFilter==='done')tasks=tasks.filter(t=>t.done);
+  else if(taskFilter==='high')tasks=tasks.filter(t=>t.priority==='high'&&!t.done);
+  else if(taskFilter==='marc')tasks=tasks.filter(t=>t.person==='marc');
+  else if(taskFilter==='copine')tasks=tasks.filter(t=>t.person==='copine');
+  tasks.sort((a,b)=>{
+    if(a.done!==b.done)return a.done?1:-1;
+    const po={high:0,medium:1,low:2};
+    if(po[a.priority]!==po[b.priority])return po[a.priority]-po[b.priority];
+    if(a.dueDate&&b.dueDate)return a.dueDate.localeCompare(b.dueDate);
+    return a.dueDate?-1:b.dueDate?1:0;
+  });
+  const el=document.getElementById('taskList');
+  if(!tasks.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ico">${IC.emptyTask}</div><div class="empty-title">Aucune tâche</div><div class="empty-sub">Appuie sur + pour en ajouter une</div></div>`;return;
+  }
+  el.innerHTML=tasks.map(t=>`
+    <div class="t-item">
+      <div class="t-circle ${t.done?'done':''}" onclick="toggleTask('${t.id}')">
+        <svg class="ck" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="t-body">
+        <div class="t-name ${t.done?'done':''}">${esc(t.title)}</div>
+        <div class="t-chips">
+          <span class="chip ch-${t.priority}">${t.priority==='high'?'Haute':t.priority==='medium'?'Moyenne':'Basse'}</span>
+          <span class="chip ch-cat">${TASK_CATS[t.category]||t.category}</span>
+          <span class="chip ch-who">${pName(t.person)}</span>
+          ${t.dueDate?`<span class="chip ${isLate(t.dueDate)&&!t.done?'ch-late':'ch-date'}">${dispDate(t.dueDate)}${isLate(t.dueDate)&&!t.done?' ⚠':''}
+</span>`:''}
+        </div>
+        ${t.notes?`<div class="t-note">${esc(t.notes)}</div>`:''}
+      </div>
+      <button class="del-btn" aria-label="Supprimer la tâche" onclick="delTask('${t.id}')">${IC.trash}</button>
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════════════
+   BAGAGES
+══════════════════════════════════════════ */
+function savePack(){
+  const name=document.getElementById('pName').value.trim();
+  if(!name){alert('Entrez un nom');return}
+  S.packing.push({
+    id:uid(),name,
+    qty:document.getElementById('pQty').value.trim()||'1',
+    category:document.getElementById('pCat').value,
+    person:document.getElementById('pPerson').value,
+    packed:false
+  });
+  save();closeM('packModal');
+  document.getElementById('pName').value='';
+  document.getElementById('pQty').value='';
+  rPacking();
+}
+function togglePack(id){
+  const i=S.packing.find(x=>x.id===id);if(i){i.packed=!i.packed;save();rPacking();rDash()}
+}
+function delPack(id){S.packing=S.packing.filter(x=>x.id!==id);save();rPacking();rDash()}
+function resetPack(){S.packing.forEach(i=>i.packed=false);save();rPacking();rDash()}
+function rPacking(){
+  const tot=S.packing.length,pk=S.packing.filter(i=>i.packed).length;
+  document.getElementById('packPct').textContent=`${pk}/${tot}`;
+  document.getElementById('packBar').style.width=tot?`${pk/tot*100}%`:'0%';
+  const el=document.getElementById('packList');
+  if(!tot){
+    el.innerHTML=`<div class="empty"><div class="empty-ico">${IC.emptyPack}</div><div class="empty-title">Liste vide</div><div class="empty-sub">Appuie sur + pour ajouter des articles</div></div>`;return;
+  }
+  const grp={};
+  Object.keys(PACK_CATS).forEach(c=>grp[c]=[]);
+  S.packing.forEach(i=>{if(!grp[i.category])grp[i.category]=[];grp[i.category].push(i)});
+  el.innerHTML=Object.entries(grp).filter(([,v])=>v.length).map(([cat,items])=>`
+    <div class="cat-grp">
+      <div class="cat-hd">
+        <span class="cat-hd-l">${IC[cat]||IC.autre}${PACK_CATS[cat]||cat}</span>
+        <span class="cat-hd-r">${items.filter(i=>i.packed).length}/${items.length}</span>
+      </div>
+      ${items.map(i=>`
+        <div class="pk-item">
+          <div class="pk-box ${i.packed?'on':''}" onclick="togglePack('${i.id}')">
+            <svg class="ck" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div style="flex:1">
+            <span class="pk-name ${i.packed?'done':''}">${esc(i.name)}</span>
+            ${i.qty&&i.qty!=='1'?`<span class="pk-qty">×${i.qty}</span>`:''}
+            <span class="pk-who">${pName(i.person)}</span>
+          </div>
+          <button class="del-btn" aria-label="Supprimer l'article" onclick="delPack('${i.id}')">${IC.trash}</button>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════════════
+   ÉPICERIE / COURSES
+══════════════════════════════════════════ */
+let crsFilter = 'all';
+function setCrsFilter(f,btn){
+  crsFilter = f;
+  document.querySelectorAll('#crsPills .pill').forEach(p => p.classList.remove('on'));
+  btn.classList.add('on');
+  rCourses();
+}
+function saveCourse(){
+  const name = document.getElementById('cName').value.trim();
+  if(!name){alert('Entre le nom de l\'article');return}
+  const qtyRaw = document.getElementById('cQty').value.trim();
+  S.courses.push({
+    id: uid(),
+    name,
+    qty: qtyRaw || '1',
+    unit: document.getElementById('cUnit').value,
+    category: document.getElementById('cCat').value,
+    note: document.getElementById('cNote').value.trim(),
+    addedBy: document.getElementById('cAdded').value,
+    bought: false
+  });
+  save(); closeM('crsModal');
+  ['cName','cQty','cNote'].forEach(id => document.getElementById(id).value = '');
+  rCourses(); rDash();
+}
+function toggleCourse(id){
+  const c = S.courses.find(x => x.id === id);
+  if(c){ c.bought = !c.bought; save(); rCourses(); rDash(); }
+}
+function delCourse(id){
+  if(!confirm('Retirer cet article ?'))return;
+  S.courses = S.courses.filter(x => x.id !== id);
+  save(); rCourses(); rDash();
+}
+function clearBought(){
+  const n = S.courses.filter(c => c.bought).length;
+  if(!n) return;
+  if(!confirm(`Retirer les ${n} article${n>1?'s':''} déjà acheté${n>1?'s':''} ?`))return;
+  S.courses = S.courses.filter(c => !c.bought);
+  save(); rCourses(); rDash();
+}
+function rCourses(){
+  const tot = S.courses.length;
+  const done = S.courses.filter(c => c.bought).length;
+  document.getElementById('crsPct').textContent = `${done}/${tot}`;
+  document.getElementById('crsBar').style.width = tot ? `${done/tot*100}%` : '0%';
+  document.getElementById('btnClearBought').style.display = done > 0 ? '' : 'none';
+
+  let list = [...S.courses];
+  if(crsFilter === 'todo') list = list.filter(c => !c.bought);
+  else if(crsFilter === 'done') list = list.filter(c => c.bought);
+
+  const el = document.getElementById('crsList');
+  if(!list.length){
+    el.innerHTML = `<div class="empty"><div class="empty-ico">${IC.emptyCrs}</div><div class="empty-title">${tot?'Rien à afficher ici':'Liste vide'}</div><div class="empty-sub">${tot?'Change de filtre pour voir plus':'Appuie sur + pour ajouter un article'}</div></div>`;
+    return;
+  }
+  // Grouper par catégorie dans l'ordre défini
+  const grp = {};
+  Object.keys(COURSE_CATS).forEach(c => grp[c] = []);
+  list.forEach(c => { if(!grp[c.category]) grp[c.category] = []; grp[c.category].push(c); });
+  // Trier: non-achetés d'abord, puis par nom
+  Object.values(grp).forEach(items => items.sort((a,b) => {
+    if(a.bought !== b.bought) return a.bought ? 1 : -1;
+    return a.name.localeCompare(b.name, 'fr');
+  }));
+  el.innerHTML = Object.entries(grp).filter(([,v]) => v.length).map(([cat, items]) => `
+    <div class="cat-grp">
+      <div class="cat-hd">
+        <span class="cat-hd-l">${IC[cat] || IC.autre}${esc(COURSE_CATS[cat] || cat)}</span>
+        <span class="cat-hd-r">${items.filter(i => i.bought).length}/${items.length}</span>
+      </div>
+      ${items.map(c => `
+        <div class="pk-item">
+          <div class="pk-box ${c.bought?'on':''}" onclick="toggleCourse('${c.id}')" role="checkbox" aria-checked="${c.bought}" tabindex="0">
+            <svg class="ck" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div style="flex:1;min-width:0">
+            <span class="pk-name ${c.bought?'done':''}">${esc(c.name)}</span>
+            ${(c.qty && c.qty !== '1') || c.unit ? `<span class="pk-qty">${esc(c.qty || '')}${c.unit?' '+esc(c.unit):''}</span>` : ''}
+            ${c.addedBy && c.addedBy !== 'ensemble' ? `<span class="pk-who">${esc(pName(c.addedBy))}</span>` : ''}
+            ${c.note ? `<div class="t-note" style="margin-top:4px">${esc(c.note)}</div>` : ''}
+          </div>
+          <button class="del-btn" aria-label="Retirer" onclick="delCourse('${c.id}')">${IC.trash}</button>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════════════
+   CALENDRIER
+══════════════════════════════════════════ */
+function shiftM(d){calDate.setMonth(calDate.getMonth()+d);rCal()}
+function saveEvent(){
+  const title=document.getElementById('evTitle').value.trim();
+  const start=document.getElementById('evStart').value;
+  if(!title||!start){alert('Titre et date requis');return}
+  S.events.push({
+    id:uid(),title,
+    type:document.getElementById('evType').value,
+    startDate:start,
+    endDate:document.getElementById('evEnd').value||start
+  });
+  save();closeM('evModal');
+  document.getElementById('evTitle').value='';
+  rCal();rDash();
+}
+function delEvent(id){S.events=S.events.filter(e=>e.id!==id);save();rCal();rDash()}
+function rCal(){
+  const y=calDate.getFullYear(),m=calDate.getMonth();
+  document.getElementById('calTitle').textContent=`${MO_FR[m]} ${y}`;
+  const today=new Date();today.setHours(0,0,0,0);
+  const first=new Date(y,m,1),last=new Date(y,m+1,0);
+  const mEvs=S.events.filter(e=>{
+    const s=new Date(e.startDate),en=new Date(e.endDate||e.startDate);
+    return s<=last&&en>=first;
+  });
+  const DAYS=['Di','Lu','Ma','Me','Je','Ve','Sa'];
+  let html=DAYS.map(d=>`<div class="cal-dh">${d}</div>`).join('');
+  for(let i=0;i<first.getDay();i++){
+    const d=new Date(y,m,1-first.getDay()+i);
+    html+=`<div class="cal-day other">${d.getDate()}</div>`;
+  }
+  for(let day=1;day<=last.getDate();day++){
+    const date=new Date(y,m,day);date.setHours(0,0,0,0);
+    const ds=fmtDate(date);
+    const isToday=date.getTime()===today.getTime();
+    const isSej=mEvs.some(e=>e.type==='sejour'&&new Date(e.startDate)<=date&&new Date(e.endDate||e.startDate)>=date);
+    const hasDot=mEvs.some(e=>{const s=new Date(e.startDate),en=new Date(e.endDate||e.startDate);return date>=s&&date<=en});
+    let cls='cal-day';
+    if(isToday)cls+=' today';else if(isSej)cls+=' sejour';
+    if(hasDot&&!isToday)cls+=' dot';
+    html+=`<div class="${cls}" onclick="calClick('${ds}')">${day}</div>`;
+  }
+  document.getElementById('calGrid').innerHTML=html;
+  const evEl=document.getElementById('evList');
+  if(!mEvs.length){
+    evEl.innerHTML=`<div class="empty" style="padding:16px 0"><div class="empty-ico">${IC.emptyEv}</div><div class="empty-title">Aucun événement ce mois</div></div>`;return;
+  }
+  evEl.innerHTML=[...mEvs].sort((a,b)=>a.startDate.localeCompare(b.startDate)).map(e=>`
+    <div class="ev-item">
+      <div class="ev-dot" style="background:${EV_COL[e.type]||'#ccc'}"></div>
+      <div class="ev-body">
+        <div class="ev-title">${esc(e.title)}</div>
+        <div class="ev-date">${dispDate(e.startDate)}${e.endDate&&e.endDate!==e.startDate?' → '+dispDate(e.endDate):''} · ${e.type==='sejour'?'Séjour':e.type==='task'?'Tâche':'Rappel'}</div>
+      </div>
+      <button class="del-btn" aria-label="Supprimer l'événement" onclick="delEvent('${e.id}')">${IC.trash}</button>
+    </div>`).join('');
+}
+function calClick(ds){
+  document.getElementById('evStart').value=ds;
+  document.getElementById('evEnd').value=ds;
+  openM('evModal');
+}
+
+/* ══════════════════════════════════════════
+   PHOTOS
+══════════════════════════════════════════ */
+function rPhotos(){
+  const d=document.getElementById('albumDisplay');
+  const url=safeUrl(S.albumUrl);
+  d.className=url?'album-link':'album-lbl';
+  d.innerHTML=url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="album-link">Ouvrir l'album →</a>`:'Aucun album configuré';
+  const grid=document.getElementById('photoGrid');
+  if(!S.photos||!S.photos.length){
+    grid.innerHTML=`<div class="empty" style="grid-column:span 2"><div class="empty-ico">${IC.emptyPhoto}</div><div class="empty-title">Ajoute des photos du chalet</div></div>`;return;
+  }
+  grid.innerHTML=S.photos.map((p,i)=>`
+    <div class="photo-wrap">
+      <img src="${esc(p.data)}" class="photo-thumb" onclick="viewPhoto(${i})" alt="${esc(p.name)}">
+      <button class="photo-del" aria-label="Supprimer la photo" onclick="delPhoto(${i})"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>`).join('');
+}
+const MAX_PHOTOS = 8;
+const MAX_PHOTO_BYTES = 8 * 1024 * 1024; // 8 MB avant compression
+function addPhoto(input){
+  const file=input.files[0];
+  const reset=()=>{try{input.value=''}catch(_){}};
+  if(!file){reset();return}
+  if(!S.photos)S.photos=[];
+  if(S.photos.length>=MAX_PHOTOS){
+    alert(`Maximum ${MAX_PHOTOS} photos. Supprime-en avant d'en ajouter.`);
+    reset();return;
+  }
+  if(!/^image\//i.test(file.type)){
+    alert("Ce fichier n'est pas une image.");
+    reset();return;
+  }
+  if(file.size>MAX_PHOTO_BYTES){
+    alert("Photo trop lourde (>8 Mo). Utilise une version plus petite.");
+    reset();return;
+  }
+  const reader=new FileReader();
+  reader.onerror=()=>{alert("Lecture du fichier impossible.");reset()};
+  reader.onload=e=>{
+    if(!e.target.result){alert("Image illisible.");reset();return}
+    const img=new Image();
+    img.onerror=()=>{alert("Format d'image non supporté (essaie JPG ou PNG).");reset()};
+    img.onload=()=>{
+      try{
+        const c=document.createElement('canvas');
+        const M=640;let w=img.width,h=img.height;
+        if(w>M||h>M){if(w>h){h=h*M/w;w=M}else{w=w*M/h;h=M}}
+        c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        S.photos.push({data:c.toDataURL('image/jpeg',.72),name:file.name});
+        if(!save()){
+          // Save a échoué (quota) → retire la photo qu'on vient d'ajouter
+          S.photos.pop();
+        }
+        rPhotos();
+      }catch(err){
+        console.error(err);
+        alert("Impossible de traiter cette photo.");
+      }finally{reset()}
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function delPhoto(i){if(!S.photos||!S.photos[i])return;if(!confirm('Supprimer cette photo ?'))return;S.photos.splice(i,1);save();rPhotos()}
+function viewPhoto(i){
+  const p=S.photos&&S.photos[i];
+  if(!p)return;
+  const lb=document.createElement('div');
+  lb.className='lb';
+  lb.innerHTML=`<img src="${esc(p.data)}" alt=""><button class="lb-close" aria-label="Fermer"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
+  lb.querySelector('.lb-close').onclick=()=>lb.remove();
+  lb.onclick=e=>{if(e.target===lb)lb.remove()};
+  document.body.appendChild(lb);
+}
+function saveAlbum(){
+  const raw=document.getElementById('albumUrl').value.trim();
+  if(raw && !safeUrl(raw)){
+    alert("L'URL doit commencer par https:// (ou http://). Lien ignoré.");
+    return;
+  }
+  S.albumUrl=safeUrl(raw);
+  save();closeM('albumModal');rPhotos();
+}
+
+/* ══════════════════════════════════════════
+   PARAMÈTRES
+══════════════════════════════════════════ */
+function rSettings(){
+  document.getElementById('btnCN').textContent=S.chaletName;
+  document.getElementById('btnMN').textContent=S.marcName;
+  document.getElementById('btnCop').textContent=S.copineName;
+  document.getElementById('notesArea').value=S.notes;
+  syncNames();
+}
+function edit(key){
+  const lbls={chaletName:'Nom du chalet :',marcName:'Votre prénom :',copineName:"Prénom de votre copine :"};
+  const val=prompt(lbls[key],S[key]);
+  if(val&&val.trim()){
+    S[key]=val.trim();save();
+    document.getElementById('hdrTitle').textContent=S.chaletName;
+    rSettings();
+  }
+}
+function syncNames(){
+  document.getElementById('tPM').textContent=S.marcName;
+  document.getElementById('tPC').textContent=S.copineName;
+  document.getElementById('pPM').textContent=S.marcName;
+  document.getElementById('pPC').textContent=S.copineName;
+  document.getElementById('pillM').textContent=S.marcName;
+  document.getElementById('pillC').textContent=S.copineName;
+  const cAM=document.getElementById('cAM'),cAC=document.getElementById('cAC');
+  if(cAM)cAM.textContent=S.marcName;
+  if(cAC)cAC.textContent=S.copineName;
+}
+function saveNotes(){S.notes=document.getElementById('notesArea').value;save()}
+
+/* ══════════════════════════════════════════
+   EXPORT / IMPORT
+══════════════════════════════════════════ */
+function exportData(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:`chalet_${fmtDate(new Date())}.json`});
+  a.click();URL.revokeObjectURL(a.href);
+}
+function importData(input){
+  const file=input.files[0];if(!file){return}
+  const r=new FileReader();
+  r.onerror=()=>{alert('Lecture impossible');input.value=''};
+  r.onload=e=>{
+    try{
+      const parsed = JSON.parse(e.target.result);
+      if(!parsed || typeof parsed !== 'object') throw new Error('Contenu invalide');
+      if(!confirm("Remplacer les données actuelles par celles du fichier ? (pense à exporter d'abord si tu veux les garder)")){input.value='';return}
+      S = normalizeState(parsed);
+      if(save()) location.reload();
+    }catch(err){
+      console.error(err);
+      alert('Fichier invalide ou corrompu');
+    }finally{input.value=''}
+  };
+  r.readAsText(file);
+}
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+function init(){
+  load();
+  const now=new Date();
+  document.getElementById('hdrDate').textContent=
+    `${JR_FR[now.getDay()]} ${now.getDate()} ${MO_FR[now.getMonth()].toLowerCase()} ${now.getFullYear()}`;
+  document.getElementById('hdrTitle').textContent=S.chaletName;
+  syncNames();
+  rDash();
+  document.getElementById('albumUrl').value=S.albumUrl||'';
+}
+init();
+
+/* ══════════════════════════════════════════
+   PWA — service worker
+══════════════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => {
+      console.warn('SW registration failed:', err);
+    });
+  });
+}
+</script>
+</body>
+</html>
