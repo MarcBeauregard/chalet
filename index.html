@@ -121,6 +121,18 @@ input,select,textarea{font-family:inherit}
   color:rgba(255,255,255,.85);transition:background .15s;
 }
 .hdr-btn:active{background:rgba(255,255,255,.15)}
+.hdr-actions{display:flex;align-items:center;gap:10px}
+.sync-dot{
+  width:9px;height:9px;border-radius:50%;
+  background:rgba(255,255,255,.4);
+  transition:background .25s, box-shadow .25s;
+  flex-shrink:0;
+}
+.sync-dot.ok{background:#4ade80;box-shadow:0 0 0 2px rgba(74,222,128,.18)}
+.sync-dot.syncing{background:#fbbf24;box-shadow:0 0 0 2px rgba(251,191,36,.25);animation:syncPulse 1s ease-in-out infinite}
+.sync-dot.error{background:#f87171;box-shadow:0 0 0 2px rgba(248,113,113,.25)}
+.sync-dot.idle{background:rgba(255,255,255,.35)}
+@keyframes syncPulse{ 0%,100%{opacity:1} 50%{opacity:.45} }
 
 /* ══════════════════════════════════════════
    NAV BAS
@@ -521,12 +533,15 @@ input,select,textarea{font-family:inherit}
       <div class="hdr-title" id="hdrTitle">Notre Chalet</div>
       <div class="hdr-date" id="hdrDate"></div>
     </div>
-    <button class="hdr-btn" onclick="go('settings')" aria-label="Paramètres">
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
-      </svg>
-    </button>
+    <div class="hdr-actions">
+      <span id="syncDot" class="sync-dot idle" style="display:none" aria-label="Synchronisation"></span>
+      <button class="hdr-btn" onclick="go('settings')" aria-label="Paramètres">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+      </button>
+    </div>
   </div>
 </header>
 
@@ -725,10 +740,33 @@ input,select,textarea{font-family:inherit}
   </div>
 
   <div class="card">
-    <div class="card-lbl">Synchronisation</div>
+    <div class="card-lbl">Synchronisation cloud</div>
+    <p style="font-size:12.5px;color:var(--t3);margin-bottom:12px;line-height:1.5">Synchronise automatiquement entre toi et ta copine via un Cloudflare Worker. Configure la même URL et le même mot de passe sur les deux appareils.</p>
+    <div class="set-item">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:rgba(74,222,128,.10);color:#0E8C50">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+        </div>
+        <span class="set-lbl" id="syncLblConfig">Configurer</span>
+      </div>
+      <button class="set-btn" onclick="configureSyncPassword()">Configurer</button>
+    </div>
+    <div class="set-item" style="border-bottom:none">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:rgba(74,222,128,.10);color:#0E8C50">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </div>
+        <span class="set-lbl" id="syncStatus">Tester la connexion</span>
+      </div>
+      <button class="set-btn" onclick="testSyncConnection()">Tester</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-lbl">Sauvegarde manuelle</div>
     <div class="sync-banner">
       <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
-      <div class="sync-txt">Exportez le fichier JSON et envoyez-le par iMessage ou AirDrop à votre copine. Elle n'a qu'à l'importer ici.</div>
+      <div class="sync-txt">Export/import JSON, en cas de besoin. La synchro cloud ci-dessus rend ça optionnel.</div>
     </div>
     <div class="set-item">
       <div class="set-left">
@@ -1038,14 +1076,19 @@ const JR_FR  = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi
 /* ══════════════════════════════════════════
    ÉTAT
 ══════════════════════════════════════════ */
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 6;
 const DEFAULT_STATE = {
   schemaVersion: SCHEMA_VERSION,
   chaletName:'Notre Chalet', marcName:'Marc', copineName:'Ma copine',
   tasks:[], packing:[], events:[], albumUrl:'', photos:[], notes:'', courses:[],
   // Météo — défaut: Parent, QC (Haute-Mauricie)
   chaletLat: 47.9228, chaletLon: -74.6228, chaletLocationName: 'Parent, QC',
-  weatherCache: null
+  weatherCache: null,
+  // Synchronisation cloud
+  syncUrl: '', syncKeyHash: '', lastSyncedAt: 0,
+  // Timestamps de modif pour le merge 3-way
+  fieldMtimes: {},
+  deletedIds: { tasks:[], packing:[], events:[], courses:[] }
 };
 let S = JSON.parse(JSON.stringify(DEFAULT_STATE));
 let curSec = 'dashboard';
@@ -1083,21 +1126,48 @@ function normalizeState(raw){
     merged.id = String(merged.id); // uniformise vers string (cohérent avec uid() et compat ancien schema)
     return merged;
   };
-  out.tasks   = out.tasks.filter(t => t && typeof t === 'object').map(t => ensureId(t, {title:'', done:false, priority:'medium', person:'marc', category:'autre'}));
-  out.packing = out.packing.filter(p => p && typeof p === 'object').map(p => ensureId(p, {name:'', packed:false, qty:'1', category:'autre', person:'ensemble'}));
-  out.events  = out.events.filter(e => e && typeof e === 'object').map(e => ensureId(e, {title:'', type:'note', startDate:'', endDate:''}));
-  out.courses = out.courses.filter(c => c && typeof c === 'object').map(c => ensureId(c, {name:'', qty:'1', unit:'', category:'autre', note:'', bought:false, addedBy:'ensemble'}));
+  out.tasks   = out.tasks.filter(t => t && typeof t === 'object').map(t => ensureId(t, {title:'', done:false, priority:'medium', person:'marc', category:'autre', mtime:0}));
+  out.packing = out.packing.filter(p => p && typeof p === 'object').map(p => ensureId(p, {name:'', packed:false, qty:'1', category:'autre', person:'ensemble', mtime:0}));
+  out.events  = out.events.filter(e => e && typeof e === 'object').map(e => ensureId(e, {title:'', type:'note', startDate:'', endDate:'', mtime:0}));
+  out.courses = out.courses.filter(c => c && typeof c === 'object').map(c => ensureId(c, {name:'', qty:'1', unit:'', category:'autre', note:'', bought:false, addedBy:'ensemble', mtime:0}));
   out.photos  = out.photos.filter(p => p && typeof p === 'object' && typeof p.data === 'string');
+  // Normalise mtime pour chaque item (number ≥ 0)
+  ['tasks','packing','events','courses'].forEach(k => {
+    out[k].forEach(it => { if(typeof it.mtime !== 'number' || !isFinite(it.mtime) || it.mtime < 0) it.mtime = 0; });
+  });
+  // Sync state
+  if(typeof out.syncUrl !== 'string') out.syncUrl = '';
+  if(typeof out.syncKeyHash !== 'string' || !/^[a-f0-9]{64}$/.test(out.syncKeyHash)) out.syncKeyHash = '';
+  if(typeof out.lastSyncedAt !== 'number' || !isFinite(out.lastSyncedAt)) out.lastSyncedAt = 0;
+  // fieldMtimes
+  if(!out.fieldMtimes || typeof out.fieldMtimes !== 'object') out.fieldMtimes = {};
+  Object.keys(out.fieldMtimes).forEach(k => {
+    if(typeof out.fieldMtimes[k] !== 'number' || !isFinite(out.fieldMtimes[k])) delete out.fieldMtimes[k];
+  });
+  // deletedIds: tombstones par liste, nettoyés au-delà de 30 jours
+  if(!out.deletedIds || typeof out.deletedIds !== 'object') out.deletedIds = {};
+  const tombCutoff = Date.now() - 30 * 24 * 3600 * 1000;
+  ['tasks','packing','events','courses'].forEach(listName => {
+    const arr = Array.isArray(out.deletedIds[listName]) ? out.deletedIds[listName] : [];
+    out.deletedIds[listName] = arr
+      .filter(t => t && typeof t === 'object' && t.id != null && typeof t.ts === 'number' && t.ts > tombCutoff)
+      .map(t => ({ id: String(t.id), ts: t.ts }));
+  });
   out.schemaVersion = SCHEMA_VERSION;
   return out;
 }
-function save(){
+function saveLocal(){
   try{localStorage.setItem('chalet_v3',JSON.stringify(S));return true}
   catch(e){
     console.error('Sauvegarde échouée:', e);
     alert("Espace de stockage plein. Essaie de supprimer des photos (elles prennent beaucoup de place) ou d'exporter puis effacer des anciennes données.");
     return false;
   }
+}
+function save(){
+  const ok = saveLocal();
+  if(ok && typeof pushSync === 'function') pushSync();
+  return ok;
 }
 function load(){
   try{
@@ -1252,7 +1322,7 @@ function setFilter(f,btn){
 function saveTask(){
   const title=document.getElementById('tTitle').value.trim();
   if(!title){alert('Entrez un titre');return}
-  S.tasks.push({
+  S.tasks.push(stamp({
     id:uid(),title,
     category:document.getElementById('tCat').value,
     priority:document.getElementById('tPrio').value,
@@ -1260,16 +1330,17 @@ function saveTask(){
     dueDate:document.getElementById('tDate').value,
     notes:document.getElementById('tNotes').value.trim(),
     done:false
-  });
+  }));
   save();closeM('taskModal');
   ['tTitle','tDate','tNotes'].forEach(id=>document.getElementById(id).value='');
   rTasks();rDash();
 }
 function toggleTask(id){
-  const t=S.tasks.find(x=>x.id===id);if(t){t.done=!t.done;save();rTasks();rDash()}
+  const t=S.tasks.find(x=>x.id===id);if(t){t.done=!t.done;stamp(t);save();rTasks();rDash()}
 }
 function delTask(id){
   if(!confirm('Supprimer cette tâche ?'))return;
+  addTomb('tasks', id);
   S.tasks=S.tasks.filter(x=>x.id!==id);save();rTasks();rDash();
 }
 function rTasks(){
@@ -1316,23 +1387,26 @@ function rTasks(){
 function savePack(){
   const name=document.getElementById('pName').value.trim();
   if(!name){alert('Entrez un nom');return}
-  S.packing.push({
+  S.packing.push(stamp({
     id:uid(),name,
     qty:document.getElementById('pQty').value.trim()||'1',
     category:document.getElementById('pCat').value,
     person:document.getElementById('pPerson').value,
     packed:false
-  });
+  }));
   save();closeM('packModal');
   document.getElementById('pName').value='';
   document.getElementById('pQty').value='';
   rPacking();
 }
 function togglePack(id){
-  const i=S.packing.find(x=>x.id===id);if(i){i.packed=!i.packed;save();rPacking();rDash()}
+  const i=S.packing.find(x=>x.id===id);if(i){i.packed=!i.packed;stamp(i);save();rPacking();rDash()}
 }
-function delPack(id){S.packing=S.packing.filter(x=>x.id!==id);save();rPacking();rDash()}
-function resetPack(){S.packing.forEach(i=>i.packed=false);save();rPacking();rDash()}
+function delPack(id){
+  addTomb('packing', id);
+  S.packing=S.packing.filter(x=>x.id!==id);save();rPacking();rDash();
+}
+function resetPack(){S.packing.forEach(i=>{i.packed=false;stamp(i)});save();rPacking();rDash()}
 function rPacking(){
   const tot=S.packing.length,pk=S.packing.filter(i=>i.packed).length;
   document.getElementById('packPct').textContent=`${pk}/${tot}`;
@@ -1379,7 +1453,7 @@ function saveCourse(){
   const name = document.getElementById('cName').value.trim();
   if(!name){alert('Entre le nom de l\'article');return}
   const qtyRaw = document.getElementById('cQty').value.trim();
-  S.courses.push({
+  S.courses.push(stamp({
     id: uid(),
     name,
     qty: qtyRaw || '1',
@@ -1388,17 +1462,18 @@ function saveCourse(){
     note: document.getElementById('cNote').value.trim(),
     addedBy: document.getElementById('cAdded').value,
     bought: false
-  });
+  }));
   save(); closeM('crsModal');
   ['cName','cQty','cNote'].forEach(id => document.getElementById(id).value = '');
   rCourses(); rDash();
 }
 function toggleCourse(id){
   const c = S.courses.find(x => x.id === id);
-  if(c){ c.bought = !c.bought; save(); rCourses(); rDash(); }
+  if(c){ c.bought = !c.bought; stamp(c); save(); rCourses(); rDash(); }
 }
 function delCourse(id){
   if(!confirm('Retirer cet article ?'))return;
+  addTomb('courses', id);
   S.courses = S.courses.filter(x => x.id !== id);
   save(); rCourses(); rDash();
 }
@@ -1406,6 +1481,7 @@ function clearBought(){
   const n = S.courses.filter(c => c.bought).length;
   if(!n) return;
   if(!confirm(`Retirer les ${n} article${n>1?'s':''} déjà acheté${n>1?'s':''} ?`))return;
+  S.courses.forEach(c => { if(c.bought) addTomb('courses', c.id); });
   S.courses = S.courses.filter(c => !c.bought);
   save(); rCourses(); rDash();
 }
@@ -1454,6 +1530,219 @@ function rCourses(){
           <button class="del-btn" aria-label="Retirer" onclick="delCourse('${c.id}')">${IC.trash}</button>
         </div>`).join('')}
     </div>`).join('');
+}
+
+/* ══════════════════════════════════════════
+   SYNCHRONISATION CLOUD (Cloudflare Worker + KV)
+══════════════════════════════════════════ */
+const SYNC_SALT = 'chalet-sync-2026-v1';
+const SYNC_PULL_INTERVAL_MS = 30 * 1000;
+const SYNC_PUSH_DEBOUNCE_MS = 1500;
+const SYNC_SYNCABLE_FIELDS = ['chaletName','marcName','copineName','albumUrl','notes','chaletLocationName','chaletLat','chaletLon'];
+
+function now(){ return Date.now(); }
+
+async function hashPassword(pwd){
+  const enc = new TextEncoder();
+  const data = enc.encode(SYNC_SALT + ':' + pwd);
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Marque un item comme modifié
+function stamp(obj){
+  if(obj && typeof obj === 'object') obj.mtime = now();
+  return obj;
+}
+// Marque un champ scalaire modifié
+function stampField(name){
+  if(!S.fieldMtimes) S.fieldMtimes = {};
+  S.fieldMtimes[name] = now();
+}
+// Ajoute un tombstone (suppression propagée)
+function addTomb(listName, id){
+  if(!S.deletedIds) S.deletedIds = {};
+  if(!Array.isArray(S.deletedIds[listName])) S.deletedIds[listName] = [];
+  S.deletedIds[listName].push({ id: String(id), ts: now() });
+}
+
+// Merge 3-way: local + remote → nouvel état. Last-writer-wins par item (via mtime).
+function mergeStates(local, remote){
+  if(!remote || typeof remote !== 'object') return local;
+  const localN = normalizeState(local);
+  const remoteN = normalizeState(remote);
+  const out = JSON.parse(JSON.stringify(localN));
+
+  // 1) Champs scalaires: prendre celui dont le mtime est le plus récent
+  SYNC_SYNCABLE_FIELDS.forEach(field => {
+    const lT = (localN.fieldMtimes && localN.fieldMtimes[field]) || 0;
+    const rT = (remoteN.fieldMtimes && remoteN.fieldMtimes[field]) || 0;
+    if(rT > lT){
+      out[field] = remoteN[field];
+      out.fieldMtimes[field] = rT;
+    }else if(lT > 0){
+      out.fieldMtimes[field] = lT;
+    }
+  });
+
+  // 2) Listes: merge par ID + tombstones
+  ['tasks','packing','events','courses'].forEach(listName => {
+    const localList = localN[listName] || [];
+    const remoteList = remoteN[listName] || [];
+    const localTomb = (localN.deletedIds && localN.deletedIds[listName]) || [];
+    const remoteTomb = (remoteN.deletedIds && remoteN.deletedIds[listName]) || [];
+
+    // Carte des items: pour chaque ID, on garde la version au mtime le plus récent
+    const items = new Map();
+    [...localList, ...remoteList].forEach(it => {
+      if(!it || !it.id) return;
+      const id = String(it.id);
+      const prev = items.get(id);
+      const mt = it.mtime || 0;
+      if(!prev || mt >= (prev.mtime || 0)) items.set(id, it);
+    });
+
+    // Union des tombstones (plus récent gagne)
+    const tombs = new Map();
+    [...localTomb, ...remoteTomb].forEach(t => {
+      if(!t || !t.id) return;
+      const id = String(t.id);
+      const prev = tombs.get(id);
+      if(!prev || t.ts > prev.ts) tombs.set(id, t);
+    });
+
+    // Applique les tombstones: un item n'est gardé que si aucun tombstone plus récent que son mtime n'existe
+    const merged = [];
+    items.forEach((it, id) => {
+      const tb = tombs.get(id);
+      const mt = it.mtime || 0;
+      if(tb && tb.ts > mt) return; // suppression gagne
+      merged.push(it);
+    });
+
+    out[listName] = merged;
+    out.deletedIds[listName] = Array.from(tombs.values());
+  });
+
+  // 3) Non-synchronisé (local-only): photos, weatherCache, métadonnées sync
+  out.photos = localN.photos;
+  out.weatherCache = localN.weatherCache;
+  out.syncUrl = localN.syncUrl;
+  out.syncKeyHash = localN.syncKeyHash;
+  out.lastSyncedAt = now();
+
+  return normalizeState(out);
+}
+
+// Prépare le payload à pousser (exclut les champs local-only)
+function syncPayload(){
+  const p = JSON.parse(JSON.stringify(S));
+  delete p.photos;           // photos trop lourdes, restent locales
+  delete p.weatherCache;     // cache local
+  delete p.syncUrl;
+  delete p.syncKeyHash;
+  delete p.lastSyncedAt;
+  return p;
+}
+
+function syncConfigured(){ return !!(S.syncUrl && S.syncKeyHash); }
+
+let pushTimer = null;
+let pushInFlight = false;
+let pushPending = false;
+function pushSync(){
+  if(!syncConfigured()) return;
+  if(pushTimer) clearTimeout(pushTimer);
+  pushTimer = setTimeout(doPush, SYNC_PUSH_DEBOUNCE_MS);
+}
+async function doPush(){
+  if(!syncConfigured()) return;
+  if(pushInFlight){ pushPending = true; return; }
+  pushInFlight = true;
+  updateSyncIndicator('syncing');
+  try{
+    const r = await fetch(S.syncUrl + '/state', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + S.syncKeyHash
+      },
+      body: JSON.stringify(syncPayload())
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    S.lastSyncedAt = now();
+    saveLocal();
+    updateSyncIndicator('ok');
+  }catch(e){
+    console.warn('Push sync failed:', e);
+    updateSyncIndicator('error');
+  }finally{
+    pushInFlight = false;
+    if(pushPending){ pushPending = false; doPush(); }
+  }
+}
+
+async function pullSync(silent){
+  if(!syncConfigured()) return;
+  if(!silent) updateSyncIndicator('syncing');
+  try{
+    const r = await fetch(S.syncUrl + '/state', {
+      method: 'GET',
+      headers: { 'Authorization': 'Bearer ' + S.syncKeyHash }
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    if(data && data.state){
+      const before = JSON.stringify(syncPayload());
+      const merged = mergeStates(S, data.state);
+      S = merged;
+      const after = JSON.stringify(syncPayload());
+      saveLocal();
+      if(before !== after) rerenderCurrent();
+    }
+    updateSyncIndicator('ok');
+  }catch(e){
+    console.warn('Pull sync failed:', e);
+    updateSyncIndicator('error');
+  }
+}
+
+let pullInterval = null;
+function startSyncEngine(){
+  if(pullInterval){ clearInterval(pullInterval); pullInterval = null; }
+  const dot = document.getElementById('syncDot');
+  if(!syncConfigured()){
+    if(dot) dot.style.display = 'none';
+    return;
+  }
+  if(dot) dot.style.display = '';
+  updateSyncIndicator('idle');
+  pullSync().catch(()=>{});
+  pullInterval = setInterval(() => {
+    if(document.visibilityState === 'visible') pullSync(true).catch(()=>{});
+  }, SYNC_PULL_INTERVAL_MS);
+}
+
+function rerenderCurrent(){
+  if(curSec === 'dashboard') rDash();
+  else if(curSec === 'tasks') rTasks();
+  else if(curSec === 'packing') rPacking();
+  else if(curSec === 'courses') rCourses();
+  else if(curSec === 'calendar') rCal();
+  else if(curSec === 'photos') rPhotos();
+  else if(curSec === 'settings') rSettings();
+}
+
+function updateSyncIndicator(status){
+  const el = document.getElementById('syncDot');
+  if(!el) return;
+  el.className = 'sync-dot ' + (status || 'idle');
+  const lbl = status === 'ok' ? 'Synchronisé'
+           : status === 'syncing' ? 'Synchronisation…'
+           : status === 'error' ? 'Erreur de synchronisation'
+           : syncConfigured() ? 'Synchro activée' : '';
+  el.setAttribute('title', lbl);
+  el.setAttribute('aria-label', lbl);
 }
 
 /* ══════════════════════════════════════════
@@ -1554,17 +1843,20 @@ function saveEvent(){
   const title=document.getElementById('evTitle').value.trim();
   const start=document.getElementById('evStart').value;
   if(!title||!start){alert('Titre et date requis');return}
-  S.events.push({
+  S.events.push(stamp({
     id:uid(),title,
     type:document.getElementById('evType').value,
     startDate:start,
     endDate:document.getElementById('evEnd').value||start
-  });
+  }));
   save();closeM('evModal');
   document.getElementById('evTitle').value='';
   rCal();rDash();
 }
-function delEvent(id){S.events=S.events.filter(e=>e.id!==id);save();rCal();rDash()}
+function delEvent(id){
+  addTomb('events', id);
+  S.events=S.events.filter(e=>e.id!==id);save();rCal();rDash();
+}
 function rCal(){
   const y=calDate.getFullYear(),m=calDate.getMonth();
   document.getElementById('calTitle').textContent=`${MO_FR[m]} ${y}`;
@@ -1722,6 +2014,7 @@ function saveAlbum(){
     return;
   }
   S.albumUrl=safeUrl(raw);
+  stampField('albumUrl');
   save();closeM('albumModal');rPhotos();
 }
 
@@ -1736,7 +2029,85 @@ function rSettings(){
   const bl = document.getElementById('btnLoc');
   if(bl) bl.textContent = S.chaletLocationName || 'Non défini';
   updateWxStatusLabel();
+  updateSyncSettingsLabels();
   syncNames();
+}
+function updateSyncSettingsLabels(){
+  const cfg = document.getElementById('syncLblConfig');
+  if(cfg){
+    if(syncConfigured()){
+      // Affiche un morceau de l'URL (sans dévoiler le hash complet)
+      let host = S.syncUrl;
+      try{ host = new URL(S.syncUrl).hostname; }catch(_){}
+      cfg.textContent = 'Activée — ' + host;
+    }else{
+      cfg.textContent = 'Non configurée';
+    }
+  }
+  const st = document.getElementById('syncStatus');
+  if(st && !syncConfigured()) st.textContent = 'Configure d\'abord';
+}
+async function configureSyncPassword(){
+  const currentUrl = S.syncUrl || 'https://chalet-sync.<ton-sous-domaine>.workers.dev';
+  const url = prompt("URL du Worker Cloudflare :\n(ex: https://chalet-sync.marc-beauregard.workers.dev)", currentUrl);
+  if(url === null) return;
+  const trimmed = url.trim();
+  if(trimmed === ''){
+    if(confirm('Désactiver la synchronisation cloud ?')){
+      S.syncUrl = '';
+      S.syncKeyHash = '';
+      save();
+      rSettings();
+      startSyncEngine();
+      alert('Synchronisation désactivée. Tes données restent sur cet appareil.');
+    }
+    return;
+  }
+  if(!/^https:\/\/[a-z0-9.-]+\.workers\.dev\/?$/i.test(trimmed) && !/^https:\/\/[a-z0-9.-]+\//i.test(trimmed)){
+    alert('URL invalide. Elle doit commencer par https:// et pointer vers un Worker Cloudflare.');
+    return;
+  }
+  const pwd = prompt("Mot de passe partagé (≥ 12 caractères) :\nATTENTION: ta copine doit taper exactement le même.", '');
+  if(pwd === null) return;
+  if(pwd.length < 12){
+    alert('Mot de passe trop court (minimum 12 caractères).');
+    return;
+  }
+  const hash = await hashPassword(pwd);
+  S.syncUrl = trimmed.replace(/\/+$/, '');
+  S.syncKeyHash = hash;
+  saveLocal(); // sauve sans push (pas encore certain que ça marche)
+  rSettings();
+  // Teste la connexion, puis lance l'engine
+  const ok = await testSyncConnection();
+  if(ok){
+    startSyncEngine();
+    alert('Synchronisation activée ! Tes données seront synchronisées automatiquement.');
+  }else{
+    alert('Synchro configurée mais le test a échoué. Vérifie l\'URL, puis réessaie avec "Tester".');
+  }
+}
+async function testSyncConnection(){
+  const status = document.getElementById('syncStatus');
+  if(!syncConfigured()){
+    if(status) status.textContent = 'Configure d\'abord';
+    return false;
+  }
+  if(status) status.textContent = 'Test en cours…';
+  try{
+    const r = await fetch(S.syncUrl + '/state', {
+      headers: { 'Authorization': 'Bearer ' + S.syncKeyHash }
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    const hasData = data && data.state ? ' (données distantes présentes)' : ' (aucune donnée distante encore)';
+    if(status) status.textContent = '✓ Connexion OK' + hasData;
+    return true;
+  }catch(e){
+    console.warn('Test sync failed:', e);
+    if(status) status.textContent = '✗ Erreur : ' + (e.message || 'réseau');
+    return false;
+  }
 }
 function updateWxStatusLabel(){
   const el = document.getElementById('wxStatus');
@@ -1769,6 +2140,9 @@ function editLoc(){
   S.chaletLocationName = name.trim();
   S.chaletLat = latN;
   S.chaletLon = lonN;
+  stampField('chaletLocationName');
+  stampField('chaletLat');
+  stampField('chaletLon');
   S.weatherCache = null;
   if(save()){
     document.getElementById('btnLoc').textContent = S.chaletLocationName;
@@ -1787,6 +2161,9 @@ function useCurrentLoc(){
       S.chaletLat = Math.round(pos.coords.latitude * 10000) / 10000;
       S.chaletLon = Math.round(pos.coords.longitude * 10000) / 10000;
       S.chaletLocationName = `${S.chaletLat.toFixed(3)}, ${S.chaletLon.toFixed(3)}`;
+      stampField('chaletLocationName');
+      stampField('chaletLat');
+      stampField('chaletLon');
       S.weatherCache = null;
       if(save()){
         const bl = document.getElementById('btnLoc');
@@ -1822,7 +2199,9 @@ function edit(key){
   const lbls={chaletName:'Nom du chalet :',marcName:'Votre prénom :',copineName:"Prénom de votre copine :"};
   const val=prompt(lbls[key],S[key]);
   if(val&&val.trim()){
-    S[key]=val.trim();save();
+    S[key]=val.trim();
+    stampField(key);
+    save();
     document.getElementById('hdrTitle').textContent=S.chaletName;
     rSettings();
   }
@@ -1838,7 +2217,7 @@ function syncNames(){
   if(cAM)cAM.textContent=S.marcName;
   if(cAC)cAC.textContent=S.copineName;
 }
-function saveNotes(){S.notes=document.getElementById('notesArea').value;save()}
+function saveNotes(){S.notes=document.getElementById('notesArea').value;stampField('notes');save()}
 
 /* ══════════════════════════════════════════
    EXPORT / IMPORT
@@ -1872,16 +2251,24 @@ function importData(input){
 ══════════════════════════════════════════ */
 function init(){
   load();
-  const now=new Date();
+  const nowD=new Date();
   document.getElementById('hdrDate').textContent=
-    `${JR_FR[now.getDay()]} ${now.getDate()} ${MO_FR[now.getMonth()].toLowerCase()} ${now.getFullYear()}`;
+    `${JR_FR[nowD.getDay()]} ${nowD.getDate()} ${MO_FR[nowD.getMonth()].toLowerCase()} ${nowD.getFullYear()}`;
   document.getElementById('hdrTitle').textContent=S.chaletName;
   syncNames();
   rDash();
   document.getElementById('albumUrl').value=S.albumUrl||'';
   // Lance un fetch météo en arrière-plan (respecte le cache 1h)
   refreshWeather().catch(e => console.warn('Initial weather fetch failed:', e));
+  // Démarre la synchro cloud si configurée
+  startSyncEngine();
 }
+// Re-sync quand l'onglet redevient visible (ex: l'iPhone a dormi)
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && typeof pullSync === 'function' && syncConfigured()){
+    pullSync(true).catch(()=>{});
+  }
+});
 init();
 
 /* ══════════════════════════════════════════
