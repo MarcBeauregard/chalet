@@ -85,7 +85,7 @@ body{
   background:var(--bg);
   color:var(--t);
   min-height:100vh;
-  padding-bottom:calc(var(--nav-h) + 8px);
+  padding-bottom:calc(var(--nav-h) + 8px + env(safe-area-inset-bottom,0px));
   -webkit-tap-highlight-color:transparent;
   -webkit-font-smoothing:antialiased;
   overflow-x:hidden;
@@ -99,7 +99,7 @@ input,select,textarea{font-family:inherit}
 .app-header{
   background:linear-gradient(148deg,#72481E 0%,#3E2208 100%);
   color:var(--white);
-  padding:18px var(--s5) var(--s4);
+  padding:calc(18px + env(safe-area-inset-top,0px)) calc(var(--s5) + env(safe-area-inset-right,0px)) var(--s4) calc(var(--s5) + env(safe-area-inset-left,0px));
   position:sticky;top:0;z-index:100;
   overflow:hidden;
 }
