@@ -336,16 +336,46 @@ input,select,textarea{font-family:inherit}
   justify-content:center;border-radius:var(--r-m);
   font-size:13px;font-weight:500;cursor:pointer;
   position:relative;transition:background .15s;
+  gap:1px;padding:3px 2px;overflow:hidden;
 }
+.cal-day .d-num{line-height:1}
+.cal-wx{
+  display:inline-flex;align-items:center;gap:2px;
+  font-size:9.5px;font-weight:700;line-height:1;
+  color:var(--t3);white-space:nowrap;
+}
+.cal-wx svg{width:11px;height:11px;flex-shrink:0}
+.cal-day.today .cal-wx{color:rgba(255,255,255,.95)}
+.cal-day.sejour:not(.today) .cal-wx{color:var(--s)}
 .cal-day:hover:not(.today){background:var(--p-tint-2)}
 .cal-day.today{background:var(--p);color:white;font-weight:800}
 .cal-day.sejour:not(.today){background:var(--s-tint);color:var(--s);font-weight:700}
 .cal-day.dot::after{
-  content:'';position:absolute;bottom:4px;
+  content:'';position:absolute;top:3px;right:4px;
   width:4px;height:4px;background:var(--a);border-radius:var(--r-f);
 }
-.cal-day.today.dot::after{background:rgba(255,255,255,.75)}
+.cal-day.today.dot::after{background:rgba(255,255,255,.85)}
 .cal-day.other{opacity:.22;cursor:default;pointer-events:none}
+
+/* Panneau météo dans le modal événement */
+.ev-wx-box{
+  align-items:center;gap:12px;
+  padding:11px 13px;margin-bottom:14px;
+  background:linear-gradient(135deg,var(--p-tint-2),var(--p-tint));
+  border-radius:var(--r-m);
+}
+.ev-wx-icon{
+  display:flex;align-items:center;justify-content:center;
+  width:38px;height:38px;flex-shrink:0;color:var(--p);
+}
+.ev-wx-icon svg{width:30px;height:30px}
+.ev-wx-info{flex:1;min-width:0}
+.ev-wx-date{font-size:11.5px;color:var(--t2);font-weight:600;text-transform:capitalize}
+.ev-wx-label{font-size:14px;color:var(--t);font-weight:700;letter-spacing:-.2px;margin-top:1px}
+.ev-wx-sub{font-size:11px;color:var(--t3);margin-top:2px}
+.ev-wx-temp{text-align:right;flex-shrink:0}
+.ev-wx-max{font-size:22px;color:var(--p);font-weight:800;line-height:1}
+.ev-wx-min{font-size:11px;color:var(--t3);font-weight:600;margin-top:3px}
 
 .ev-item{display:flex;align-items:center;gap:var(--s3);padding:10px 0;border-bottom:1px solid var(--border)}
 .ev-item:last-child{border-bottom:none;padding-bottom:0}
@@ -663,6 +693,38 @@ input,select,textarea{font-family:inherit}
   </div>
 
   <div class="card">
+    <div class="card-lbl">Météo</div>
+    <p style="font-size:12.5px;color:var(--t3);margin-bottom:12px;line-height:1.5">Température et prévisions sur 16 jours directement dans l'agenda. Fournies par Open-Meteo (gratuit, sans compte).</p>
+    <div class="set-item">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:rgba(27,127,171,.10);color:#1B7FAB">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/></svg>
+        </div>
+        <span class="set-lbl">Localisation</span>
+      </div>
+      <button class="set-btn" id="btnLoc" onclick="editLoc()">Parent, QC</button>
+    </div>
+    <div class="set-item">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:rgba(27,127,171,.10);color:#1B7FAB">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><circle cx="12" cy="12" r="2"/></svg>
+        </div>
+        <span class="set-lbl">Utiliser ma position</span>
+      </div>
+      <button class="set-btn" onclick="useCurrentLoc()">Détecter</button>
+    </div>
+    <div class="set-item" style="border-bottom:none">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:rgba(27,127,171,.10);color:#1B7FAB">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </div>
+        <span class="set-lbl" id="wxStatus">Rafraîchir la météo</span>
+      </div>
+      <button class="set-btn" onclick="manualRefreshWeather()">Rafraîchir</button>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="card-lbl">Synchronisation</div>
     <div class="sync-banner">
       <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
@@ -876,6 +938,7 @@ input,select,textarea{font-family:inherit}
       <div class="m-title">Ajouter un événement</div>
       <button class="m-close" aria-label="Fermer" onclick="closeM('evModal')"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
+    <div id="evWxBox" class="ev-wx-box" style="display:none"></div>
     <div class="fg"><label>Titre *</label><input class="fi" id="evTitle" placeholder="Ex: Weekend au chalet"></div>
     <div class="fg"><label>Type</label>
       <select class="fs" id="evType">
@@ -884,7 +947,7 @@ input,select,textarea{font-family:inherit}
         <option value="note">Rappel</option>
       </select>
     </div>
-    <div class="fg"><label>Date de début *</label><input type="date" class="fi" id="evStart"></div>
+    <div class="fg"><label>Date de début *</label><input type="date" class="fi" id="evStart" onchange="renderEvWxBox(this.value)"></div>
     <div class="fg"><label>Date de fin (si séjour)</label><input type="date" class="fi" id="evEnd"></div>
     <button class="btn-p" onclick="saveEvent()">Ajouter</button>
     <button class="btn-g" onclick="closeM('evModal')">Annuler</button>
@@ -975,11 +1038,14 @@ const JR_FR  = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi
 /* ══════════════════════════════════════════
    ÉTAT
 ══════════════════════════════════════════ */
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 const DEFAULT_STATE = {
   schemaVersion: SCHEMA_VERSION,
   chaletName:'Notre Chalet', marcName:'Marc', copineName:'Ma copine',
-  tasks:[], packing:[], events:[], albumUrl:'', photos:[], notes:'', courses:[]
+  tasks:[], packing:[], events:[], albumUrl:'', photos:[], notes:'', courses:[],
+  // Météo — défaut: Parent, QC (Haute-Mauricie)
+  chaletLat: 47.9228, chaletLon: -74.6228, chaletLocationName: 'Parent, QC',
+  weatherCache: null
 };
 let S = JSON.parse(JSON.stringify(DEFAULT_STATE));
 let curSec = 'dashboard';
@@ -996,11 +1062,21 @@ function normalizeState(raw){
   const out = Object.assign(base, raw);
   // Forcer les types attendus
   ['tasks','packing','events','photos','courses'].forEach(k => { if(!Array.isArray(out[k])) out[k] = []; });
-  ['chaletName','marcName','copineName','albumUrl','notes'].forEach(k => {
+  ['chaletName','marcName','copineName','albumUrl','notes','chaletLocationName'].forEach(k => {
     if(typeof out[k] !== 'string') out[k] = base[k];
   });
   // Sanitize URL d'album (se protéger contre javascript: etc.)
   out.albumUrl = safeUrl(out.albumUrl);
+  // Coordonnées météo
+  if(typeof out.chaletLat !== 'number' || !isFinite(out.chaletLat)) out.chaletLat = base.chaletLat;
+  if(typeof out.chaletLon !== 'number' || !isFinite(out.chaletLon)) out.chaletLon = base.chaletLon;
+  // Cache météo (objet {ts, lat, lon, days[]}) ou null
+  const wc = out.weatherCache;
+  if(wc && typeof wc === 'object' && Array.isArray(wc.days) && typeof wc.ts === 'number'){
+    out.weatherCache = wc;
+  }else{
+    out.weatherCache = null;
+  }
   // Assurer que chaque item a un id (converti en string) et les champs de base
   const ensureId = (o, defaults) => {
     const merged = Object.assign({id:uid()}, defaults, o);
@@ -1052,7 +1128,7 @@ function go(name){
   if(name==='tasks')rTasks();
   if(name==='packing')rPacking();
   if(name==='courses')rCourses();
-  if(name==='calendar')rCal();
+  if(name==='calendar'){rCal();refreshWeather().catch(()=>{})}
   if(name==='photos')rPhotos();
   if(name==='settings')rSettings();
 }
@@ -1065,6 +1141,7 @@ function fabAct(){
     const t=fmtDate(new Date());
     document.getElementById('evStart').value=t;
     document.getElementById('evEnd').value=t;
+    renderEvWxBox(t);
     openM('evModal');
   }
 }
@@ -1380,6 +1457,96 @@ function rCourses(){
 }
 
 /* ══════════════════════════════════════════
+   MÉTÉO (Open-Meteo, sans clé API)
+══════════════════════════════════════════ */
+const WX_LABEL = {
+  0:'Ciel dégagé', 1:'Plutôt clair', 2:'Partiellement nuageux', 3:'Couvert',
+  45:'Brouillard', 48:'Brouillard givrant',
+  51:'Bruine légère', 53:'Bruine modérée', 55:'Bruine dense',
+  56:'Bruine verglaçante légère', 57:'Bruine verglaçante dense',
+  61:'Pluie légère', 63:'Pluie modérée', 65:'Pluie forte',
+  66:'Pluie verglaçante légère', 67:'Pluie verglaçante forte',
+  71:'Neige légère', 73:'Neige modérée', 75:'Neige forte', 77:'Grains de neige',
+  80:'Averses légères', 81:'Averses modérées', 82:'Averses violentes',
+  85:'Averses de neige légères', 86:'Averses de neige fortes',
+  95:'Orage', 96:'Orage + grêle', 99:'Orage + forte grêle'
+};
+const WX_SVG = {
+  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2.5" x2="12" y2="4.5"/><line x1="12" y1="19.5" x2="12" y2="21.5"/><line x1="4.6" y1="4.6" x2="6" y2="6"/><line x1="18" y1="18" x2="19.4" y2="19.4"/><line x1="2.5" y1="12" x2="4.5" y2="12"/><line x1="19.5" y1="12" x2="21.5" y2="12"/><line x1="4.6" y1="19.4" x2="6" y2="18"/><line x1="18" y1="6" x2="19.4" y2="4.6"/></svg>',
+  cloudSun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="8" r="2.6"/><line x1="7" y1="2.8" x2="7" y2="4"/><line x1="2.4" y1="8" x2="3.6" y2="8"/><line x1="3.6" y1="4.6" x2="4.4" y2="5.4"/><line x1="9.6" y1="4.6" x2="10.4" y2="5.4"/><path d="M18 18a4 4 0 0 0 0-8h-.8a6.5 6.5 0 0 0-12.2 3A4 4 0 0 0 8 18z"/></svg>',
+  cloud:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 18a4 4 0 0 0 0-8h-1.26A8 8 0 1 0 4 16.25"/></svg>',
+  fog:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 8h18M3 12h18M3 16h18M5 20h12"/></svg>',
+  drizzle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13a4 4 0 0 0-4-4h-1.26A8 8 0 1 0 3 12"/><line x1="8" y1="16" x2="8" y2="18"/><line x1="12" y1="17" x2="12" y2="19"/><line x1="16" y1="16" x2="16" y2="18"/></svg>',
+  rain:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13a4 4 0 0 0-4-4h-1.26A8 8 0 1 0 3 12"/><line x1="8" y1="15" x2="8" y2="21"/><line x1="12" y1="16" x2="12" y2="22"/><line x1="16" y1="15" x2="16" y2="21"/></svg>',
+  snow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13a4 4 0 0 0-4-4h-1.26A8 8 0 1 0 3 12"/><circle cx="8" cy="18" r=".8" fill="currentColor"/><circle cx="12" cy="19.5" r=".8" fill="currentColor"/><circle cx="16" cy="18" r=".8" fill="currentColor"/></svg>',
+  thunder:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14a4 4 0 0 0-4-4h-1.26A8 8 0 1 0 4 15"/><polyline points="13 11 9 17 13 17 11 22"/></svg>'
+};
+function wxIcon(code){
+  if(code==null) return 'cloud';
+  if(code===0) return 'sun';
+  if(code<=2) return 'cloudSun';
+  if(code===3) return 'cloud';
+  if(code===45||code===48) return 'fog';
+  if(code>=51&&code<=57) return 'drizzle';
+  if(code>=61&&code<=67) return 'rain';
+  if(code>=71&&code<=77) return 'snow';
+  if(code===85||code===86) return 'snow';
+  if(code>=80&&code<=82) return 'rain';
+  if(code>=95) return 'thunder';
+  return 'cloud';
+}
+function wxLabel(code){ return WX_LABEL[code] || 'Météo inconnue'; }
+function wxChipHtml(day){
+  if(!day || day.tMax==null) return '';
+  const icon = wxIcon(day.code);
+  const lbl = `${wxLabel(day.code)}, max ${day.tMax}°, min ${day.tMin}°`;
+  return `<span class="cal-wx" aria-label="${esc(lbl)}">${WX_SVG[icon]}<span>${day.tMax}°</span></span>`;
+}
+function wxByDate(){
+  const wc = S.weatherCache;
+  if(!wc || !Array.isArray(wc.days)) return {};
+  const m = {};
+  wc.days.forEach(d => { if(d && d.date) m[d.date] = d; });
+  return m;
+}
+async function fetchWeather(force){
+  if(typeof S.chaletLat!=='number' || typeof S.chaletLon!=='number') return null;
+  const now = Date.now();
+  const cache = S.weatherCache;
+  // Cache 1h si même localisation
+  if(!force && cache && cache.ts && (now - cache.ts) < 3600000
+     && cache.lat===S.chaletLat && cache.lon===S.chaletLon){
+    return cache;
+  }
+  try{
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(S.chaletLat)}&longitude=${encodeURIComponent(S.chaletLon)}&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_sum&timezone=auto&forecast_days=16`;
+    const r = await fetch(url);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const j = await r.json();
+    const times = (j.daily && j.daily.time) || [];
+    const days = times.map((date, i)=>({
+      date,
+      tMax: Math.round(j.daily.temperature_2m_max[i]),
+      tMin: Math.round(j.daily.temperature_2m_min[i]),
+      code: j.daily.weather_code[i],
+      precip: Math.round((j.daily.precipitation_sum[i]||0)*10)/10
+    }));
+    S.weatherCache = {ts:now, lat:S.chaletLat, lon:S.chaletLon, days};
+    save();
+    return S.weatherCache;
+  }catch(e){
+    console.warn('Météo — fetch échoué:', e);
+    return cache || null;
+  }
+}
+async function refreshWeather(force){
+  const wx = await fetchWeather(force);
+  if(curSec==='calendar') rCal();
+  if(curSec==='dashboard') rDash();
+  return wx;
+}
+
+/* ══════════════════════════════════════════
    CALENDRIER
 ══════════════════════════════════════════ */
 function shiftM(d){calDate.setMonth(calDate.getMonth()+d);rCal()}
@@ -1407,6 +1574,7 @@ function rCal(){
     const s=new Date(e.startDate),en=new Date(e.endDate||e.startDate);
     return s<=last&&en>=first;
   });
+  const wxMap = wxByDate();
   const DAYS=['Di','Lu','Ma','Me','Je','Ve','Sa'];
   let html=DAYS.map(d=>`<div class="cal-dh">${d}</div>`).join('');
   for(let i=0;i<first.getDay();i++){
@@ -1422,7 +1590,8 @@ function rCal(){
     let cls='cal-day';
     if(isToday)cls+=' today';else if(isSej)cls+=' sejour';
     if(hasDot&&!isToday)cls+=' dot';
-    html+=`<div class="${cls}" onclick="calClick('${ds}')">${day}</div>`;
+    const wd = wxMap[ds];
+    html+=`<div class="${cls}" onclick="calClick('${ds}')"><span class="d-num">${day}</span>${wd?wxChipHtml(wd):''}</div>`;
   }
   document.getElementById('calGrid').innerHTML=html;
   const evEl=document.getElementById('evList');
@@ -1442,7 +1611,32 @@ function rCal(){
 function calClick(ds){
   document.getElementById('evStart').value=ds;
   document.getElementById('evEnd').value=ds;
+  renderEvWxBox(ds);
   openM('evModal');
+}
+function renderEvWxBox(ds){
+  const box = document.getElementById('evWxBox');
+  if(!box) return;
+  const wx = wxByDate()[ds];
+  if(!wx || wx.tMax==null){
+    box.style.display = 'none';
+    box.innerHTML = '';
+    return;
+  }
+  const icon = wxIcon(wx.code);
+  const precipTxt = wx.precip>0 ? `${wx.precip} mm` : '—';
+  box.style.display = 'flex';
+  box.innerHTML = `
+    <div class="ev-wx-icon">${WX_SVG[icon]||WX_SVG.cloud}</div>
+    <div class="ev-wx-info">
+      <div class="ev-wx-date">${esc(dispDate(ds))}</div>
+      <div class="ev-wx-label">${esc(wxLabel(wx.code))}</div>
+      <div class="ev-wx-sub">Précipitations: ${esc(precipTxt)}</div>
+    </div>
+    <div class="ev-wx-temp">
+      <div class="ev-wx-max">${wx.tMax}°</div>
+      <div class="ev-wx-min">min ${wx.tMin}°</div>
+    </div>`;
 }
 
 /* ══════════════════════════════════════════
@@ -1539,7 +1733,90 @@ function rSettings(){
   document.getElementById('btnMN').textContent=S.marcName;
   document.getElementById('btnCop').textContent=S.copineName;
   document.getElementById('notesArea').value=S.notes;
+  const bl = document.getElementById('btnLoc');
+  if(bl) bl.textContent = S.chaletLocationName || 'Non défini';
+  updateWxStatusLabel();
   syncNames();
+}
+function updateWxStatusLabel(){
+  const el = document.getElementById('wxStatus');
+  if(!el) return;
+  const wc = S.weatherCache;
+  if(wc && wc.ts){
+    const diff = Date.now() - wc.ts;
+    let ago;
+    if(diff < 60000) ago = "à l'instant";
+    else if(diff < 3600000) ago = `il y a ${Math.floor(diff/60000)} min`;
+    else if(diff < 86400000) ago = `il y a ${Math.floor(diff/3600000)} h`;
+    else ago = `il y a ${Math.floor(diff/86400000)} j`;
+    el.textContent = `Dernière mise à jour ${ago}`;
+  }else{
+    el.textContent = 'Rafraîchir la météo';
+  }
+}
+function editLoc(){
+  const name = prompt("Nom de la localisation (ex: Parent, QC) :", S.chaletLocationName || '');
+  if(name===null) return;
+  if(!name.trim()){alert('Le nom ne peut pas être vide.');return}
+  const lat = prompt("Latitude (ex: 47.9228) :", String(S.chaletLat));
+  if(lat===null) return;
+  const latN = parseFloat(lat);
+  if(isNaN(latN) || latN<-90 || latN>90){alert('Latitude invalide (doit être entre -90 et 90).');return}
+  const lon = prompt("Longitude (ex: -74.6228) :", String(S.chaletLon));
+  if(lon===null) return;
+  const lonN = parseFloat(lon);
+  if(isNaN(lonN) || lonN<-180 || lonN>180){alert('Longitude invalide (doit être entre -180 et 180).');return}
+  S.chaletLocationName = name.trim();
+  S.chaletLat = latN;
+  S.chaletLon = lonN;
+  S.weatherCache = null;
+  if(save()){
+    document.getElementById('btnLoc').textContent = S.chaletLocationName;
+    manualRefreshWeather();
+  }
+}
+function useCurrentLoc(){
+  if(!navigator.geolocation){
+    alert("La géolocalisation n'est pas disponible sur cet appareil.");
+    return;
+  }
+  const status = document.getElementById('wxStatus');
+  if(status) status.textContent = 'Détection en cours…';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      S.chaletLat = Math.round(pos.coords.latitude * 10000) / 10000;
+      S.chaletLon = Math.round(pos.coords.longitude * 10000) / 10000;
+      S.chaletLocationName = `${S.chaletLat.toFixed(3)}, ${S.chaletLon.toFixed(3)}`;
+      S.weatherCache = null;
+      if(save()){
+        const bl = document.getElementById('btnLoc');
+        if(bl) bl.textContent = S.chaletLocationName;
+        manualRefreshWeather();
+      }
+    },
+    (err) => {
+      console.warn('Géoloc:', err);
+      updateWxStatusLabel();
+      const msg = err.code===1 ? 'Permission refusée. Active la localisation dans les réglages de ton navigateur.'
+                : err.code===2 ? 'Position indisponible. Essaie de te rapprocher d\'une fenêtre.'
+                : err.code===3 ? 'Délai dépassé. Réessaie.'
+                : 'Impossible d\'obtenir la position.';
+      alert(msg);
+    },
+    {enableHighAccuracy:false, timeout:10000, maximumAge:60000}
+  );
+}
+async function manualRefreshWeather(){
+  const status = document.getElementById('wxStatus');
+  if(status) status.textContent = 'Mise à jour en cours…';
+  const wx = await fetchWeather(true);
+  if(wx && Array.isArray(wx.days) && wx.days.length){
+    updateWxStatusLabel();
+  }else{
+    if(status) status.textContent = 'Échec — vérifie ta connexion';
+  }
+  if(curSec==='calendar') rCal();
+  if(curSec==='dashboard') rDash();
 }
 function edit(key){
   const lbls={chaletName:'Nom du chalet :',marcName:'Votre prénom :',copineName:"Prénom de votre copine :"};
@@ -1602,6 +1879,8 @@ function init(){
   syncNames();
   rDash();
   document.getElementById('albumUrl').value=S.albumUrl||'';
+  // Lance un fetch météo en arrière-plan (respecte le cache 1h)
+  refreshWeather().catch(e => console.warn('Initial weather fetch failed:', e));
 }
 init();
 
