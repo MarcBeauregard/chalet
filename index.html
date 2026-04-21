@@ -1076,7 +1076,7 @@ const JR_FR  = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi
 /* ══════════════════════════════════════════
    ÉTAT
 ══════════════════════════════════════════ */
-const SCHEMA_VERSION = 6;
+const SCHEMA_VERSION = 7;
 const DEFAULT_STATE = {
   schemaVersion: SCHEMA_VERSION,
   chaletName:'Notre Chalet', marcName:'Marc', copineName:'Ma copine',
@@ -1138,6 +1138,11 @@ function normalizeState(raw){
   // Sync state
   if(typeof out.syncUrl !== 'string') out.syncUrl = '';
   if(typeof out.syncKeyHash !== 'string' || !/^[a-f0-9]{64}$/.test(out.syncKeyHash)) out.syncKeyHash = '';
+  // Migration v6→v7: pré-remplir l'URL du Worker pour les états sauvegardés avant ce fix
+  const prevSchema = raw && typeof raw.schemaVersion === 'number' ? raw.schemaVersion : 0;
+  if(prevSchema < 7 && out.syncUrl === '' && DEFAULT_STATE.syncUrl){
+    out.syncUrl = DEFAULT_STATE.syncUrl;
+  }
   if(typeof out.lastSyncedAt !== 'number' || !isFinite(out.lastSyncedAt)) out.lastSyncedAt = 0;
   // fieldMtimes
   if(!out.fieldMtimes || typeof out.fieldMtimes !== 'object') out.fieldMtimes = {};
@@ -1717,7 +1722,8 @@ function startSyncEngine(){
   }
   if(dot) dot.style.display = '';
   updateSyncIndicator('idle');
-  pullSync().catch(()=>{});
+  // Pull d'abord, PUIS push systématique pour garantir que l'état local est bien sur le Worker
+  pullSync().then(() => { try { doPush(); } catch(_){} }).catch(()=>{ try { doPush(); } catch(_){} });
   pullInterval = setInterval(() => {
     if(document.visibilityState === 'visible') pullSync(true).catch(()=>{});
   }, SYNC_PULL_INTERVAL_MS);
