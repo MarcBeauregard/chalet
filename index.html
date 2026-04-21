@@ -1084,8 +1084,8 @@ const DEFAULT_STATE = {
   // Météo — défaut: Parent, QC (Haute-Mauricie)
   chaletLat: 47.9228, chaletLon: -74.6228, chaletLocationName: 'Parent, QC',
   weatherCache: null,
-  // Synchronisation cloud
-  syncUrl: '', syncKeyHash: '', lastSyncedAt: 0,
+  // Synchronisation cloud — URL du Worker pré-remplie (partagée avec copine)
+  syncUrl: 'https://chalet-sync.marc-beauregard.workers.dev', syncKeyHash: '', lastSyncedAt: 0,
   // Timestamps de modif pour le merge 3-way
   fieldMtimes: {},
   deletedIds: { tasks:[], packing:[], events:[], courses:[] }
