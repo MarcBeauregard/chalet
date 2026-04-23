@@ -341,33 +341,53 @@ input,select,textarea{font-family:inherit}
 .cal-nav-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .cal-title{font-size:17px;font-weight:800;letter-spacing:-.3px}
 
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.cal-dh{text-align:center;font-size:11px;font-weight:700;color:var(--t3);padding:4px 0 8px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:4px}
+.cal-dh{text-align:center;font-size:11px;font-weight:700;color:var(--t3);padding:4px 0 6px;text-transform:uppercase;letter-spacing:.5px}
 .cal-day{
-  aspect-ratio:1;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;border-radius:var(--r-m);
-  font-size:13px;font-weight:500;cursor:pointer;
-  position:relative;transition:background .15s;
-  gap:1px;padding:3px 2px;overflow:hidden;
+  aspect-ratio:0.9;
+  min-height:54px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:space-between;
+  border-radius:var(--r-m);
+  font-size:14px;font-weight:600;
+  cursor:pointer;
+  position:relative;
+  background:rgba(255,255,255,.55);
+  transition:background .15s ease, transform .12s ease, box-shadow .15s ease;
+  padding:7px 4px 6px;
+  overflow:visible;
 }
-.cal-day .d-num{line-height:1}
+.cal-day .d-num{line-height:1;font-variant-numeric:tabular-nums}
 .cal-wx{
-  display:inline-flex;align-items:center;gap:2px;
-  font-size:9.5px;font-weight:700;line-height:1;
-  color:var(--t3);white-space:nowrap;
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:10.5px;font-weight:700;line-height:1;
+  color:var(--t2);white-space:nowrap;
 }
-.cal-wx svg{width:11px;height:11px;flex-shrink:0}
-.cal-day.today .cal-wx{color:rgba(255,255,255,.95)}
+.cal-wx svg{width:14px;height:14px;flex-shrink:0;stroke-width:2.2}
+.cal-day.today{
+  background:var(--p);color:white;font-weight:800;
+  box-shadow:0 3px 10px rgba(114,72,30,.28);
+}
+.cal-day.today .cal-wx{color:rgba(255,255,255,.96)}
+.cal-day.sejour:not(.today){
+  background:var(--s-tint);color:var(--s-dk);font-weight:700;
+}
 .cal-day.sejour:not(.today) .cal-wx{color:var(--s)}
-.cal-day:hover:not(.today){background:var(--p-tint-2)}
-.cal-day.today{background:var(--p);color:white;font-weight:800}
-.cal-day.sejour:not(.today){background:var(--s-tint);color:var(--s);font-weight:700}
+.cal-day:hover:not(.today):not(.other){background:var(--p-tint-2)}
+.cal-day:active:not(.other){transform:scale(.96)}
 .cal-day.dot::after{
-  content:'';position:absolute;top:3px;right:4px;
-  width:4px;height:4px;background:var(--a);border-radius:var(--r-f);
+  content:'';position:absolute;top:4px;right:5px;
+  width:6px;height:6px;background:var(--a);border-radius:var(--r-f);
+  box-shadow:0 0 0 2px rgba(255,255,255,.92);
 }
-.cal-day.today.dot::after{background:rgba(255,255,255,.85)}
-.cal-day.other{opacity:.22;cursor:default;pointer-events:none}
+.cal-day.today.dot::after{
+  background:#fff;
+  box-shadow:0 0 0 2px rgba(114,72,30,.45);
+}
+.cal-day.other{
+  opacity:.32;cursor:default;pointer-events:none;
+  background:transparent;color:var(--t3);font-weight:500;
+}
 
 /* Panneau météo dans le modal événement */
 .ev-wx-box{
