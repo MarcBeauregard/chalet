@@ -662,8 +662,8 @@ input,select,textarea{font-family:inherit}
     </div>
   </div>
   <div class="card">
-    <div class="card-lbl">Photos favorites</div>
-    <p style="font-size:12.5px;color:var(--t3);margin:-4px 0 12px;line-height:1.5">Vignettes gardées sur cet appareil uniquement (non partagées). Pour les photos partagées, utilise l'album ci-dessus.</p>
+    <div class="card-lbl">Photos partagées</div>
+    <p style="font-size:12.5px;color:var(--t3);margin:-4px 0 12px;line-height:1.5">Stockées dans Airtable via la synchro cloud — visibles sur les deux appareils. Compressées automatiquement.</p>
     <div class="photo-grid" id="photoGrid"></div>
     <label class="add-photo">
       <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -1948,80 +1948,219 @@ function renderEvWxBox(ds){
 }
 
 /* ══════════════════════════════════════════
-   PHOTOS
+   PHOTOS — stockées en Airtable via le Worker
+   (plus rien dans S.photos ; cache mémoire uniquement)
 ══════════════════════════════════════════ */
+const MAX_PHOTO_BYTES = 20 * 1024 * 1024;  // 20 MB fichier source (avant compression)
+const PHOTO_MAX_SIDE = 1600;                // px — max côté long après compression
+const PHOTO_JPEG_QUALITY = 0.82;
+const PHOTO_CACHE_TTL_MS = 2 * 60 * 1000;   // refetch si >2 min
+
+let photoCache = [];           // [{id,url,thumbUrl,name,addedBy,addedAt,width,height}]
+let photoCacheFetchedAt = 0;
+let photoListInFlight = null;
+
 function rPhotos(){
+  // En-tête album (inchangé)
   const d=document.getElementById('albumDisplay');
   const url=safeUrl(S.albumUrl);
   d.className=url?'album-link':'album-lbl';
   d.innerHTML=url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="album-link">Ouvrir l'album →</a>`:'Aucun album configuré';
-  const grid=document.getElementById('photoGrid');
-  if(!S.photos||!S.photos.length){
-    grid.innerHTML=`<div class="empty" style="grid-column:span 2"><div class="empty-ico">${IC.emptyPhoto}</div><div class="empty-title">Ajoute des photos du chalet</div></div>`;return;
+
+  renderPhotoGrid();
+
+  // Refetch si cache expiré ou vide — async, non bloquant
+  const age = Date.now() - photoCacheFetchedAt;
+  if(syncConfigured() && (photoCache.length === 0 || age > PHOTO_CACHE_TTL_MS)){
+    loadPhotosFromWorker().catch(err => console.warn('Photo list failed:', err));
   }
-  grid.innerHTML=S.photos.map((p,i)=>`
+}
+
+function renderPhotoGrid(){
+  const grid=document.getElementById('photoGrid');
+  if(!grid) return;
+  if(!syncConfigured()){
+    grid.innerHTML = `<div class="empty" style="grid-column:span 2"><div class="empty-ico">${IC.emptyPhoto}</div><div class="empty-title">Active la synchro cloud</div><div class="empty-sub">Pour partager des photos, configure la synchro dans Paramètres.</div></div>`;
+    return;
+  }
+  if(!photoCache.length){
+    grid.innerHTML=`<div class="empty" style="grid-column:span 2"><div class="empty-ico">${IC.emptyPhoto}</div><div class="empty-title">Ajoute des photos du chalet</div><div class="empty-sub">Partagées automatiquement avec ta copine.</div></div>`;
+    return;
+  }
+  grid.innerHTML=photoCache.map(p=>`
     <div class="photo-wrap">
-      <img src="${esc(p.data)}" class="photo-thumb" onclick="viewPhoto(${i})" alt="${esc(p.name)}">
-      <button class="photo-del" aria-label="Supprimer la photo" onclick="delPhoto(${i})"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <img src="${esc(p.thumbUrl||p.url)}" class="photo-thumb" onclick="viewPhoto('${esc(p.id)}')" alt="${esc(p.name||'')}" loading="lazy">
+      <button class="photo-del" aria-label="Supprimer la photo" onclick="delPhoto('${esc(p.id)}')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>`).join('');
 }
-const MAX_PHOTOS = 8;
-const MAX_PHOTO_BYTES = 8 * 1024 * 1024; // 8 MB avant compression
-function addPhoto(input){
-  const file=input.files[0];
+
+async function loadPhotosFromWorker(){
+  if(!syncConfigured()) return;
+  if(photoListInFlight) return photoListInFlight;
+  photoListInFlight = (async () => {
+    try{
+      const res = await fetch(S.syncUrl.replace(/\/+$/,'') + '/photos', {
+        headers: { 'Authorization': 'Bearer ' + S.syncKeyHash }
+      });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      photoCache = Array.isArray(data.photos) ? data.photos : [];
+      photoCacheFetchedAt = Date.now();
+      if(curSec === 'photos') renderPhotoGrid();
+    } finally {
+      photoListInFlight = null;
+    }
+  })();
+  return photoListInFlight;
+}
+
+async function addPhoto(input){
+  const file=input.files && input.files[0];
   const reset=()=>{try{input.value=''}catch(_){}};
   if(!file){reset();return}
-  if(!S.photos)S.photos=[];
-  if(S.photos.length>=MAX_PHOTOS){
-    alert(`Maximum ${MAX_PHOTOS} photos. Supprime-en avant d'en ajouter.`);
+  if(!syncConfigured()){
+    alert("Active d'abord la synchronisation cloud (Paramètres).");
     reset();return;
   }
   if(!/^image\//i.test(file.type)){
     alert("Ce fichier n'est pas une image.");
     reset();return;
   }
-  if(file.size>MAX_PHOTO_BYTES){
-    alert("Photo trop lourde (>8 Mo). Utilise une version plus petite.");
+  if(file.size > MAX_PHOTO_BYTES){
+    alert("Photo trop lourde (>20 Mo). Utilise une version plus petite.");
     reset();return;
   }
-  const reader=new FileReader();
-  reader.onerror=()=>{alert("Lecture du fichier impossible.");reset()};
-  reader.onload=e=>{
-    if(!e.target.result){alert("Image illisible.");reset();return}
-    const img=new Image();
-    img.onerror=()=>{alert("Format d'image non supporté (essaie JPG ou PNG).");reset()};
-    img.onload=()=>{
-      try{
-        const c=document.createElement('canvas');
-        const M=640;let w=img.width,h=img.height;
-        if(w>M||h>M){if(w>h){h=h*M/w;w=M}else{w=w*M/h;h=M}}
-        c.width=w;c.height=h;
-        c.getContext('2d').drawImage(img,0,0,w,h);
-        S.photos.push({data:c.toDataURL('image/jpeg',.72),name:file.name});
-        if(!save()){
-          // Save a échoué (quota) → retire la photo qu'on vient d'ajouter
-          S.photos.pop();
-        }
-        rPhotos();
-      }catch(err){
-        console.error(err);
-        alert("Impossible de traiter cette photo.");
-      }finally{reset()}
-    };
-    img.src=e.target.result;
-  };
-  reader.readAsDataURL(file);
+
+  try{
+    // Compression + conversion en base64
+    const blob = await compressImage(file, PHOTO_MAX_SIDE, PHOTO_JPEG_QUALITY);
+    const base64 = await blobToBase64(blob);
+    const me = S.marcName || 'moi';
+    const res = await fetch(S.syncUrl.replace(/\/+$/,'') + '/photos', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + S.syncKeyHash,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: file.name || 'photo.jpg',
+        addedBy: me,
+        contentType: 'image/jpeg',
+        base64: base64
+      })
+    });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error || ('HTTP ' + res.status));
+    }
+    const photo = await res.json();
+    // Ajoute en tête du cache (tri desc par addedAt)
+    photoCache.unshift(photo);
+    photoCacheFetchedAt = Date.now();
+    renderPhotoGrid();
+  }catch(err){
+    console.error(err);
+    alert("Upload de la photo a échoué : " + (err.message || err));
+  }finally{
+    reset();
+  }
 }
-function delPhoto(i){if(!S.photos||!S.photos[i])return;if(!confirm('Supprimer cette photo ?'))return;S.photos.splice(i,1);save();rPhotos()}
-function viewPhoto(i){
-  const p=S.photos&&S.photos[i];
-  if(!p)return;
+
+async function delPhoto(recordId){
+  if(!recordId || !syncConfigured()) return;
+  if(!confirm('Supprimer cette photo ?')) return;
+  try{
+    const res = await fetch(S.syncUrl.replace(/\/+$/,'') + '/photos/' + encodeURIComponent(recordId), {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + S.syncKeyHash }
+    });
+    if(!res.ok && res.status !== 404){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error || ('HTTP ' + res.status));
+    }
+    photoCache = photoCache.filter(p => p.id !== recordId);
+    renderPhotoGrid();
+  }catch(err){
+    console.error(err);
+    alert("Suppression impossible : " + (err.message || err));
+  }
+}
+
+function viewPhoto(recordId){
+  const p = photoCache.find(x => x.id === recordId);
+  if(!p || !p.url) return;
   const lb=document.createElement('div');
   lb.className='lb';
-  lb.innerHTML=`<img src="${esc(p.data)}" alt=""><button class="lb-close" aria-label="Fermer"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
+  lb.innerHTML=`<img src="${esc(p.url)}" alt="${esc(p.name||'')}"><button class="lb-close" aria-label="Fermer"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
   lb.querySelector('.lb-close').onclick=()=>lb.remove();
   lb.onclick=e=>{if(e.target===lb)lb.remove()};
   document.body.appendChild(lb);
+}
+
+// Helpers compression
+function compressImage(file, maxSide, quality){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Lecture du fichier impossible."));
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Format d'image non supporté (essaie JPG ou PNG)."));
+      img.onload = () => {
+        try{
+          const c = document.createElement('canvas');
+          let w = img.width, h = img.height;
+          if(w > maxSide || h > maxSide){
+            if(w > h){ h = h * maxSide / w; w = maxSide; }
+            else     { w = w * maxSide / h; h = maxSide; }
+          }
+          c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          c.toBlob(b => b ? resolve(b) : reject(new Error("Conversion en JPEG impossible.")), 'image/jpeg', quality);
+        }catch(err){ reject(err); }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function blobToBase64(blob){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onerror = () => reject(new Error("Encodage base64 impossible."));
+    r.onload = () => {
+      const s = String(r.result || '');
+      const i = s.indexOf(',');
+      resolve(i >= 0 ? s.slice(i + 1) : s);
+    };
+    r.readAsDataURL(blob);
+  });
+}
+
+// Migration v7→v8 : si des photos locales existent encore (ancien S.photos),
+// tenter de les re-uploader une fois, puis les supprimer du state.
+async function migrateLocalPhotos(){
+  if(!syncConfigured()) return;
+  if(!Array.isArray(S.photos) || !S.photos.length) return;
+  const me = S.marcName || 'moi';
+  const leftover = [];
+  for(const old of S.photos){
+    try{
+      if(!old || !old.data) continue;
+      // S.photos stockait des data URLs. Extrait la partie base64.
+      const comma = old.data.indexOf(',');
+      const base64 = comma >= 0 ? old.data.slice(comma + 1) : old.data;
+      const res = await fetch(S.syncUrl.replace(/\/+$/,'') + '/photos', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + S.syncKeyHash, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: old.name || 'photo.jpg', addedBy: me, contentType: 'image/jpeg', base64 })
+      });
+      if(!res.ok){ leftover.push(old); }
+    }catch(_){ leftover.push(old); }
+  }
+  S.photos = leftover;  // si tout a réussi, devient vide
+  save();
+  if(curSec === 'photos'){ loadPhotosFromWorker().catch(()=>{}); }
 }
 function saveAlbum(){
   const raw=document.getElementById('albumUrl').value.trim();
@@ -2299,11 +2438,19 @@ function init(){
   refreshWeather().catch(e => console.warn('Initial weather fetch failed:', e));
   // Démarre la synchro cloud si configurée
   startSyncEngine();
+  // Migration v7→v8 : si d'anciennes photos locales existent, les remonter au Worker
+  if(syncConfigured()){
+    migrateLocalPhotos().catch(e => console.warn('Photo migration failed:', e));
+  }
 }
 // Re-sync quand l'onglet redevient visible (ex: l'iPhone a dormi)
 document.addEventListener('visibilitychange', () => {
-  if(document.visibilityState === 'visible' && typeof pullSync === 'function' && syncConfigured()){
-    pullSync(true).catch(()=>{});
+  if(document.visibilityState !== 'visible') return;
+  if(typeof pullSync === 'function' && syncConfigured()) pullSync(true).catch(()=>{});
+  // Rafraîchit les URL des photos (elles expirent ~2h côté Airtable)
+  if(curSec === 'photos' && syncConfigured()){
+    photoCacheFetchedAt = 0;
+    loadPhotosFromWorker().catch(()=>{});
   }
 });
 init();
