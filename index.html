@@ -73,6 +73,53 @@
 
   /* Layout */
   --nav-h: 72px;
+
+  /* Header gradient — overridé par thème */
+  --hdr-grad: linear-gradient(148deg,#72481E 0%,#3E2208 100%);
+}
+
+/* ══════════════════════════════════════════
+   THÈMES — surchargent les variables ci-dessus.
+   Activé via attribut [data-theme="..."] sur <html>
+══════════════════════════════════════════ */
+[data-theme="forest"]{
+  --bg:#EAF1EA; --surface:#FFFFFF; --surface-2:#F5FAF5; --border:#D2E2D2;
+  --p:#3A6648; --p-dk:#264835; --p-tint:rgba(58,102,72,.10); --p-tint-2:rgba(58,102,72,.06);
+  --s:#5C7C9E; --s-dk:#3F5C7C; --s-tint:rgba(92,124,158,.12);
+  --a:#C97010; --a-tint:rgba(201,112,16,.12);
+  --t:#152018; --t2:#3F5347; --t3:#7C9181;
+  --warn:#C97010; --warn-tint:rgba(201,112,16,.10);
+  --hdr-grad: linear-gradient(148deg,#3A6648 0%,#1F3826 100%);
+}
+[data-theme="stone"]{
+  --bg:#ECECEE; --surface:#FFFFFF; --surface-2:#F5F5F7; --border:#D6D7DA;
+  --p:#3D4651; --p-dk:#2A3038; --p-tint:rgba(61,70,81,.10); --p-tint-2:rgba(61,70,81,.06);
+  --s:#6E7E91; --s-dk:#4F5C6C; --s-tint:rgba(110,126,145,.12);
+  --a:#B8632C; --a-tint:rgba(184,99,44,.12);
+  --t:#1A1F26; --t2:#4A525C; --t3:#8B919A;
+  --hdr-grad: linear-gradient(148deg,#3D4651 0%,#1F2630 100%);
+}
+[data-theme="ocean"]{
+  --bg:#E8F0F4; --surface:#FFFFFF; --surface-2:#F2F7F9; --border:#CFDDE5;
+  --p:#1F4F6F; --p-dk:#103349; --p-tint:rgba(31,79,111,.10); --p-tint-2:rgba(31,79,111,.06);
+  --s:#4A8C7A; --s-dk:#2F6A5B; --s-tint:rgba(74,140,122,.12);
+  --a:#C99425; --a-tint:rgba(201,148,37,.12);
+  --t:#0F1F2A; --t2:#3D5566; --t3:#7B95A4;
+  --hdr-grad: linear-gradient(148deg,#1F4F6F 0%,#0A2433 100%);
+}
+[data-theme="dark"]{
+  --bg:#15110E; --surface:#221C18; --surface-2:#2C2520; --border:#3A312B;
+  --p:#D4A55C; --p-dk:#B0844A; --p-tint:rgba(212,165,92,.14); --p-tint-2:rgba(212,165,92,.07);
+  --s:#7BB18F; --s-dk:#5E9772; --s-tint:rgba(123,177,143,.16);
+  --a:#E2A24A; --a-tint:rgba(226,162,74,.14);
+  --t:#F2E9DC; --t2:#BDA88E; --t3:#7E6E5C;
+  --err:#E26A6A; --err-tint:rgba(226,106,106,.14);
+  --warn:#E0922F; --warn-tint:rgba(224,146,47,.14);
+  --ok:#7BB18F; --ok-tint:rgba(123,177,143,.14);
+  --sh-s: 0 1px 4px rgba(0,0,0,.35);
+  --sh-m: 0 2px 14px rgba(0,0,0,.45);
+  --sh-fab: 0 6px 26px rgba(212,165,92,.42);
+  --hdr-grad: linear-gradient(148deg,#2A2018 0%,#15100B 100%);
 }
 
 /* ══════════════════════════════════════════
@@ -97,7 +144,7 @@ input,select,textarea{font-family:inherit}
    HEADER
 ══════════════════════════════════════════ */
 .app-header{
-  background:linear-gradient(148deg,#72481E 0%,#3E2208 100%);
+  background:var(--hdr-grad);
   color:var(--white);
   padding:calc(18px + env(safe-area-inset-top,0px)) calc(var(--s5) + env(safe-area-inset-right,0px)) var(--s4) calc(var(--s5) + env(safe-area-inset-left,0px));
   position:sticky;top:0;z-index:100;
@@ -140,9 +187,9 @@ input,select,textarea{font-family:inherit}
 .btm-nav{
   position:fixed;bottom:0;left:0;right:0;
   height:var(--nav-h);
-  background:rgba(255,255,255,.94);
+  background:color-mix(in srgb, var(--surface) 94%, transparent);
   backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
-  border-top:1px solid rgba(227,214,201,.65);
+  border-top:1px solid var(--border);
   display:flex;z-index:1000;
   padding-bottom:env(safe-area-inset-bottom,0);
 }
@@ -327,6 +374,32 @@ input,select,textarea{font-family:inherit}
 .pk-who{font-size:11px;color:var(--t3);display:block;margin-top:1px;font-weight:500}
 
 /* ══════════════════════════════════════════
+   DRAG-AND-DROP — poignée + état dragging
+══════════════════════════════════════════ */
+.drag-handle{
+  display:flex;align-items:center;justify-content:center;
+  width:22px;height:34px;flex-shrink:0;
+  color:var(--t3);cursor:grab;
+  touch-action:none;
+  border-radius:6px;
+  margin-right:-2px;
+  opacity:.55;transition:opacity .15s, background .15s;
+}
+.drag-handle:hover{opacity:1;background:var(--p-tint-2)}
+.drag-handle svg{width:16px;height:16px}
+.drag-item{transition:transform .18s ease, box-shadow .18s ease, opacity .18s ease}
+.drag-item.dragging{
+  transform:scale(1.02);
+  box-shadow:0 10px 30px rgba(30,17,8,.18), 0 0 0 1px var(--p-tint);
+  opacity:.95;
+  z-index:50;position:relative;
+  cursor:grabbing;
+}
+.t-body, .pk-body{cursor:pointer}
+body.drag-active{user-select:none;-webkit-user-select:none}
+body.drag-active *{cursor:grabbing !important}
+
+/* ══════════════════════════════════════════
    CALENDRIER
 ══════════════════════════════════════════ */
 .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s4)}
@@ -465,6 +538,36 @@ input,select,textarea{font-family:inherit}
 .set-lbl{font-size:15px;font-weight:500}
 .set-val{font-size:13px;color:var(--t3);font-weight:500}
 .set-btn{font-size:14px;font-weight:700;color:var(--p)}
+
+/* Thèmes — vignettes 5 colonnes */
+.theme-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+}
+.theme-tile{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:8px 4px;border-radius:var(--r-m);
+  background:transparent;border:2px solid transparent;
+  transition:background .15s, border-color .15s, transform .12s;
+  cursor:pointer;
+}
+.theme-tile:hover{background:var(--p-tint-2)}
+.theme-tile:active{transform:scale(.96)}
+.theme-tile.active{
+  border-color:var(--p);
+  background:var(--p-tint-2);
+}
+.theme-swatch{
+  width:38px;height:38px;border-radius:var(--r-m);
+  display:block;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.06), var(--sh-s);
+}
+.theme-lbl{
+  font-size:11px;font-weight:700;color:var(--t2);
+  letter-spacing:.2px;
+}
+.theme-tile.active .theme-lbl{color:var(--p)}
 
 .sync-banner{
   background:var(--p-tint-2);border:1px solid var(--p-tint);
@@ -729,6 +832,33 @@ input,select,textarea{font-family:inherit}
   </div>
 
   <div class="card">
+    <div class="card-lbl">Apparence</div>
+    <p style="font-size:12.5px;color:var(--t3);margin-bottom:12px;line-height:1.5">Choisis un thème — il s'applique uniquement sur cet appareil.</p>
+    <div class="theme-grid" id="themeGrid">
+      <button class="theme-tile" data-theme-name="bois" onclick="setTheme('bois')" aria-label="Thème Bois">
+        <span class="theme-swatch" style="background:linear-gradient(135deg,#72481E 0 50%,#3A6648 50% 100%)"></span>
+        <span class="theme-lbl">Bois</span>
+      </button>
+      <button class="theme-tile" data-theme-name="forest" onclick="setTheme('forest')" aria-label="Thème Forêt">
+        <span class="theme-swatch" style="background:linear-gradient(135deg,#3A6648 0 50%,#5C7C9E 50% 100%)"></span>
+        <span class="theme-lbl">Forêt</span>
+      </button>
+      <button class="theme-tile" data-theme-name="stone" onclick="setTheme('stone')" aria-label="Thème Pierre">
+        <span class="theme-swatch" style="background:linear-gradient(135deg,#3D4651 0 50%,#6E7E91 50% 100%)"></span>
+        <span class="theme-lbl">Pierre</span>
+      </button>
+      <button class="theme-tile" data-theme-name="ocean" onclick="setTheme('ocean')" aria-label="Thème Océan">
+        <span class="theme-swatch" style="background:linear-gradient(135deg,#1F4F6F 0 50%,#4A8C7A 50% 100%)"></span>
+        <span class="theme-lbl">Océan</span>
+      </button>
+      <button class="theme-tile" data-theme-name="dark" onclick="setTheme('dark')" aria-label="Mode sombre">
+        <span class="theme-swatch" style="background:linear-gradient(135deg,#221C18 0 50%,#D4A55C 50% 100%)"></span>
+        <span class="theme-lbl">Sombre</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="card-lbl">Météo</div>
     <p style="font-size:12.5px;color:var(--t3);margin-bottom:12px;line-height:1.5">Température et prévisions sur 16 jours directement dans l'agenda. Fournies par Open-Meteo (gratuit, sans compte).</p>
     <div class="set-item">
@@ -877,7 +1007,7 @@ input,select,textarea{font-family:inherit}
   <div class="modal">
     <div class="m-handle"></div>
     <div class="m-hdr">
-      <div class="m-title">Nouvelle tâche</div>
+      <div class="m-title" id="taskModalTitle">Nouvelle tâche</div>
       <button class="m-close" aria-label="Fermer" onclick="closeM('taskModal')"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="fg"><label>Titre *</label><input class="fi" id="tTitle" placeholder="Ex: Vérifier la pompe à eau"></div>
@@ -907,7 +1037,7 @@ input,select,textarea{font-family:inherit}
     </div>
     <div class="fg"><label>Date limite</label><input type="date" class="fi" id="tDate"></div>
     <div class="fg"><label>Notes</label><input class="fi" id="tNotes" placeholder="Détails optionnels…"></div>
-    <button class="btn-p" onclick="saveTask()">Ajouter la tâche</button>
+    <button class="btn-p" id="btnSaveTask" onclick="saveTask()">Ajouter la tâche</button>
     <button class="btn-g" onclick="closeM('taskModal')">Annuler</button>
   </div>
 </div>
@@ -917,7 +1047,7 @@ input,select,textarea{font-family:inherit}
   <div class="modal">
     <div class="m-handle"></div>
     <div class="m-hdr">
-      <div class="m-title">Ajouter un article</div>
+      <div class="m-title" id="packModalTitle">Ajouter un article</div>
       <button class="m-close" aria-label="Fermer" onclick="closeM('packModal')"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="fg"><label>Nom *</label><input class="fi" id="pName" placeholder="Ex: Serviettes de plage"></div>
@@ -941,7 +1071,7 @@ input,select,textarea{font-family:inherit}
         <option value="copine" id="pPC">Ma copine</option>
       </select>
     </div>
-    <button class="btn-p" onclick="savePack()">Ajouter l'article</button>
+    <button class="btn-p" id="btnSavePack" onclick="savePack()">Ajouter l'article</button>
     <button class="btn-g" onclick="closeM('packModal')">Annuler</button>
   </div>
 </div>
@@ -951,7 +1081,7 @@ input,select,textarea{font-family:inherit}
   <div class="modal">
     <div class="m-handle"></div>
     <div class="m-hdr">
-      <div class="m-title">Ajouter à l'épicerie</div>
+      <div class="m-title" id="crsModalTitle">Ajouter à l'épicerie</div>
       <button class="m-close" aria-label="Fermer" onclick="closeM('crsModal')"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="fg"><label>Article *</label><input class="fi" id="cName" placeholder="Ex: Lait 2%"></div>
@@ -993,7 +1123,7 @@ input,select,textarea{font-family:inherit}
         <option value="copine" id="cAC">Ma copine</option>
       </select>
     </div>
-    <button class="btn-p" onclick="saveCourse()">Ajouter</button>
+    <button class="btn-p" id="btnSaveCourse" onclick="saveCourse()">Ajouter</button>
     <button class="btn-g" onclick="closeM('crsModal')">Annuler</button>
   </div>
 </div>
@@ -1043,6 +1173,7 @@ input,select,textarea{font-family:inherit}
 ══════════════════════════════════════════ */
 const IC = {
   trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>`,
+  handle: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>`,
   check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
   fire:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c0 5.5-5 7-5 12a5 5 0 0010 0c0-5-5-6.5-5-12z"/><path d="M12 12c0 2.5-2 3-2 5a2 2 0 004 0c0-2-2-2.5-2-5z"/></svg>`,
   cal:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="4"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>`,
@@ -1106,7 +1237,35 @@ const JR_FR  = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi
 /* ══════════════════════════════════════════
    ÉTAT
 ══════════════════════════════════════════ */
-const SCHEMA_VERSION = 7;
+/* ══════════════════════════════════════════
+   THÈMES — local par appareil
+══════════════════════════════════════════ */
+const THEMES = ['bois','forest','stone','ocean','dark'];
+const THEME_COLORS = { bois:'#72481E', forest:'#3A6648', stone:'#3D4651', ocean:'#1F4F6F', dark:'#221C18' };
+function getTheme(){
+  try{ const t = localStorage.getItem('chalet_theme'); return THEMES.includes(t) ? t : 'bois'; }
+  catch(_){ return 'bois'; }
+}
+function setTheme(t){
+  if(!THEMES.includes(t)) t = 'bois';
+  if(t === 'bois'){
+    document.documentElement.removeAttribute('data-theme');
+  }else{
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  try{ localStorage.setItem('chalet_theme', t); }catch(_){}
+  // Update meta theme-color (couleur de la barre de statut iOS/Android)
+  const m = document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute('content', THEME_COLORS[t] || THEME_COLORS.bois);
+  // Update vignettes actives
+  document.querySelectorAll('#themeGrid .theme-tile').forEach(b => {
+    b.classList.toggle('active', b.dataset.themeName === t);
+  });
+}
+// Application immédiate (avant le DOM final pour éviter le flash)
+setTheme(getTheme());
+
+const SCHEMA_VERSION = 8;
 const DEFAULT_STATE = {
   schemaVersion: SCHEMA_VERSION,
   chaletName:'Notre Chalet', marcName:'Marc', copineName:'Ma copine',
@@ -1164,6 +1323,14 @@ function normalizeState(raw){
   // Normalise mtime pour chaque item (number ≥ 0)
   ['tasks','packing','events','courses'].forEach(k => {
     out[k].forEach(it => { if(typeof it.mtime !== 'number' || !isFinite(it.mtime) || it.mtime < 0) it.mtime = 0; });
+  });
+  // Migration v7→v8 : ajout d'un champ `order` pour le drag-and-drop user-defined.
+  // Si absent, on l'attribue à partir de la position actuelle (espacé de 1000 pour
+  // permettre des insertions futures par moyenne sans rebalancer).
+  ['tasks','packing','courses'].forEach(k => {
+    out[k].forEach((it, i) => {
+      if(typeof it.order !== 'number' || !isFinite(it.order)) it.order = i * 1000;
+    });
   });
   // Sync state
   if(typeof out.syncUrl !== 'string') out.syncUrl = '';
@@ -1239,16 +1406,104 @@ function go(name){
 }
 
 function fabAct(){
-  if(curSec==='tasks')openM('taskModal');
-  if(curSec==='packing')openM('packModal');
-  if(curSec==='courses')openM('crsModal');
-  if(curSec==='calendar'){
+  if(curSec==='tasks')openTaskModal();
+  else if(curSec==='packing')openPackModal();
+  else if(curSec==='courses')openCrsModal();
+  else if(curSec==='calendar'){
     const t=fmtDate(new Date());
     document.getElementById('evStart').value=t;
     document.getElementById('evEnd').value=t;
     renderEvWxBox(t);
     openM('evModal');
   }
+}
+
+/* ══════════════════════════════════════════
+   DRAG-AND-DROP TACTILE (long-press + suivre)
+   Réordonne S[listName] dans le container donné.
+══════════════════════════════════════════ */
+function attachDragList(container, listName, rerender){
+  if(!container || container._dragAttached) return;
+  container._dragAttached = true;
+
+  let drag = null;
+
+  function onPointerDown(e){
+    const item = e.target.closest('.drag-item');
+    if(!item || !container.contains(item)) return;
+    // Ignore les zones qui ont déjà un onclick (checkbox, body éditable, boutons)
+    if(e.target.closest('button, input, select, .pk-box, .t-circle, .t-body, .pk-body')){
+      // Sauf si c'est le drag-handle, qui est explicitement dans le t-body / etc.
+      if(!e.target.closest('.drag-handle')) return;
+    }
+    drag = { item, startY: e.clientY, currentY: e.clientY, active: false, timer: null, pointerId: e.pointerId };
+    drag.timer = setTimeout(activateDrag, 350);
+    document.addEventListener('pointermove', onPointerMove, { passive: false });
+    document.addEventListener('pointerup', onPointerUp, { once: true });
+    document.addEventListener('pointercancel', onPointerUp, { once: true });
+  }
+  function activateDrag(){
+    if(!drag) return;
+    drag.active = true;
+    drag.item.classList.add('dragging');
+    try{ drag.item.setPointerCapture && drag.item.setPointerCapture(drag.pointerId); }catch(_){}
+    document.body.classList.add('drag-active');
+    if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){}
+  }
+  function onPointerMove(e){
+    if(!drag) return;
+    drag.currentY = e.clientY;
+    if(!drag.active){
+      if(Math.abs(drag.currentY - drag.startY) > 8){
+        clearTimeout(drag.timer);
+        cleanup();
+      }
+      return;
+    }
+    e.preventDefault();
+    const dy = drag.currentY - drag.startY;
+    drag.item.style.transform = 'translateY(' + dy + 'px)';
+    // Quel item est sous le pointer ?
+    drag.item.style.pointerEvents = 'none';
+    const below = document.elementFromPoint(e.clientX, e.clientY);
+    drag.item.style.pointerEvents = '';
+    const target = below ? below.closest('.drag-item') : null;
+    if(target && target !== drag.item && target.parentElement === container){
+      const r = target.getBoundingClientRect();
+      const mid = r.top + r.height / 2;
+      if(e.clientY < mid){
+        container.insertBefore(drag.item, target);
+      }else{
+        container.insertBefore(drag.item, target.nextSibling);
+      }
+      drag.startY = e.clientY;
+      drag.item.style.transform = '';
+    }
+  }
+  function onPointerUp(){
+    document.removeEventListener('pointermove', onPointerMove);
+    if(!drag) return;
+    if(drag.active){
+      drag.item.classList.remove('dragging');
+      drag.item.style.transform = '';
+      document.body.classList.remove('drag-active');
+      // Recompute order depuis l'ordre actuel du DOM dans ce container
+      const orderedIds = Array.from(container.querySelectorAll('.drag-item')).map(el => el.dataset.id);
+      const list = S[listName] || [];
+      orderedIds.forEach((id, idx) => {
+        const it = list.find(x => String(x.id) === String(id));
+        if(it){ it.order = idx * 1000; if(typeof stamp === 'function') stamp(it); }
+      });
+      save();
+      if(typeof rerender === 'function') rerender();
+    }
+    cleanup();
+  }
+  function cleanup(){
+    if(drag && drag.timer) clearTimeout(drag.timer);
+    drag = null;
+  }
+  container.addEventListener('pointerdown', onPointerDown);
 }
 
 function openM(id){document.getElementById(id).classList.add('on')}
@@ -1346,6 +1601,17 @@ function rDash(){
 function qToggle(id){const t=S.tasks.find(x=>x.id===id);if(t){t.done=!t.done;stamp(t);save();rDash()}}
 function qToggleCourse(id){const c=S.courses.find(x=>x.id===id);if(c){c.bought=!c.bought;stamp(c);save();rDash()}}
 
+// Helper: prochain `order` pour un nouvel item (max + 1000)
+function nextOrder(list){
+  if(!list || !list.length) return 0;
+  let max = 0;
+  list.forEach(it => { if(typeof it.order === 'number' && it.order > max) max = it.order; });
+  return max + 1000;
+}
+
+// État d'édition courant (un seul modal ouvert à la fois)
+let editingTaskId = null, editingPackId = null, editingCourseId = null;
+
 /* ══════════════════════════════════════════
    TÂCHES
 ══════════════════════════════════════════ */
@@ -1354,20 +1620,51 @@ function setFilter(f,btn){
   document.querySelectorAll('#taskPills .pill').forEach(p=>p.classList.remove('on'));
   btn.classList.add('on');rTasks();
 }
+function openTaskModal(){
+  editingTaskId = null;
+  document.getElementById('taskModalTitle').textContent = 'Nouvelle tâche';
+  document.getElementById('btnSaveTask').textContent = 'Ajouter la tâche';
+  ['tTitle','tDate','tNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('tCat').value = 'maintenance';
+  document.getElementById('tPrio').value = 'medium';
+  document.getElementById('tPerson').value = 'ensemble';
+  openM('taskModal');
+}
+function editTask(id){
+  const t = S.tasks.find(x => x.id === id);
+  if(!t) return;
+  editingTaskId = id;
+  document.getElementById('taskModalTitle').textContent = 'Modifier la tâche';
+  document.getElementById('btnSaveTask').textContent = 'Enregistrer';
+  document.getElementById('tTitle').value = t.title || '';
+  document.getElementById('tCat').value = t.category || 'maintenance';
+  document.getElementById('tPrio').value = t.priority || 'medium';
+  document.getElementById('tPerson').value = t.person || 'ensemble';
+  document.getElementById('tDate').value = t.dueDate || '';
+  document.getElementById('tNotes').value = t.notes || '';
+  openM('taskModal');
+}
 function saveTask(){
   const title=document.getElementById('tTitle').value.trim();
   if(!title){alert('Entrez un titre');return}
-  S.tasks.push(stamp({
-    id:uid(),title,
+  const fields = {
+    title,
     category:document.getElementById('tCat').value,
     priority:document.getElementById('tPrio').value,
     person:document.getElementById('tPerson').value,
     dueDate:document.getElementById('tDate').value,
-    notes:document.getElementById('tNotes').value.trim(),
-    done:false
-  }));
+    notes:document.getElementById('tNotes').value.trim()
+  };
+  if(editingTaskId){
+    const t = S.tasks.find(x => x.id === editingTaskId);
+    if(t){ Object.assign(t, fields); stamp(t); }
+    editingTaskId = null;
+  }else{
+    S.tasks.push(stamp(Object.assign({
+      id:uid(), order:nextOrder(S.tasks), done:false
+    }, fields)));
+  }
   save();closeM('taskModal');
-  ['tTitle','tDate','tNotes'].forEach(id=>document.getElementById(id).value='');
   rTasks();rDash();
 }
 function toggleTask(id){
@@ -1385,53 +1682,82 @@ function rTasks(){
   else if(taskFilter==='high')tasks=tasks.filter(t=>t.priority==='high'&&!t.done);
   else if(taskFilter==='marc')tasks=tasks.filter(t=>t.person==='marc');
   else if(taskFilter==='copine')tasks=tasks.filter(t=>t.person==='copine');
+  // Tri principal: drag-and-drop user-defined (order asc).
+  // Les tâches faites tombent toujours en bas.
   tasks.sort((a,b)=>{
     if(a.done!==b.done)return a.done?1:-1;
-    const po={high:0,medium:1,low:2};
-    if(po[a.priority]!==po[b.priority])return po[a.priority]-po[b.priority];
-    if(a.dueDate&&b.dueDate)return a.dueDate.localeCompare(b.dueDate);
-    return a.dueDate?-1:b.dueDate?1:0;
+    return (a.order||0) - (b.order||0);
   });
   const el=document.getElementById('taskList');
   if(!tasks.length){
-    el.innerHTML=`<div class="empty"><div class="empty-ico">${IC.emptyTask}</div><div class="empty-title">Aucune tâche</div><div class="empty-sub">Appuie sur + pour en ajouter une</div></div>`;return;
+    el.innerHTML=`<div class="empty"><div class="empty-ico">${IC.emptyTask}</div><div class="empty-title">Aucune tâche</div><div class="empty-sub">Appuie sur + pour en ajouter une</div></div>`;
+    return;
   }
   el.innerHTML=tasks.map(t=>`
-    <div class="t-item">
-      <div class="t-circle ${t.done?'done':''}" onclick="toggleTask('${t.id}')">
+    <div class="t-item drag-item" data-id="${esc(t.id)}">
+      <div class="drag-handle" aria-label="Réordonner">${IC.handle}</div>
+      <div class="t-circle ${t.done?'done':''}" onclick="event.stopPropagation();toggleTask('${esc(t.id)}')">
         <svg class="ck" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-      <div class="t-body">
+      <div class="t-body" onclick="editTask('${esc(t.id)}')">
         <div class="t-name ${t.done?'done':''}">${esc(t.title)}</div>
         <div class="t-chips">
           <span class="chip ch-${t.priority}">${t.priority==='high'?'Haute':t.priority==='medium'?'Moyenne':'Basse'}</span>
           <span class="chip ch-cat">${TASK_CATS[t.category]||t.category}</span>
           <span class="chip ch-who">${pName(t.person)}</span>
-          ${t.dueDate?`<span class="chip ${isLate(t.dueDate)&&!t.done?'ch-late':'ch-date'}">${dispDate(t.dueDate)}${isLate(t.dueDate)&&!t.done?' ⚠':''}
-</span>`:''}
+          ${t.dueDate?`<span class="chip ${isLate(t.dueDate)&&!t.done?'ch-late':'ch-date'}">${dispDate(t.dueDate)}${isLate(t.dueDate)&&!t.done?' ⚠':''}</span>`:''}
         </div>
         ${t.notes?`<div class="t-note">${esc(t.notes)}</div>`:''}
       </div>
-      <button class="del-btn" aria-label="Supprimer la tâche" onclick="delTask('${t.id}')">${IC.trash}</button>
+      <button class="del-btn" aria-label="Supprimer la tâche" onclick="event.stopPropagation();delTask('${esc(t.id)}')">${IC.trash}</button>
     </div>`).join('');
+  attachDragList(el, 'tasks', rTasks);
 }
 
 /* ══════════════════════════════════════════
    BAGAGES
 ══════════════════════════════════════════ */
+function openPackModal(){
+  editingPackId = null;
+  document.getElementById('packModalTitle').textContent = 'Ajouter un article';
+  document.getElementById('btnSavePack').textContent = "Ajouter l'article";
+  document.getElementById('pName').value = '';
+  document.getElementById('pQty').value = '';
+  document.getElementById('pCat').value = 'cuisine';
+  document.getElementById('pPerson').value = 'ensemble';
+  openM('packModal');
+}
+function editPack(id){
+  const i = S.packing.find(x => x.id === id);
+  if(!i) return;
+  editingPackId = id;
+  document.getElementById('packModalTitle').textContent = 'Modifier l\'article';
+  document.getElementById('btnSavePack').textContent = 'Enregistrer';
+  document.getElementById('pName').value = i.name || '';
+  document.getElementById('pQty').value = i.qty && i.qty !== '1' ? i.qty : '';
+  document.getElementById('pCat').value = i.category || 'cuisine';
+  document.getElementById('pPerson').value = i.person || 'ensemble';
+  openM('packModal');
+}
 function savePack(){
   const name=document.getElementById('pName').value.trim();
   if(!name){alert('Entrez un nom');return}
-  S.packing.push(stamp({
-    id:uid(),name,
+  const fields = {
+    name,
     qty:document.getElementById('pQty').value.trim()||'1',
     category:document.getElementById('pCat').value,
-    person:document.getElementById('pPerson').value,
-    packed:false
-  }));
+    person:document.getElementById('pPerson').value
+  };
+  if(editingPackId){
+    const i = S.packing.find(x => x.id === editingPackId);
+    if(i){ Object.assign(i, fields); stamp(i); }
+    editingPackId = null;
+  }else{
+    S.packing.push(stamp(Object.assign({
+      id:uid(), order:nextOrder(S.packing), packed:false
+    }, fields)));
+  }
   save();closeM('packModal');
-  document.getElementById('pName').value='';
-  document.getElementById('pQty').value='';
   rPacking();
 }
 function togglePack(id){
@@ -1448,30 +1774,40 @@ function rPacking(){
   document.getElementById('packBar').style.width=tot?`${pk/tot*100}%`:'0%';
   const el=document.getElementById('packList');
   if(!tot){
-    el.innerHTML=`<div class="empty"><div class="empty-ico">${IC.emptyPack}</div><div class="empty-title">Liste vide</div><div class="empty-sub">Appuie sur + pour ajouter des articles</div></div>`;return;
+    el.innerHTML=`<div class="empty"><div class="empty-ico">${IC.emptyPack}</div><div class="empty-title">Liste vide</div><div class="empty-sub">Appuie sur + pour ajouter des articles</div></div>`;
+    return;
   }
   const grp={};
   Object.keys(PACK_CATS).forEach(c=>grp[c]=[]);
-  S.packing.forEach(i=>{if(!grp[i.category])grp[i.category]=[];grp[i.category].push(i)});
+  // On préserve l'ordre user-defined dans chaque groupe
+  [...S.packing].sort((a,b)=>(a.order||0)-(b.order||0)).forEach(i=>{
+    if(!grp[i.category])grp[i.category]=[];
+    grp[i.category].push(i);
+  });
   el.innerHTML=Object.entries(grp).filter(([,v])=>v.length).map(([cat,items])=>`
     <div class="cat-grp">
       <div class="cat-hd">
         <span class="cat-hd-l">${IC[cat]||IC.autre}${PACK_CATS[cat]||cat}</span>
         <span class="cat-hd-r">${items.filter(i=>i.packed).length}/${items.length}</span>
       </div>
+      <div class="drag-list" data-cat="${esc(cat)}">
       ${items.map(i=>`
-        <div class="pk-item">
-          <div class="pk-box ${i.packed?'on':''}" onclick="togglePack('${i.id}')">
+        <div class="pk-item drag-item" data-id="${esc(i.id)}">
+          <div class="drag-handle" aria-label="Réordonner">${IC.handle}</div>
+          <div class="pk-box ${i.packed?'on':''}" onclick="event.stopPropagation();togglePack('${esc(i.id)}')">
             <svg class="ck" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
-          <div style="flex:1">
+          <div class="pk-body" style="flex:1;min-width:0" onclick="editPack('${esc(i.id)}')">
             <span class="pk-name ${i.packed?'done':''}">${esc(i.name)}</span>
-            ${i.qty&&i.qty!=='1'?`<span class="pk-qty">×${i.qty}</span>`:''}
+            ${i.qty&&i.qty!=='1'?`<span class="pk-qty">×${esc(i.qty)}</span>`:''}
             <span class="pk-who">${pName(i.person)}</span>
           </div>
-          <button class="del-btn" aria-label="Supprimer l'article" onclick="delPack('${i.id}')">${IC.trash}</button>
+          <button class="del-btn" aria-label="Supprimer l'article" onclick="event.stopPropagation();delPack('${esc(i.id)}')">${IC.trash}</button>
         </div>`).join('')}
+      </div>
     </div>`).join('');
+  // Attach drag à chaque sous-liste de catégorie
+  el.querySelectorAll('.drag-list').forEach(list => attachDragList(list, 'packing', rPacking));
 }
 
 /* ══════════════════════════════════════════
@@ -1484,22 +1820,52 @@ function setCrsFilter(f,btn){
   btn.classList.add('on');
   rCourses();
 }
+function openCrsModal(){
+  editingCourseId = null;
+  document.getElementById('crsModalTitle').textContent = "Ajouter à l'épicerie";
+  document.getElementById('btnSaveCourse').textContent = 'Ajouter';
+  ['cName','cQty','cNote'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('cUnit').value = '';
+  document.getElementById('cCat').value = 'epicerie';
+  document.getElementById('cAdded').value = 'ensemble';
+  openM('crsModal');
+}
+function editCourse(id){
+  const c = S.courses.find(x => x.id === id);
+  if(!c) return;
+  editingCourseId = id;
+  document.getElementById('crsModalTitle').textContent = "Modifier l'article";
+  document.getElementById('btnSaveCourse').textContent = 'Enregistrer';
+  document.getElementById('cName').value = c.name || '';
+  document.getElementById('cQty').value = c.qty && c.qty !== '1' ? c.qty : '';
+  document.getElementById('cUnit').value = c.unit || '';
+  document.getElementById('cCat').value = c.category || 'epicerie';
+  document.getElementById('cNote').value = c.note || '';
+  document.getElementById('cAdded').value = c.addedBy || 'ensemble';
+  openM('crsModal');
+}
 function saveCourse(){
   const name = document.getElementById('cName').value.trim();
   if(!name){alert('Entre le nom de l\'article');return}
   const qtyRaw = document.getElementById('cQty').value.trim();
-  S.courses.push(stamp({
-    id: uid(),
+  const fields = {
     name,
     qty: qtyRaw || '1',
     unit: document.getElementById('cUnit').value,
     category: document.getElementById('cCat').value,
     note: document.getElementById('cNote').value.trim(),
-    addedBy: document.getElementById('cAdded').value,
-    bought: false
-  }));
+    addedBy: document.getElementById('cAdded').value
+  };
+  if(editingCourseId){
+    const c = S.courses.find(x => x.id === editingCourseId);
+    if(c){ Object.assign(c, fields); stamp(c); }
+    editingCourseId = null;
+  }else{
+    S.courses.push(stamp(Object.assign({
+      id: uid(), order: nextOrder(S.courses), bought: false
+    }, fields)));
+  }
   save(); closeM('crsModal');
-  ['cName','cQty','cNote'].forEach(id => document.getElementById(id).value = '');
   rCourses(); rDash();
 }
 function toggleCourse(id){
@@ -1539,11 +1905,15 @@ function rCourses(){
   // Grouper par catégorie dans l'ordre défini
   const grp = {};
   Object.keys(COURSE_CATS).forEach(c => grp[c] = []);
-  list.forEach(c => { if(!grp[c.category]) grp[c.category] = []; grp[c.category].push(c); });
-  // Trier: non-achetés d'abord, puis par nom
+  // Tri principal par order user-defined (drag-and-drop)
+  [...list].sort((a,b)=>(a.order||0)-(b.order||0)).forEach(c => {
+    if(!grp[c.category]) grp[c.category] = [];
+    grp[c.category].push(c);
+  });
+  // Dans chaque catégorie : non-achetés d'abord, sinon préserve l'order
   Object.values(grp).forEach(items => items.sort((a,b) => {
     if(a.bought !== b.bought) return a.bought ? 1 : -1;
-    return a.name.localeCompare(b.name, 'fr');
+    return (a.order||0) - (b.order||0);
   }));
   el.innerHTML = Object.entries(grp).filter(([,v]) => v.length).map(([cat, items]) => `
     <div class="cat-grp">
@@ -1551,20 +1921,24 @@ function rCourses(){
         <span class="cat-hd-l">${IC[cat] || IC.autre}${esc(COURSE_CATS[cat] || cat)}</span>
         <span class="cat-hd-r">${items.filter(i => i.bought).length}/${items.length}</span>
       </div>
+      <div class="drag-list" data-cat="${esc(cat)}">
       ${items.map(c => `
-        <div class="pk-item">
-          <div class="pk-box ${c.bought?'on':''}" onclick="toggleCourse('${c.id}')" role="checkbox" aria-checked="${c.bought}" tabindex="0">
+        <div class="pk-item drag-item" data-id="${esc(c.id)}">
+          <div class="drag-handle" aria-label="Réordonner">${IC.handle}</div>
+          <div class="pk-box ${c.bought?'on':''}" onclick="event.stopPropagation();toggleCourse('${esc(c.id)}')" role="checkbox" aria-checked="${c.bought}" tabindex="0">
             <svg class="ck" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
-          <div style="flex:1;min-width:0">
+          <div class="pk-body" style="flex:1;min-width:0" onclick="editCourse('${esc(c.id)}')">
             <span class="pk-name ${c.bought?'done':''}">${esc(c.name)}</span>
             ${(c.qty && c.qty !== '1') || c.unit ? `<span class="pk-qty">${esc(c.qty || '')}${c.unit?' '+esc(c.unit):''}</span>` : ''}
             ${c.addedBy && c.addedBy !== 'ensemble' ? `<span class="pk-who">${esc(pName(c.addedBy))}</span>` : ''}
             ${c.note ? `<div class="t-note" style="margin-top:4px">${esc(c.note)}</div>` : ''}
           </div>
-          <button class="del-btn" aria-label="Retirer" onclick="delCourse('${c.id}')">${IC.trash}</button>
+          <button class="del-btn" aria-label="Retirer" onclick="event.stopPropagation();delCourse('${esc(c.id)}')">${IC.trash}</button>
         </div>`).join('')}
+      </div>
     </div>`).join('');
+  el.querySelectorAll('.drag-list').forEach(list => attachDragList(list, 'courses', rCourses));
 }
 
 /* ══════════════════════════════════════════
@@ -2447,6 +2821,8 @@ function importData(input){
 ══════════════════════════════════════════ */
 function init(){
   load();
+  // Réapplique le thème (les vignettes du DOM existent maintenant)
+  setTheme(getTheme());
   const nowD=new Date();
   document.getElementById('hdrDate').textContent=
     `${JR_FR[nowD.getDay()]} ${nowD.getDate()} ${MO_FR[nowD.getMonth()].toLowerCase()} ${nowD.getFullYear()}`;
