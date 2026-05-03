@@ -515,14 +515,52 @@ body.drag-active *{cursor:grabbing !important}
 .album-link{font-size:14px;font-weight:700;color:var(--p)}
 .album-cfg{font-size:13px;font-weight:700;color:var(--p);display:block;margin-top:3px;cursor:pointer}
 
+.add-photo-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:var(--s3)}
 .add-photo{
-  display:flex;align-items:center;gap:var(--s3);
-  padding:var(--s3) var(--s3);background:var(--surface-2);
-  border-radius:var(--r-m);margin-top:var(--s3);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 10px;background:var(--surface-2);
+  border-radius:var(--r-m);
   border:1.5px dashed var(--border);cursor:pointer;
+  transition:background .15s, border-color .15s;
 }
-.add-photo svg{width:20px;height:20px;stroke:var(--t3);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.add-photo span{font-size:13px;font-weight:700;color:var(--t3)}
+.add-photo:hover{background:var(--p-tint-2);border-color:var(--p-tint)}
+.add-photo svg{width:20px;height:20px;stroke:var(--p);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.add-photo span{font-size:13px;font-weight:700;color:var(--p)}
+
+.upload-bar{
+  margin-top:var(--s3);
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;background:var(--p-tint-2);
+  border:1px solid var(--p-tint);border-radius:var(--r-m);
+  font-size:13px;font-weight:600;color:var(--p);
+}
+.upload-spinner{
+  width:16px;height:16px;flex-shrink:0;
+  border:2.2px solid var(--p-tint);
+  border-top-color:var(--p);
+  border-radius:50%;
+  animation:spin .9s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.upload-bar.err{background:var(--err-tint);border-color:var(--err);color:var(--err)}
+.upload-bar.err .upload-spinner{display:none}
+
+/* Vignettes : ratio naturel + meta */
+.photo-wrap{position:relative;border-radius:var(--r-l);overflow:hidden;background:var(--surface-2)}
+.photo-thumb{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;transition:transform .25s}
+.photo-wrap:active .photo-thumb{transform:scale(.98)}
+.photo-meta{
+  position:absolute;left:0;right:0;bottom:0;
+  padding:18px 10px 7px;
+  background:linear-gradient(to top, rgba(0,0,0,.62) 0%, rgba(0,0,0,0) 100%);
+  font-size:11px;font-weight:700;color:rgba(255,255,255,.95);
+  letter-spacing:.15px;
+  display:flex;justify-content:space-between;align-items:flex-end;gap:6px;
+  pointer-events:none;
+  text-shadow:0 1px 2px rgba(0,0,0,.5);
+}
+.photo-meta .pm-who{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.photo-meta .pm-when{opacity:.8;font-weight:600}
 
 /* ══════════════════════════════════════════
    PARAMÈTRES
@@ -636,15 +674,54 @@ body.drag-active *{cursor:grabbing !important}
 /* ══════════════════════════════════════════
    LIGHTBOX
 ══════════════════════════════════════════ */
-.lb{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9999;display:flex;align-items:center;justify-content:center}
-.lb img{max-width:96%;max-height:92vh;border-radius:var(--r-l)}
-.lb-close{
-  position:fixed;top:16px;right:16px;
-  width:40px;height:40px;border-radius:var(--r-f);
-  background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9999;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:pan-y}
+.lb-img-wrap{
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.lb-img{
+  max-width:96%;max-height:92vh;
+  border-radius:var(--r-l);
+  user-select:none;-webkit-user-select:none;
+  transition:transform .25s ease;
+  will-change:transform;
+}
+.lb-img.zoomed{transition:transform .25s ease;cursor:zoom-out}
+.lb-img.swiping{transition:none}
+.lb-close, .lb-nav{
+  position:fixed;
+  width:42px;height:42px;border-radius:var(--r-f);
+  background:rgba(255,255,255,.16);
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  cursor:pointer;border:none;
+  transition:background .15s, transform .12s;
+}
+.lb-close:active, .lb-nav:active{transform:scale(.9);background:rgba(255,255,255,.28)}
+.lb-close{top:calc(16px + env(safe-area-inset-top,0px));right:16px}
+.lb-nav.prev{left:14px;top:50%;transform:translateY(-50%)}
+.lb-nav.next{right:14px;top:50%;transform:translateY(-50%)}
+.lb-nav.prev:active{transform:translateY(-50%) scale(.9)}
+.lb-nav.next:active{transform:translateY(-50%) scale(.9)}
+.lb-close svg, .lb-nav svg{width:18px;height:18px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.lb-counter{
+  position:fixed;top:calc(22px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);
+  font-size:13px;font-weight:700;color:rgba(255,255,255,.85);
+  letter-spacing:.4px;
+  background:rgba(0,0,0,.32);padding:5px 12px;border-radius:var(--r-f);
   backdrop-filter:blur(6px);
 }
-.lb-close svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round}
+.lb-meta{
+  position:fixed;left:0;right:0;bottom:calc(18px + env(safe-area-inset-bottom,0px));
+  text-align:center;
+  font-size:13px;font-weight:600;color:rgba(255,255,255,.92);
+  text-shadow:0 1px 4px rgba(0,0,0,.5);
+  pointer-events:none;
+}
+.lb-meta .lm-when{opacity:.7;font-weight:500;font-size:12px;display:block;margin-top:2px}
+@media (max-width:520px){
+  .lb-nav{display:none}
+}
 </style>
 </head>
 <body>
@@ -788,11 +865,19 @@ body.drag-active *{cursor:grabbing !important}
     <div class="card-lbl">Photos partagées</div>
     <p style="font-size:12.5px;color:var(--t3);margin:-4px 0 12px;line-height:1.5">Stockées dans Airtable via la synchro cloud — visibles sur les deux appareils. Compressées automatiquement.</p>
     <div class="photo-grid" id="photoGrid"></div>
-    <label class="add-photo">
-      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-      <span>Ajouter une photo</span>
-      <input type="file" accept="image/*" onchange="addPhoto(this)" style="display:none">
-    </label>
+    <div id="uploadBar" style="display:none"></div>
+    <div class="add-photo-row">
+      <label class="add-photo">
+        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <span>Prendre</span>
+        <input type="file" accept="image/*" capture="environment" onchange="addPhotos(this)" style="display:none">
+      </label>
+      <label class="add-photo">
+        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span>Galerie</span>
+        <input type="file" accept="image/*" multiple onchange="addPhotos(this)" style="display:none">
+      </label>
+    </div>
   </div>
 </main>
 
@@ -2381,11 +2466,39 @@ function renderPhotoGrid(){
     grid.innerHTML=`<div class="empty" style="grid-column:span 2"><div class="empty-ico">${IC.emptyPhoto}</div><div class="empty-title">Ajoute des photos du chalet</div><div class="empty-sub">Partagées automatiquement avec ta copine.</div></div>`;
     return;
   }
-  grid.innerHTML=photoCache.map(p=>`
-    <div class="photo-wrap">
+  grid.innerHTML=photoCache.map(p=>{
+    // Aspect ratio naturel, capé entre 3:4 (portrait) et 16:9 (paysage)
+    let ratio = '4/3';
+    if(p.width && p.height && p.width > 0 && p.height > 0){
+      const r = p.width / p.height;
+      const clamped = Math.max(0.66, Math.min(1.78, r));
+      ratio = clamped.toFixed(3) + '/1';
+    }
+    const who = p.addedBy ? esc(p.addedBy) : '';
+    const when = p.addedAt ? esc(relativeTime(p.addedAt)) : '';
+    return `
+    <div class="photo-wrap" style="aspect-ratio:${ratio}">
       <img src="${esc(p.thumbUrl||p.url)}" class="photo-thumb" onclick="viewPhoto('${esc(p.id)}')" alt="${esc(p.name||'')}" loading="lazy">
-      <button class="photo-del" aria-label="Supprimer la photo" onclick="delPhoto('${esc(p.id)}')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>`).join('');
+      ${(who || when) ? `<div class="photo-meta"><span class="pm-who">${who}</span><span class="pm-when">${when}</span></div>` : ''}
+      <button class="photo-del" aria-label="Supprimer la photo" onclick="event.stopPropagation();delPhoto('${esc(p.id)}')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>`;
+  }).join('');
+}
+
+// Helper: temps relatif en français (à l'instant, il y a 2 h, il y a 3 j…)
+function relativeTime(epochMs){
+  if(!epochMs) return '';
+  const diffSec = Math.max(0, (Date.now() - epochMs) / 1000);
+  if(diffSec < 60) return "à l'instant";
+  const m = Math.floor(diffSec / 60);
+  if(m < 60) return 'il y a ' + m + ' min';
+  const h = Math.floor(m / 60);
+  if(h < 24) return 'il y a ' + h + ' h';
+  const d = Math.floor(h / 24);
+  if(d < 7) return 'il y a ' + d + ' j';
+  if(d < 30) return 'il y a ' + Math.floor(d/7) + ' sem';
+  if(d < 365) return 'il y a ' + Math.floor(d/30) + ' mois';
+  return 'il y a ' + Math.floor(d/365) + ' an' + (d>=730?'s':'');
 }
 
 async function loadPhotosFromWorker(){
@@ -2408,55 +2521,64 @@ async function loadPhotosFromWorker(){
   return photoListInFlight;
 }
 
-async function addPhoto(input){
-  const file=input.files && input.files[0];
-  const reset=()=>{try{input.value=''}catch(_){}};
-  if(!file){reset();return}
+// Indicateur d'upload visuel
+function setUploadStatus(msg, isError){
+  const bar = document.getElementById('uploadBar');
+  if(!bar) return;
+  if(!msg){ bar.style.display = 'none'; bar.innerHTML = ''; bar.classList.remove('upload-bar','err'); return; }
+  bar.style.display = '';
+  bar.className = 'upload-bar' + (isError ? ' err' : '');
+  bar.innerHTML = `<div class="upload-spinner"></div><span>${esc(msg)}</span>`;
+}
+
+async function uploadOnePhoto(file){
+  if(!/^image\//i.test(file.type)) throw new Error('"' + (file.name||'fichier') + '" n\'est pas une image.');
+  if(file.size > MAX_PHOTO_BYTES) throw new Error('"' + (file.name||'fichier') + '" trop lourde (>20 Mo).');
+  const blob = await compressImage(file, PHOTO_MAX_SIDE, PHOTO_JPEG_QUALITY);
+  const base64 = await blobToBase64(blob);
+  const me = S.marcName || 'moi';
+  const res = await fetch(S.syncUrl.replace(/\/+$/,'') + '/photos', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + S.syncKeyHash, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: file.name || 'photo.jpg', addedBy: me, contentType: 'image/jpeg', base64 })
+  });
+  if(!res.ok){
+    const err = await res.json().catch(()=>({}));
+    throw new Error(err.error || ('HTTP ' + res.status));
+  }
+  return await res.json();
+}
+
+async function addPhotos(input){
+  const files = input.files ? Array.from(input.files) : [];
+  const reset = () => { try{ input.value = ''; }catch(_){ } };
+  if(!files.length){ reset(); return; }
   if(!syncConfigured()){
     alert("Active d'abord la synchronisation cloud (Paramètres).");
-    reset();return;
+    reset(); return;
   }
-  if(!/^image\//i.test(file.type)){
-    alert("Ce fichier n'est pas une image.");
-    reset();return;
-  }
-  if(file.size > MAX_PHOTO_BYTES){
-    alert("Photo trop lourde (>20 Mo). Utilise une version plus petite.");
-    reset();return;
-  }
-
-  try{
-    // Compression + conversion en base64
-    const blob = await compressImage(file, PHOTO_MAX_SIDE, PHOTO_JPEG_QUALITY);
-    const base64 = await blobToBase64(blob);
-    const me = S.marcName || 'moi';
-    const res = await fetch(S.syncUrl.replace(/\/+$/,'') + '/photos', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + S.syncKeyHash,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: file.name || 'photo.jpg',
-        addedBy: me,
-        contentType: 'image/jpeg',
-        base64: base64
-      })
-    });
-    if(!res.ok){
-      const err = await res.json().catch(()=>({}));
-      throw new Error(err.error || ('HTTP ' + res.status));
+  const total = files.length;
+  let ok = 0, errors = [];
+  for(let i = 0; i < total; i++){
+    const file = files[i];
+    setUploadStatus(`Envoi ${i+1}/${total}…`);
+    try{
+      const photo = await uploadOnePhoto(file);
+      photoCache.unshift(photo);
+      photoCacheFetchedAt = Date.now();
+      renderPhotoGrid();
+      ok++;
+    }catch(err){
+      console.error('Upload failed:', err);
+      errors.push((file.name||'photo') + ' : ' + (err.message || err));
     }
-    const photo = await res.json();
-    // Ajoute en tête du cache (tri desc par addedAt)
-    photoCache.unshift(photo);
-    photoCacheFetchedAt = Date.now();
-    renderPhotoGrid();
-  }catch(err){
-    console.error(err);
-    alert("Upload de la photo a échoué : " + (err.message || err));
-  }finally{
-    reset();
+  }
+  reset();
+  if(errors.length){
+    setUploadStatus(ok + '/' + total + ' envoyée' + (ok>1?'s':'') + ' — ' + errors.length + ' échec' + (errors.length>1?'s':''), true);
+    setTimeout(() => setUploadStatus(''), 6000);
+  }else{
+    setUploadStatus('');  // succès silencieux
   }
 }
 
@@ -2481,14 +2603,136 @@ async function delPhoto(recordId){
 }
 
 function viewPhoto(recordId){
-  const p = photoCache.find(x => x.id === recordId);
-  if(!p || !p.url) return;
-  const lb=document.createElement('div');
-  lb.className='lb';
-  lb.innerHTML=`<img src="${esc(p.url)}" alt="${esc(p.name||'')}"><button class="lb-close" aria-label="Fermer"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
-  lb.querySelector('.lb-close').onclick=()=>lb.remove();
-  lb.onclick=e=>{if(e.target===lb)lb.remove()};
+  const startIdx = photoCache.findIndex(x => x.id === recordId);
+  if(startIdx < 0 || !photoCache[startIdx] || !photoCache[startIdx].url) return;
+  let idx = startIdx;
+  let zoomed = false;
+  let lastTap = 0;
+
+  const lb = document.createElement('div');
+  lb.className = 'lb';
+  lb.innerHTML = `
+    <div class="lb-counter" id="lbCounter"></div>
+    <div class="lb-img-wrap">
+      <img class="lb-img" id="lbImg" alt="" draggable="false">
+    </div>
+    <button class="lb-nav prev" id="lbPrev" aria-label="Photo précédente"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="lb-nav next" id="lbNext" aria-label="Photo suivante"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+    <div class="lb-meta" id="lbMeta"></div>
+    <button class="lb-close" id="lbClose" aria-label="Fermer"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  `;
   document.body.appendChild(lb);
+
+  const $img = lb.querySelector('#lbImg');
+  const $counter = lb.querySelector('#lbCounter');
+  const $meta = lb.querySelector('#lbMeta');
+  const $prev = lb.querySelector('#lbPrev');
+  const $next = lb.querySelector('#lbNext');
+
+  function render(){
+    const p = photoCache[idx];
+    if(!p) return close();
+    $img.src = p.url;
+    $img.alt = p.name || '';
+    $counter.textContent = (idx+1) + ' / ' + photoCache.length;
+    const who = p.addedBy ? esc(p.addedBy) : '';
+    const when = p.addedAt ? esc(relativeTime(p.addedAt)) : '';
+    $meta.innerHTML = (who || when) ? `${who}${when ? `<span class="lm-when">${when}</span>` : ''}` : '';
+    $prev.style.visibility = idx > 0 ? '' : 'hidden';
+    $next.style.visibility = idx < photoCache.length - 1 ? '' : 'hidden';
+    resetZoom();
+  }
+  function go(delta){
+    const n = idx + delta;
+    if(n < 0 || n >= photoCache.length) return;
+    idx = n;
+    render();
+  }
+  function close(){
+    document.removeEventListener('keydown', onKey);
+    lb.remove();
+  }
+  function resetZoom(){
+    zoomed = false;
+    $img.classList.remove('zoomed');
+    $img.style.transform = '';
+  }
+  function toggleZoomAt(clientX, clientY){
+    if(zoomed){ resetZoom(); return; }
+    const r = $img.getBoundingClientRect();
+    // Centre du zoom = position du tap relative à l'image
+    const ox = ((clientX - r.left) / r.width) * 100;
+    const oy = ((clientY - r.top) / r.height) * 100;
+    $img.style.transformOrigin = ox + '% ' + oy + '%';
+    $img.style.transform = 'scale(2)';
+    $img.classList.add('zoomed');
+    zoomed = true;
+  }
+
+  // Boutons
+  $prev.onclick = e => { e.stopPropagation(); go(-1); };
+  $next.onclick = e => { e.stopPropagation(); go(+1); };
+  lb.querySelector('#lbClose').onclick = e => { e.stopPropagation(); close(); };
+  lb.addEventListener('click', e => { if(e.target === lb || e.target.classList.contains('lb-img-wrap')) close(); });
+
+  // Clavier (desktop)
+  function onKey(e){
+    if(e.key === 'Escape') close();
+    else if(e.key === 'ArrowLeft') go(-1);
+    else if(e.key === 'ArrowRight') go(+1);
+  }
+  document.addEventListener('keydown', onKey);
+
+  // Swipe + double-tap
+  let startX = 0, startY = 0, dx = 0, dy = 0, isSwipe = false, pointerActive = false;
+  $img.addEventListener('pointerdown', e => {
+    if(zoomed) return;  // pas de swipe en zoom
+    pointerActive = true;
+    startX = e.clientX; startY = e.clientY; dx = 0; dy = 0;
+    isSwipe = false;
+    $img.classList.add('swiping');
+    try{ $img.setPointerCapture(e.pointerId); }catch(_){}
+  });
+  $img.addEventListener('pointermove', e => {
+    if(!pointerActive || zoomed) return;
+    dx = e.clientX - startX;
+    dy = e.clientY - startY;
+    if(Math.abs(dx) > 8 || Math.abs(dy) > 8) isSwipe = true;
+    // Drag horizontal visuel
+    if(Math.abs(dx) > Math.abs(dy)){
+      $img.style.transform = 'translateX(' + dx + 'px)';
+    }
+  });
+  $img.addEventListener('pointerup', e => {
+    if(!pointerActive) return;
+    pointerActive = false;
+    $img.classList.remove('swiping');
+    if(zoomed) return;
+    if(isSwipe && Math.abs(dx) > Math.abs(dy)){
+      const threshold = 60;
+      if(dx < -threshold && idx < photoCache.length - 1){ go(+1); return; }
+      if(dx > threshold && idx > 0){ go(-1); return; }
+    }
+    // Pas de swipe → reset
+    $img.style.transform = '';
+    // Détection double-tap (si pas de mouvement notable)
+    if(!isSwipe){
+      const now = Date.now();
+      if(now - lastTap < 320){
+        toggleZoomAt(e.clientX, e.clientY);
+        lastTap = 0;
+      }else{
+        lastTap = now;
+      }
+    }
+  });
+  $img.addEventListener('pointercancel', () => {
+    pointerActive = false;
+    $img.classList.remove('swiping');
+    if(!zoomed) $img.style.transform = '';
+  });
+
+  render();
 }
 
 // Helpers compression
