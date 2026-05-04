@@ -2471,8 +2471,10 @@ function getPhotoEvent(photoId, photoFallbackDate){
   const t = d.getTime();
   const ev = S.events.find(e => {
     if(e.type !== 'sejour' || !e.startDate) return false;
-    const s = new Date(e.startDate); s.setHours(0,0,0,0);
-    const en = new Date(e.endDate || e.startDate); en.setHours(23,59,59,999);
+    const s = parseDateLocal(e.startDate); if(!s) return false;
+    s.setHours(0,0,0,0);
+    const en = parseDateLocal(e.endDate || e.startDate); if(!en) return false;
+    en.setHours(23,59,59,999);
     return t >= s.getTime() && t <= en.getTime();
   });
   return ev ? ev.id : null;
@@ -2863,10 +2865,11 @@ function isSoon(ds){
 function rDash(){
   const today=new Date();today.setHours(0,0,0,0);
   // Compte à rebours
-  const nxt=S.events.filter(e=>e.type==='sejour'&&new Date(e.startDate)>=today)
+  const nxt=S.events.filter(e=>e.type==='sejour'&&(parseDateLocal(e.startDate)||new Date(0))>=today)
     .sort((a,b)=>a.startDate.localeCompare(b.startDate))[0];
   if(nxt){
-    const diff=Math.ceil((new Date(nxt.startDate)-today)/86400000);
+    const nxtStart = parseDateLocal(nxt.startDate) || new Date(nxt.startDate);
+    const diff=Math.ceil((nxtStart-today)/86400000);
     document.getElementById('cdDays').textContent=diff===0?"Aujourd'hui !":"J−"+diff;
     document.getElementById('cdSub').textContent=esc(nxt.title)+' · '+dispDate(nxt.startDate);
   }else{
@@ -2914,8 +2917,10 @@ function rDash(){
     :`<div class="empty" style="padding:16px 0"><div class="empty-title">Rien à acheter 🎉</div></div>`;
 
   // Événements
-  const evs=S.events.filter(e=>new Date(e.endDate||e.startDate)>=today)
-    .sort((a,b)=>a.startDate.localeCompare(b.startDate)).slice(0,5);
+  const evs=S.events.filter(e=>{
+    const en = parseDateLocal(e.endDate||e.startDate);
+    return en && en>=today;
+  }).sort((a,b)=>a.startDate.localeCompare(b.startDate)).slice(0,5);
   const evEl=document.getElementById('dbEvents');
   evEl.innerHTML=evs.length?evs.map(e=>`
     <div class="ev-item">
@@ -4461,7 +4466,7 @@ function renderDayDetail(ds){
   const root = document.getElementById('dayDetailContent');
   if(!root) return;
   root.dataset.ds = ds;
-  const date = new Date(ds);
+  const date = parseDateLocal(ds) || new Date(ds);
   const dayLbl = JR_FR[date.getDay()];
   const dayNum = date.getDate();
   const monthLbl = MO_FR[date.getMonth()];
