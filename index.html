@@ -930,25 +930,29 @@ body.drag-active *{cursor:grabbing !important}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:4px}
 .cal-dh{text-align:center;font-size:11px;font-weight:700;color:var(--t3);padding:4px 0 6px;text-transform:uppercase;letter-spacing:.5px}
 .cal-day{
-  aspect-ratio:0.9;
-  min-height:54px;
+  aspect-ratio:0.82;
+  min-height:60px;
   display:flex;flex-direction:column;
-  align-items:center;justify-content:space-between;
+  align-items:center;justify-content:center;
+  gap:5px;
   border-radius:var(--r-m);
   font-size:14px;font-weight:600;
   cursor:pointer;
   position:relative;
   background:rgba(255,255,255,.55);
   transition:background .15s ease, transform .12s ease, box-shadow .15s ease;
-  padding:7px 4px 6px;
+  padding:8px 4px;
   overflow:visible;
 }
 .cal-day .d-num{line-height:1;font-variant-numeric:tabular-nums}
 .cal-wx{
   display:inline-flex;align-items:center;justify-content:center;
-  line-height:1;color:var(--t2);
+  line-height:0;color:var(--t2);
 }
-.cal-wx svg{width:20px;height:20px;flex-shrink:0;stroke-width:2}
+.cal-wx svg{
+  width:18px;height:18px;flex-shrink:0;stroke-width:2;
+  display:block;overflow:visible;
+}
 /* Couleurs subtiles par type de météo */
 .cal-wx.wx-sun{color:#E29A1F}
 .cal-wx.wx-cloudSun{color:#B98E3A}
