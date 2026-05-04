@@ -1598,7 +1598,9 @@ body.drag-active *{cursor:grabbing !important}
 /* ══════════════════════════════════════════
    LIGHTBOX
 ══════════════════════════════════════════ */
-.lb{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9999;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:pan-y}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9999;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;overscroll-behavior:contain}
+.lb-img-wrap{touch-action:none}
+.lb-img{touch-action:none}
 .lb-img-wrap{
   width:100%;height:100%;display:flex;align-items:center;justify-content:center;
   position:relative;
@@ -5083,6 +5085,9 @@ function viewPhoto(recordId, opts){
     </div>
   `;
   document.body.appendChild(lb);
+  // Verrouille le scroll de la page derrière la lightbox
+  const _prevBodyOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
 
   const $img = lb.querySelector('#lbImg');
   const $counter = lb.querySelector('#lbCounter');
@@ -5125,6 +5130,7 @@ function viewPhoto(recordId, opts){
   function close(){
     document.removeEventListener('keydown', onKey);
     if(slideshowTimer){ clearTimeout(slideshowTimer); slideshowTimer = null; }
+    document.body.style.overflow = _prevBodyOverflow;
     lb.remove();
   }
   function scheduleNext(){
@@ -5241,7 +5247,10 @@ function viewPhoto(recordId, opts){
     if(!pointerActive || zoomed) return;
     dx = e.clientX - startX;
     dy = e.clientY - startY;
-    if(Math.abs(dx) > 8 || Math.abs(dy) > 8) isSwipe = true;
+    if(Math.abs(dx) > 8 || Math.abs(dy) > 8){
+      isSwipe = true;
+      if(e.cancelable) e.preventDefault();
+    }
     // Verrouille la direction au premier mouvement franc
     if(!swipeDir && (Math.abs(dx) > 10 || Math.abs(dy) > 10)){
       swipeDir = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
@@ -5257,7 +5266,7 @@ function viewPhoto(recordId, opts){
       $img.style.opacity = (1 - fadeRatio * 0.5).toFixed(2);
       lb.style.background = 'rgba(0,0,0,' + (0.96 * (1 - fadeRatio * 0.7)).toFixed(2) + ')';
     }
-  });
+  }, { passive: false });
   $img.addEventListener('pointerup', e => {
     if(!pointerActive) return;
     pointerActive = false;
