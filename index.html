@@ -177,7 +177,210 @@ input,select,textarea{font-family:inherit}
   color:rgba(255,255,255,.85);transition:background .15s;
 }
 .hdr-btn:active{background:rgba(255,255,255,.15)}
-.hdr-actions{display:flex;align-items:center;gap:10px}
+.hdr-actions{display:flex;align-items:center;gap:6px}
+
+/* Recherche globale — modal et résultats */
+.search-modal{
+  position:fixed;inset:0;z-index:2500;
+  background:rgba(0,0,0,.42);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:none;
+  opacity:0;transition:opacity var(--t-med) var(--ease);
+}
+.search-modal.on{display:block;opacity:1}
+.search-panel{
+  position:absolute;top:0;left:0;right:0;
+  background:var(--surface);
+  padding:calc(14px + env(safe-area-inset-top,0px)) 14px 14px;
+  box-shadow:0 8px 32px rgba(0,0,0,.18);
+  transform:translateY(-100%);
+  transition:transform var(--t-slow) var(--ease-out);
+  max-height:90vh;overflow-y:auto;
+}
+.search-modal.on .search-panel{transform:translateY(0)}
+.search-bar{
+  display:flex;align-items:center;gap:10px;
+  background:var(--surface-2);
+  border-radius:13px;padding:11px 14px;
+}
+.search-bar svg{width:16px;height:16px;color:var(--t3);flex-shrink:0;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.search-bar input{
+  flex:1;border:none;background:transparent;outline:none;
+  font-size:15.5px;font-family:inherit;color:var(--t);
+}
+.search-bar input::placeholder{color:var(--t3)}
+.search-cancel{
+  font-size:14px;font-weight:600;color:var(--p);
+  background:none;border:none;cursor:pointer;padding:6px 4px;
+}
+.search-results{margin-top:14px}
+.search-section{margin-bottom:14px}
+.search-section-title{
+  font-size:11px;font-weight:700;letter-spacing:.6px;
+  text-transform:uppercase;color:var(--t3);
+  margin-bottom:6px;padding:0 4px;
+}
+.search-result{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 12px;
+  background:var(--surface-2);border-radius:11px;
+  margin-bottom:5px;cursor:pointer;
+  transition:background-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease-spring);
+}
+.search-result:active{background:var(--p-tint-2);transform:scale(.98)}
+.search-result-icon{
+  width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:var(--p-tint);color:var(--p);
+  font-size:14px;
+}
+.search-result-icon svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.search-result-body{flex:1;min-width:0}
+.search-result-title{font-size:14px;font-weight:600;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.search-result-meta{font-size:11.5px;color:var(--t3);margin-top:2px;font-weight:500}
+.search-empty{
+  text-align:center;padding:30px 14px;
+  color:var(--t3);font-size:14px;
+}
+
+/* Quick-add — sheet sur Dashboard */
+.quick-add-sheet{
+  display:flex;flex-direction:column;gap:6px;
+}
+.qa-btn{
+  display:flex;align-items:center;gap:14px;
+  padding:14px;background:var(--surface-2);
+  border-radius:14px;border:none;cursor:pointer;
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease);
+  text-align:left;width:100%;
+}
+.qa-btn:active{transform:scale(.98);background:var(--p-tint-2)}
+.qa-icon{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  color:white;
+}
+.qa-icon svg{width:18px;height:18px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.qa-body{flex:1;min-width:0}
+.qa-title{font-size:15px;font-weight:700;color:var(--t)}
+.qa-sub{font-size:12px;color:var(--t3);margin-top:1px}
+
+/* Onboarding */
+.onboarding{
+  position:fixed;inset:0;z-index:5000;
+  background:linear-gradient(180deg,var(--p) 0%,var(--p-dk) 100%);
+  display:none;flex-direction:column;
+  color:white;
+  padding:env(safe-area-inset-top,0) 22px env(safe-area-inset-bottom,0);
+}
+.onboarding.on{display:flex;animation:fadeInUp .42s var(--ease-out)}
+.ob-skip{
+  position:absolute;top:calc(16px + env(safe-area-inset-top,0px));right:18px;
+  background:transparent;border:none;
+  font-size:14px;font-weight:700;color:rgba(255,255,255,.7);
+  padding:6px 10px;cursor:pointer;
+  z-index:2;
+}
+.ob-slides{
+  flex:1;display:flex;overflow:hidden;
+  margin:50px 0 30px;
+  position:relative;
+}
+.ob-slide{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;padding:0 12px;
+  opacity:0;transform:translateX(40px);
+  transition:opacity .35s var(--ease-out), transform .35s var(--ease-out);
+  pointer-events:none;
+}
+.ob-slide.active{opacity:1;transform:translateX(0);pointer-events:auto}
+.ob-slide.prev{transform:translateX(-40px)}
+.ob-icon{
+  width:88px;height:88px;border-radius:24px;
+  background:rgba(255,255,255,.16);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:24px;
+  backdrop-filter:blur(20px);
+}
+.ob-icon svg{width:44px;height:44px;stroke:white;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ob-title{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:10px;line-height:1.15}
+.ob-text{font-size:15px;opacity:.85;line-height:1.55;max-width:340px}
+.ob-dots{
+  display:flex;justify-content:center;gap:8px;
+  margin-bottom:18px;
+}
+.ob-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(255,255,255,.3);
+  transition:background-color var(--t-med) var(--ease), width var(--t-med) var(--ease);
+}
+.ob-dot.active{background:white;width:22px}
+.ob-actions{
+  display:flex;gap:10px;
+  padding-bottom:16px;
+}
+.ob-btn-primary{
+  flex:1;padding:15px;
+  background:white;color:var(--p-dk);
+  border:none;border-radius:14px;cursor:pointer;
+  font-size:15px;font-weight:800;
+  transition:transform var(--t-fast) var(--ease-spring);
+}
+.ob-btn-primary:active{transform:scale(.97)}
+
+/* Items récurrents — chips suggestions dans modal */
+.suggest-chips{
+  display:flex;flex-wrap:wrap;gap:6px;
+  margin-top:6px;margin-bottom:8px;
+  max-height:90px;overflow-y:auto;
+}
+.suggest-chips:empty{display:none}
+.suggest-chip{
+  font-size:12px;font-weight:600;
+  padding:5px 10px;border-radius:var(--r-f);
+  background:var(--surface-2);color:var(--t2);
+  border:1px dashed var(--border);cursor:pointer;
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.suggest-chip:active{transform:scale(.92);background:var(--p-tint-2);color:var(--p)}
+.suggest-label{
+  font-size:10.5px;font-weight:700;letter-spacing:.4px;
+  text-transform:uppercase;color:var(--t3);
+  margin-top:6px;margin-bottom:4px;
+}
+
+/* Templates bagages — bouton dans la section */
+.pack-tools{
+  display:flex;justify-content:flex-end;
+  margin-bottom:8px;
+}
+.pack-tools button{
+  font-size:13px;font-weight:600;color:var(--p);
+  background:var(--p-tint-2);border:none;cursor:pointer;
+  padding:6px 12px;border-radius:var(--r-f);
+  display:inline-flex;align-items:center;gap:5px;
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease);
+}
+.pack-tools button:active{transform:scale(.94);background:var(--p-tint)}
+.pack-tools button svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* OCR — bouton dans la lightbox */
+.lb-action.ocr svg{stroke-width:1.8}
+.ocr-result{
+  padding:14px 16px;
+  background:var(--surface-2);
+  border-radius:13px;
+  margin-bottom:12px;
+  font-size:14px;line-height:1.55;
+  white-space:pre-wrap;color:var(--t);
+  max-height:240px;overflow-y:auto;
+}
+.ocr-loading{
+  display:flex;align-items:center;gap:10px;
+  padding:14px;color:var(--p);font-weight:600;font-size:14px;
+}
+.ocr-loading .upload-spinner{margin:0}
 .sync-dot{
   width:9px;height:9px;border-radius:50%;
   background:rgba(255,255,255,.4);
@@ -1680,6 +1883,9 @@ body.drag-active *{cursor:grabbing !important}
     </div>
     <div class="hdr-actions">
       <span id="syncDot" class="sync-dot idle" style="display:none" aria-label="Synchronisation"></span>
+      <button class="hdr-btn" onclick="openGlobalSearch()" aria-label="Recherche">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
       <button class="hdr-btn" onclick="go('settings')" aria-label="Paramètres">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
@@ -1751,6 +1957,12 @@ body.drag-active *{cursor:grabbing !important}
       <span style="font-size:13px;font-weight:800;color:var(--s)" id="packPct">0/0</span>
     </div>
     <div class="prog-bar"><div class="prog-fill" id="packBar" style="width:0%"></div></div>
+  </div>
+  <div class="pack-tools">
+    <button onclick="openPackTemplates()">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      Templates
+    </button>
   </div>
   <div id="packList"></div>
 </main>
@@ -2154,7 +2366,11 @@ body.drag-active *{cursor:grabbing !important}
       <div class="m-title" id="packModalTitle">Ajouter un article</div>
       <button class="m-close" aria-label="Fermer" onclick="closeM('packModal')"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div class="fg"><label>Nom *</label><input class="fi" id="pName" placeholder="Ex: Serviettes de plage"></div>
+    <div class="fg"><label>Nom *</label>
+      <input class="fi" id="pName" placeholder="Ex: Serviettes de plage" autocomplete="off" list="pNameList">
+      <datalist id="pNameList"></datalist>
+      <div class="suggest-chips" id="pSuggest"></div>
+    </div>
     <div class="fg"><label>Quantité</label><input class="fi" id="pQty" placeholder="Ex: 2" inputmode="numeric"></div>
     <div class="fg"><label>Catégorie</label>
       <select class="fs" id="pCat">
@@ -2188,7 +2404,11 @@ body.drag-active *{cursor:grabbing !important}
       <div class="m-title" id="crsModalTitle">Ajouter à l'épicerie</div>
       <button class="m-close" aria-label="Fermer" onclick="closeM('crsModal')"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div class="fg"><label>Article *</label><input class="fi" id="cName" placeholder="Ex: Lait 2%"></div>
+    <div class="fg"><label>Article *</label>
+      <input class="fi" id="cName" placeholder="Ex: Lait 2%" autocomplete="off" list="cNameList">
+      <datalist id="cNameList"></datalist>
+      <div class="suggest-chips" id="cSuggest"></div>
+    </div>
     <div style="display:flex;gap:10px">
       <div class="fg" style="flex:1"><label>Quantité</label><input class="fi" id="cQty" placeholder="Ex: 2" inputmode="decimal"></div>
       <div class="fg" style="flex:1"><label>Unité</label>
@@ -2313,6 +2533,103 @@ body.drag-active *{cursor:grabbing !important}
 </div>
 
 <!-- Fiche contact détaillée (plein écran) -->
+<!-- Recherche globale -->
+<div class="search-modal" id="searchModal" onclick="if(event.target===this)closeGlobalSearch()">
+  <div class="search-panel" onclick="event.stopPropagation()">
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" id="globalSearchInput" placeholder="Recherche tâches, courses, contacts, notes…" autocomplete="off">
+      <button class="search-cancel" onclick="closeGlobalSearch()">Annuler</button>
+    </div>
+    <div class="search-results" id="globalSearchResults"></div>
+  </div>
+</div>
+
+<!-- Quick-add Dashboard -->
+<div class="m-overlay" id="quickAddModal">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-hdr">
+      <div class="m-title">Ajouter rapidement</div>
+      <button class="m-close" aria-label="Fermer" onclick="closeM('quickAddModal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="quick-add-sheet">
+      <button class="qa-btn" onclick="quickAdd('tasks')">
+        <span class="qa-icon" style="background:#B83232"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>
+        <span class="qa-body"><span class="qa-title">Nouvelle tâche</span><span class="qa-sub">À faire avant ou pendant le séjour</span></span>
+      </button>
+      <button class="qa-btn" onclick="quickAdd('packing')">
+        <span class="qa-icon" style="background:#3A6648"><svg viewBox="0 0 24 24"><path d="M9 4h6a1 1 0 011 1v1H8V5a1 1 0 011-1z"/><rect x="4" y="6" width="16" height="15" rx="3"/><path d="M9 13h6M12 10v6"/></svg></span>
+        <span class="qa-body"><span class="qa-title">Article à apporter</span><span class="qa-sub">Bagage pour le prochain séjour</span></span>
+      </button>
+      <button class="qa-btn" onclick="quickAdd('courses')">
+        <span class="qa-icon" style="background:#C07B18"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.57L23 6H6"/></svg></span>
+        <span class="qa-body"><span class="qa-title">Course / épicerie</span><span class="qa-sub">À acheter</span></span>
+      </button>
+      <button class="qa-btn" onclick="quickAdd('event')">
+        <span class="qa-icon" style="background:#1F4F6F"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="4"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span>
+        <span class="qa-body"><span class="qa-title">Événement / séjour</span><span class="qa-sub">Ajouter au calendrier</span></span>
+      </button>
+      <button class="qa-btn" onclick="quickAdd('contact')">
+        <span class="qa-icon" style="background:#6B3FB0"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span class="qa-body"><span class="qa-title">Contact</span><span class="qa-sub">Voisin, déneigeur, commerce…</span></span>
+      </button>
+    </div>
+    <button class="btn-g" onclick="closeM('quickAddModal')" style="margin-top:14px">Fermer</button>
+  </div>
+</div>
+
+<!-- Onboarding (premier lancement) -->
+<div class="onboarding" id="onboardingModal">
+  <button class="ob-skip" onclick="finishOnboarding()">Passer</button>
+  <div class="ob-slides" id="obSlides">
+    <div class="ob-slide active" data-slide="0">
+      <div class="ob-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1z"/><path d="M9 21V12h6v9"/></svg>
+      </div>
+      <div class="ob-title">Bienvenue au chalet</div>
+      <div class="ob-text">Une appli pour planifier tes séjours, partager tes photos, garder le contact avec les voisins. Tout reste entre toi et ta personne.</div>
+    </div>
+    <div class="ob-slide" data-slide="1">
+      <div class="ob-icon">
+        <svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+      </div>
+      <div class="ob-title">Synchro à deux</div>
+      <div class="ob-text">Configure le même mot de passe partagé sur les deux appareils dans Paramètres → Synchronisation. Tout se met à jour automatiquement.</div>
+    </div>
+    <div class="ob-slide" data-slide="2">
+      <div class="ob-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+      </div>
+      <div class="ob-title">Trouve ton ambiance</div>
+      <div class="ob-text">Choisis un thème dans Paramètres : Bois chaleureux, Forêt, Pierre, Océan, ou Sombre. Le tien reste sur cet appareil.</div>
+    </div>
+  </div>
+  <div class="ob-dots" id="obDots">
+    <span class="ob-dot active"></span><span class="ob-dot"></span><span class="ob-dot"></span>
+  </div>
+  <div class="ob-actions">
+    <button class="ob-btn-primary" id="obBtnNext" onclick="onboardingNext()">Suivant</button>
+  </div>
+</div>
+
+<!-- Templates bagages -->
+<div class="m-overlay" id="packTemplatesModal">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-hdr">
+      <div class="m-title">Templates de bagages</div>
+      <button class="m-close" aria-label="Fermer" onclick="closeM('packTemplatesModal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="packTemplatesList"></div>
+    <div class="fg" style="margin-top:14px"><label>Sauvegarder la liste actuelle comme template</label>
+      <input class="fi" id="newTemplateName" placeholder="Ex: Long week-end été">
+    </div>
+    <button class="btn-p" onclick="saveCurrentAsTemplate()">Sauvegarder</button>
+    <button class="btn-g" onclick="closeM('packTemplatesModal')">Fermer</button>
+  </div>
+</div>
+
 <div class="m-overlay" id="contactDetailModal">
   <div class="modal fullscreen" id="contactDetailContent" role="dialog" aria-label="Fiche contact"></div>
 </div>
@@ -2530,7 +2847,7 @@ function readFileTakenDate(file){
   return lm;
 }
 
-const SCHEMA_VERSION = 13;
+const SCHEMA_VERSION = 14;
 const DEFAULT_STATE = {
   schemaVersion: SCHEMA_VERSION,
   chaletName:'Notre Chalet', marcName:'Marc', copineName:'Ma copine',
@@ -2549,7 +2866,11 @@ const DEFAULT_STATE = {
   eventCovers: {},      // { [eventId]: photoId }  — couverture d'album
   photoMilestones: { achieved: [] },  // [50, 100, 250] — confetti déjà célébrés
   // v10 — date de prise réelle (du fichier source, pas du upload)
-  photoTakenAt: {}      // { [photoId]: epochMs }
+  photoTakenAt: {},     // { [photoId]: epochMs }
+  // v14 — historique d'utilisation pour suggestions + templates de bagages
+  itemsHistory: { courses: {}, packing: {}, tasks: {} },  // { [list]: { [name]: count } }
+  packingTemplates: {}, // { [templateName]: [items snapshot] }
+  photoHashes: {}       // { [photoId]: pHash hex } pour détection doublons
 };
 let S = JSON.parse(JSON.stringify(DEFAULT_STATE));
 let curSec = 'dashboard';
@@ -2630,6 +2951,11 @@ function normalizeState(raw){
   if(!Array.isArray(out.photoMilestones.achieved)) out.photoMilestones.achieved = [];
   // Migration v9→v10 : map des dates de prise (séparées de la date d'upload)
   if(!out.photoTakenAt || typeof out.photoTakenAt !== 'object') out.photoTakenAt = {};
+  // Migration v13→v14 : historique items + templates bagages + hashes photos
+  if(!out.itemsHistory || typeof out.itemsHistory !== 'object') out.itemsHistory = { courses:{}, packing:{}, tasks:{} };
+  ['courses','packing','tasks'].forEach(k => { if(!out.itemsHistory[k] || typeof out.itemsHistory[k] !== 'object') out.itemsHistory[k] = {}; });
+  if(!out.packingTemplates || typeof out.packingTemplates !== 'object') out.packingTemplates = {};
+  if(!out.photoHashes || typeof out.photoHashes !== 'object') out.photoHashes = {};
   // Sync state
   if(typeof out.syncUrl !== 'string') out.syncUrl = '';
   if(typeof out.syncKeyHash !== 'string' || !/^[a-f0-9]{64}$/.test(out.syncKeyHash)) out.syncKeyHash = '';
@@ -2693,7 +3019,7 @@ function go(name){
   if(nav)nav.classList.add('active');
   curSec=name;
   const fab=document.getElementById('fab');
-  fab.style.display=['tasks','packing','courses','calendar','contacts'].includes(name)?'flex':'none';
+  fab.style.display=['tasks','packing','courses','calendar','contacts','dashboard'].includes(name)?'flex':'none';
   if(name==='dashboard')rDash();
   if(name==='tasks')rTasks();
   if(name==='packing')rPacking();
@@ -2709,6 +3035,7 @@ function fabAct(){
   else if(curSec==='packing')openPackModal();
   else if(curSec==='courses')openCrsModal();
   else if(curSec==='contacts')openContactModal();
+  else if(curSec==='dashboard')openQuickAdd();
   else if(curSec==='calendar'){
     const t=fmtDate(new Date());
     document.getElementById('evStart').value=t;
@@ -3112,6 +3439,7 @@ function saveTask(){
     S.tasks.push(stamp(Object.assign({
       id:uid(), order:nextOrder(S.tasks), done:false
     }, fields)));
+    trackItemUsage('tasks', fields.title);
   }
   save();closeM('taskModal');
   rTasks();rDash();
@@ -3178,6 +3506,8 @@ function openPackModal(){
   document.getElementById('pQty').value = '';
   document.getElementById('pCat').value = 'cuisine';
   document.getElementById('pPerson').value = 'ensemble';
+  refreshDatalist('pNameList', 'packing');
+  renderSuggestionChips('pSuggest', 'packing', (S.packing||[]).map(p=>p.name), 'pName');
   openM('packModal');
 }
 function editPack(id){
@@ -3209,6 +3539,7 @@ function savePack(){
     S.packing.push(stamp(Object.assign({
       id:uid(), order:nextOrder(S.packing), packed:false
     }, fields)));
+    trackItemUsage('packing', fields.name);
   }
   save();closeM('packModal');
   rPacking();
@@ -3285,6 +3616,8 @@ function openCrsModal(){
   document.getElementById('cUnit').value = '';
   document.getElementById('cCat').value = 'epicerie';
   document.getElementById('cAdded').value = 'ensemble';
+  refreshDatalist('cNameList', 'courses');
+  renderSuggestionChips('cSuggest', 'courses', (S.courses||[]).filter(c=>!c.bought).map(c=>c.name), 'cName');
   openM('crsModal');
 }
 function editCourse(id){
@@ -3321,6 +3654,7 @@ function saveCourse(){
     S.courses.push(stamp(Object.assign({
       id: uid(), order: nextOrder(S.courses), bought: false
     }, fields)));
+    trackItemUsage('courses', fields.name);
   }
   save(); closeM('crsModal');
   rCourses(); rDash();
@@ -4087,7 +4421,7 @@ function delContactNote(contactId, noteId){
 const SYNC_SALT = 'chalet-sync-2026-v1';
 const SYNC_PULL_INTERVAL_MS = 30 * 1000;
 const SYNC_PUSH_DEBOUNCE_MS = 1500;
-const SYNC_SYNCABLE_FIELDS = ['chaletName','marcName','copineName','albumUrl','notes','chaletLocationName','chaletLat','chaletLon','reactions','eventPhotos','eventCovers','photoMilestones','photoTakenAt'];
+const SYNC_SYNCABLE_FIELDS = ['chaletName','marcName','copineName','albumUrl','notes','chaletLocationName','chaletLat','chaletLon','reactions','eventPhotos','eventCovers','photoMilestones','photoTakenAt','itemsHistory','packingTemplates','photoHashes'];
 
 function now(){ return Date.now(); }
 
@@ -4630,6 +4964,8 @@ function rPhotos(){
   d.className=url?'album-link':'album-lbl';
   d.innerHTML=url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="album-link">Ouvrir l'album →</a>`:'Aucun album configuré';
 
+  // Reset pagination chaque fois qu'on entre dans la section
+  photoRenderLimit = PHOTO_PAGE_SIZE;
   // Skeletons si pas encore de photo en cache et sync configuré
   if(syncConfigured() && photoCache.length === 0){
     showPhotoSkeletons();
@@ -4817,7 +5153,7 @@ function renderPhotoGrid(){
     return;
   }
 
-  // 'all' ou 'hearts' : flat
+  // 'all' ou 'hearts' : flat (avec pagination de rendu)
   const photos = getFilteredPhotos();
   if(!photos.length){
     if(photoFilter === 'hearts'){
@@ -4827,8 +5163,10 @@ function renderPhotoGrid(){
     }
     return;
   }
-  grid.innerHTML = photos.map(p => photoCellHtml(p, me, other)).join('');
+  const visible = photos.slice(0, photoRenderLimit);
+  grid.innerHTML = visible.map(p => photoCellHtml(p, me, other)).join('');
   grid.querySelectorAll('.photo-heart').forEach(btn => attachHeartLongPress(btn));
+  setupPhotoPagination();
 }
 
 // ── Actions cœur / réactions ────────────────────────────
@@ -4978,6 +5316,14 @@ async function uploadOnePhoto(file){
   if(file.size > MAX_PHOTO_BYTES) throw new Error('"' + (file.name||'fichier') + '" trop lourde (>20 Mo).');
   // Capte la date de prise AVANT compression (lastModified du fichier source)
   const takenAt = readFileTakenDate(file);
+  // Détection de doublons via pHash perceptuel
+  const pHash = await computePerceptualHash(file);
+  if(pHash){
+    const existing = findSimilarPhoto(pHash);
+    if(existing){
+      throw new Error('DUPLICATE');  // remonté pour message utilisateur
+    }
+  }
   const blob = await compressImage(file, PHOTO_MAX_SIDE, PHOTO_JPEG_QUALITY);
   const base64 = await blobToBase64(blob);
   const me = ownerName(getOwner());
@@ -4992,6 +5338,11 @@ async function uploadOnePhoto(file){
   }
   const photo = await res.json();
   if(takenAt && photo && photo.id) setPhotoTakenAt(photo.id, takenAt);
+  if(pHash && photo && photo.id){
+    if(!S.photoHashes) S.photoHashes = {};
+    S.photoHashes[photo.id] = pHash;
+    stampField('photoHashes');
+  }
   return photo;
 }
 
@@ -5017,7 +5368,11 @@ async function addPhotos(input){
       ok++;
     }catch(err){
       console.error('Upload failed:', err);
-      errors.push((file.name||'photo') + ' : ' + (err.message || err));
+      if(err.message === 'DUPLICATE'){
+        errors.push((file.name||'photo') + ' : déjà partagée');
+      }else{
+        errors.push((file.name||'photo') + ' : ' + (err.message || err));
+      }
     }
   }
   reset();
@@ -5079,6 +5434,9 @@ function viewPhoto(recordId, opts){
       <button class="lb-action" id="lbDownload" aria-label="Télécharger">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       </button>
+      <button class="lb-action ocr" id="lbOcr" aria-label="Détecter le texte (OCR)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/><line x1="7" y1="17" x2="13" y2="17"/></svg>
+      </button>
       <button class="lb-action danger" id="lbDelete" aria-label="Supprimer">
         <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
       </button>
@@ -5097,6 +5455,7 @@ function viewPhoto(recordId, opts){
   const $share = lb.querySelector('#lbShare');
   const $download = lb.querySelector('#lbDownload');
   const $delete = lb.querySelector('#lbDelete');
+  const $ocr = lb.querySelector('#lbOcr');
 
   function render(){
     const p = photoCache[idx];
@@ -5191,6 +5550,11 @@ function viewPhoto(recordId, opts){
     a.click();
     setTimeout(() => a.remove(), 100);
     toast('Photo ouverte — appuie longuement pour enregistrer');
+  };
+  $ocr.onclick = e => {
+    e.stopPropagation();
+    const p = photoCache[idx]; if(!p || !p.url) return;
+    showOcrResult(p.url);
   };
   $delete.onclick = async e => {
     e.stopPropagation();
@@ -5831,6 +6195,447 @@ function importData(input){
 }
 
 /* ══════════════════════════════════════════
+   ITEMS HISTORY — tracker pour suggestions
+══════════════════════════════════════════ */
+function trackItemUsage(list, name){
+  if(!name) return;
+  const n = String(name).trim();
+  if(!n) return;
+  if(!S.itemsHistory) S.itemsHistory = { courses:{}, packing:{}, tasks:{} };
+  if(!S.itemsHistory[list]) S.itemsHistory[list] = {};
+  S.itemsHistory[list][n] = (S.itemsHistory[list][n] || 0) + 1;
+  stampField('itemsHistory');
+}
+function topSuggestions(list, exclude, max){
+  exclude = exclude || [];
+  max = max || 8;
+  const h = (S.itemsHistory && S.itemsHistory[list]) || {};
+  const used = new Set(exclude.map(s => String(s).toLowerCase().trim()));
+  return Object.entries(h)
+    .filter(([name]) => !used.has(name.toLowerCase().trim()))
+    .sort((a,b) => b[1] - a[1])
+    .slice(0, max)
+    .map(([name]) => name);
+}
+function renderSuggestionChips(elId, list, currentNames, applyToInputId){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  const sugg = topSuggestions(list, currentNames || [], 6);
+  if(!sugg.length){ el.innerHTML = ''; return; }
+  el.innerHTML = sugg.map(n => `<button type="button" class="suggest-chip" onclick="document.getElementById('${applyToInputId}').value=${JSON.stringify(n)};document.getElementById('${applyToInputId}').dispatchEvent(new Event('input'))">${esc(n)}</button>`).join('');
+}
+function refreshDatalist(elId, list){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  const h = (S.itemsHistory && S.itemsHistory[list]) || {};
+  const items = Object.entries(h).sort((a,b) => b[1] - a[1]).slice(0, 50).map(([n]) => n);
+  el.innerHTML = items.map(n => `<option value="${esc(n)}"></option>`).join('');
+}
+
+/* ══════════════════════════════════════════
+   RECHERCHE GLOBALE — modal Spotlight-like
+══════════════════════════════════════════ */
+function openGlobalSearch(){
+  const m = document.getElementById('searchModal');
+  if(!m) return;
+  m.classList.add('on');
+  document.body.style.overflow = 'hidden';
+  const inp = document.getElementById('globalSearchInput');
+  if(inp){
+    inp.value = '';
+    setTimeout(() => { try{ inp.focus(); }catch(_){} runGlobalSearch(''); }, 60);
+    if(!inp._wired){
+      inp._wired = true;
+      inp.addEventListener('input', e => runGlobalSearch(e.target.value));
+      inp.addEventListener('keydown', e => { if(e.key === 'Escape') closeGlobalSearch(); });
+    }
+  }
+}
+function closeGlobalSearch(){
+  const m = document.getElementById('searchModal');
+  if(!m) return;
+  m.classList.remove('on');
+  document.body.style.overflow = '';
+}
+function runGlobalSearch(q){
+  q = (q || '').toLowerCase().trim();
+  const out = document.getElementById('globalSearchResults');
+  if(!out) return;
+  if(!q){ out.innerHTML = `<div class="search-empty">Cherche dans toutes les sections : tâches, courses, bagages, contacts, notes…</div>`; return; }
+  const sections = [];
+
+  const matchesIn = (...fields) => fields.some(f => f && String(f).toLowerCase().includes(q));
+
+  const tasks = (S.tasks||[]).filter(t => matchesIn(t.title, t.notes)).slice(0, 6);
+  if(tasks.length) sections.push({title:'Tâches', items: tasks.map(t => ({
+    icon:'<svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>',
+    title: t.title, meta: t.done ? 'Faite' : (t.priority === 'high' ? 'Priorité haute' : 'À faire'),
+    onClick: `closeGlobalSearch();go('tasks')`
+  }))});
+
+  const packing = (S.packing||[]).filter(p => matchesIn(p.name)).slice(0, 6);
+  if(packing.length) sections.push({title:'Bagages', items: packing.map(p => ({
+    icon:'<svg viewBox="0 0 24 24"><path d="M9 4h6a1 1 0 011 1v1H8V5a1 1 0 011-1z"/><rect x="4" y="6" width="16" height="15" rx="3"/><path d="M9 13h6M12 10v6"/></svg>',
+    title: p.name, meta: p.packed ? 'Préparé' : 'À préparer',
+    onClick: `closeGlobalSearch();go('packing')`
+  }))});
+
+  const courses = (S.courses||[]).filter(c => matchesIn(c.name, c.note)).slice(0, 6);
+  if(courses.length) sections.push({title:'Courses', items: courses.map(c => ({
+    icon:'<svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.57L23 6H6"/></svg>',
+    title: c.name, meta: c.bought ? 'Acheté' : 'À acheter',
+    onClick: `closeGlobalSearch();go('courses')`
+  }))});
+
+  const events = (S.events||[]).filter(e => matchesIn(e.title)).slice(0, 6);
+  if(events.length) sections.push({title:'Calendrier', items: events.map(e => ({
+    icon:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="4"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+    title: e.title, meta: dispDate(e.startDate) + (e.endDate && e.endDate !== e.startDate ? ' → ' + dispDate(e.endDate) : ''),
+    onClick: `closeGlobalSearch();go('calendar')`
+  }))});
+
+  const contacts = (S.contacts||[]).filter(c =>
+    matchesIn(c.name, c.role, c.phone, c.email, c.address, c.notes) ||
+    (Array.isArray(c.tags) && c.tags.some(t => String(t).toLowerCase().includes(q))) ||
+    (Array.isArray(c.journal) && c.journal.some(j => String(j.text).toLowerCase().includes(q)))
+  ).slice(0, 6);
+  if(contacts.length) sections.push({title:'Contacts', items: contacts.map(c => ({
+    icon:`<div style="background:${avatarColor(c.name)};border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:800">${esc(avatarInitials(c.name))}</div>`,
+    iconRaw: true,
+    title: c.name, meta: c.role || (c.tags && c.tags.length ? c.tags.join(' · ') : ''),
+    onClick: `closeGlobalSearch();go('contacts');setTimeout(()=>viewContact('${esc(c.id)}'),200)`
+  }))});
+
+  // Notes partagées
+  if(S.notes && String(S.notes).toLowerCase().includes(q)){
+    sections.push({title:'Notes partagées', items: [{
+      icon:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+      title: 'Notes partagées', meta: 'Voir le contenu complet',
+      onClick: `closeGlobalSearch();go('settings');setTimeout(()=>{const n=document.getElementById('notesArea');if(n){n.scrollIntoView({behavior:'smooth'});n.focus();}},300)`
+    }]});
+  }
+
+  if(!sections.length){
+    out.innerHTML = `<div class="search-empty">Aucun résultat pour « ${esc(q)} »</div>`;
+    return;
+  }
+  out.innerHTML = sections.map(sec => `
+    <div class="search-section">
+      <div class="search-section-title">${esc(sec.title)}</div>
+      ${sec.items.map(it => `
+        <div class="search-result" onclick="${it.onClick}">
+          ${it.iconRaw ? it.icon : `<div class="search-result-icon">${it.icon}</div>`}
+          <div class="search-result-body">
+            <div class="search-result-title">${esc(it.title)}</div>
+            <div class="search-result-meta">${esc(it.meta || '')}</div>
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════════════
+   QUICK-ADD — sheet sur Dashboard
+══════════════════════════════════════════ */
+function openQuickAdd(){ openM('quickAddModal'); }
+function quickAdd(kind){
+  closeM('quickAddModal');
+  setTimeout(() => {
+    if(kind === 'tasks'){ go('tasks'); openTaskModal(); }
+    else if(kind === 'packing'){ go('packing'); openPackModal(); }
+    else if(kind === 'courses'){ go('courses'); openCrsModal(); }
+    else if(kind === 'event'){ go('calendar'); fabAct(); }
+    else if(kind === 'contact'){ go('contacts'); openContactModal(); }
+  }, 220);
+}
+
+/* ══════════════════════════════════════════
+   ONBOARDING — premier lancement
+══════════════════════════════════════════ */
+let obSlideIdx = 0;
+function maybeShowOnboarding(){
+  try{
+    if(localStorage.getItem('chalet_onboarded') === '1') return;
+  }catch(_){ return; }
+  obSlideIdx = 0;
+  const root = document.getElementById('onboardingModal');
+  if(!root) return;
+  document.querySelectorAll('.ob-slide').forEach((s, i) => s.classList.toggle('active', i === 0));
+  document.querySelectorAll('.ob-dot').forEach((d, i) => d.classList.toggle('active', i === 0));
+  document.getElementById('obBtnNext').textContent = 'Suivant';
+  root.classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function onboardingNext(){
+  const slides = document.querySelectorAll('.ob-slide');
+  const dots = document.querySelectorAll('.ob-dot');
+  const total = slides.length;
+  if(obSlideIdx >= total - 1){
+    finishOnboarding();
+    return;
+  }
+  obSlideIdx++;
+  slides.forEach((s, i) => {
+    s.classList.toggle('active', i === obSlideIdx);
+    s.classList.toggle('prev', i < obSlideIdx);
+  });
+  dots.forEach((d, i) => d.classList.toggle('active', i === obSlideIdx));
+  document.getElementById('obBtnNext').textContent = obSlideIdx === total - 1 ? 'Commencer' : 'Suivant';
+  if(navigator.vibrate) try{ navigator.vibrate(8); }catch(_){}
+}
+function finishOnboarding(){
+  const root = document.getElementById('onboardingModal');
+  if(root) root.classList.remove('on');
+  document.body.style.overflow = '';
+  try{ localStorage.setItem('chalet_onboarded', '1'); }catch(_){}
+  if(typeof fireConfetti === 'function') fireConfetti();
+  if(navigator.vibrate) try{ navigator.vibrate([15, 30, 15]); }catch(_){}
+}
+
+/* ══════════════════════════════════════════
+   TEMPLATES BAGAGES
+══════════════════════════════════════════ */
+function openPackTemplates(){
+  renderPackTemplates();
+  document.getElementById('newTemplateName').value = '';
+  openM('packTemplatesModal');
+}
+function renderPackTemplates(){
+  const el = document.getElementById('packTemplatesList');
+  if(!el) return;
+  const tpl = S.packingTemplates || {};
+  const names = Object.keys(tpl);
+  if(!names.length){
+    el.innerHTML = `<div class="empty" style="padding:14px 0"><div class="empty-title">Aucun template</div><div class="empty-sub">Sauvegarde ta liste actuelle pour la réutiliser plus tard.</div></div>`;
+    return;
+  }
+  el.innerHTML = names.map(n => {
+    const items = tpl[n] || [];
+    return `<div class="set-item">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:var(--p-tint);color:var(--p)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+        </div>
+        <span class="set-lbl">${esc(n)}<span style="display:block;font-size:11.5px;color:var(--t3);font-weight:500;margin-top:1px">${items.length} article${items.length>1?'s':''}</span></span>
+      </div>
+      <span style="display:flex;gap:6px">
+        <button class="set-btn" onclick="loadPackTemplate(${JSON.stringify(n)})">Charger</button>
+        <button class="del-btn" aria-label="Supprimer template" onclick="deletePackTemplate(${JSON.stringify(n)})">${IC.trash}</button>
+      </span>
+    </div>`;
+  }).join('');
+}
+function saveCurrentAsTemplate(){
+  const name = (document.getElementById('newTemplateName').value || '').trim();
+  if(!name){ alert('Donne un nom au template'); return; }
+  if(!S.packingTemplates) S.packingTemplates = {};
+  // Snapshot sans les ids ni mtime (on recréera à chaque chargement)
+  S.packingTemplates[name] = (S.packing || []).map(p => ({
+    name: p.name, qty: p.qty || '1', category: p.category || 'autre', person: p.person || 'ensemble'
+  }));
+  stampField('packingTemplates');
+  save();
+  toast('Template enregistré', { success: true });
+  renderPackTemplates();
+  document.getElementById('newTemplateName').value = '';
+}
+function loadPackTemplate(name){
+  const tpl = (S.packingTemplates || {})[name];
+  if(!tpl) return;
+  if(!confirm(`Ajouter les ${tpl.length} articles du template « ${name} » à ta liste actuelle ?`)) return;
+  if(!Array.isArray(S.packing)) S.packing = [];
+  let added = 0;
+  tpl.forEach((it, i) => {
+    // Anti-doublon : skip si un item portant le même nom existe déjà
+    const exists = S.packing.some(p => (p.name || '').toLowerCase().trim() === (it.name || '').toLowerCase().trim());
+    if(exists) return;
+    S.packing.push(stamp({
+      id: uid(), order: nextOrder(S.packing) + i, packed: false,
+      name: it.name, qty: it.qty || '1', category: it.category || 'autre', person: it.person || 'ensemble'
+    }));
+    added++;
+  });
+  save();
+  closeM('packTemplatesModal');
+  rPacking();
+  toast(`${added} article${added>1?'s':''} ajouté${added>1?'s':''}`, { success: true });
+}
+function deletePackTemplate(name){
+  if(!confirm(`Supprimer le template « ${name} » ?`)) return;
+  if(S.packingTemplates) delete S.packingTemplates[name];
+  stampField('packingTemplates');
+  save();
+  renderPackTemplates();
+  toast('Template supprimé');
+}
+
+/* ══════════════════════════════════════════
+   DÉTECTION DE DOUBLONS PHOTO — pHash 8x8
+══════════════════════════════════════════ */
+async function computePerceptualHash(file){
+  return new Promise((resolve) => {
+    try{
+      const reader = new FileReader();
+      reader.onerror = () => resolve(null);
+      reader.onload = e => {
+        const img = new Image();
+        img.onerror = () => resolve(null);
+        img.onload = () => {
+          try{
+            const N = 8;
+            const c = document.createElement('canvas');
+            c.width = N; c.height = N;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(img, 0, 0, N, N);
+            const data = ctx.getImageData(0, 0, N, N).data;
+            // Moyenne des luminances
+            const lums = [];
+            let total = 0;
+            for(let i = 0; i < N*N; i++){
+              const r = data[i*4], g = data[i*4+1], b = data[i*4+2];
+              const lum = (r*0.299 + g*0.587 + b*0.114);
+              lums.push(lum);
+              total += lum;
+            }
+            const avg = total / lums.length;
+            // 64 bits → string hex 16 chars
+            let bits = '';
+            for(const l of lums) bits += l > avg ? '1' : '0';
+            let hex = '';
+            for(let i = 0; i < 64; i += 4) hex += parseInt(bits.slice(i, i+4), 2).toString(16);
+            resolve(hex);
+          }catch(_){ resolve(null); }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }catch(_){ resolve(null); }
+  });
+}
+function hammingDistance(hexA, hexB){
+  if(!hexA || !hexB || hexA.length !== hexB.length) return 64;
+  let d = 0;
+  for(let i = 0; i < hexA.length; i++){
+    let x = parseInt(hexA[i], 16) ^ parseInt(hexB[i], 16);
+    while(x){ d += x & 1; x >>= 1; }
+  }
+  return d;
+}
+function findSimilarPhoto(hash){
+  if(!hash || !S.photoHashes) return null;
+  for(const id in S.photoHashes){
+    if(hammingDistance(hash, S.photoHashes[id]) <= 8){  // <= 8 bits diff = très similaire
+      return photoCache.find(p => p.id === id) || { id, addedBy:'?', addedAt: 0 };
+    }
+  }
+  return null;
+}
+
+/* ══════════════════════════════════════════
+   PAGINATION PHOTOS — render limit
+══════════════════════════════════════════ */
+const PHOTO_PAGE_SIZE = 60;
+const PHOTO_PAGE_INCREMENT = 30;
+let photoRenderLimit = PHOTO_PAGE_SIZE;
+function setupPhotoPagination(){
+  const grid = document.getElementById('photoGrid');
+  if(!grid || grid._paginAttached) return;
+  grid._paginAttached = true;
+  // Au scroll, si on est près du bas et qu'il reste des photos non rendues, on augmente la limite
+  let timeout = null;
+  window.addEventListener('scroll', () => {
+    if(curSec !== 'photos') return;
+    if(timeout) return;
+    timeout = setTimeout(() => {
+      timeout = null;
+      const total = (Array.isArray(photoCache) ? photoCache.length : 0);
+      if(photoRenderLimit >= total) return;
+      const nearBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 400);
+      if(nearBottom){
+        photoRenderLimit += PHOTO_PAGE_INCREMENT;
+        renderPhotoGrid();
+      }
+    }, 80);
+  }, { passive: true });
+}
+
+/* ══════════════════════════════════════════
+   OCR PHOTO → TEXTE / COURSES (Tesseract.js lazy)
+══════════════════════════════════════════ */
+let _tesseractPromise = null;
+function loadTesseract(){
+  if(_tesseractPromise) return _tesseractPromise;
+  _tesseractPromise = new Promise((resolve, reject) => {
+    if(window.Tesseract){ resolve(window.Tesseract); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.async = true;
+    s.onload = () => resolve(window.Tesseract);
+    s.onerror = () => { _tesseractPromise = null; reject(new Error('Impossible de charger Tesseract.js')); };
+    document.head.appendChild(s);
+  });
+  return _tesseractPromise;
+}
+async function runOcrOnPhoto(photoUrl){
+  toast('Analyse OCR en cours…');
+  try{
+    const T = await loadTesseract();
+    const result = await T.recognize(photoUrl, 'fra', {
+      // logger: m => console.log(m)
+    });
+    return result && result.data && result.data.text ? result.data.text.trim() : '';
+  }catch(err){
+    console.error('OCR failed:', err);
+    throw err;
+  }
+}
+function showOcrResult(photoUrl){
+  // Modal réutilisé : on prend le compose de note
+  const modal = document.getElementById('noteComposeModal');
+  if(!modal) return;
+  const ta = document.getElementById('noteComposeText');
+  const title = document.getElementById('noteComposeTitle');
+  if(title) title.textContent = 'Texte détecté';
+  if(ta){ ta.value = '⏳ Analyse en cours…'; ta.disabled = true; }
+  // Réécrire le bouton pour importer comme courses
+  let btn = modal.querySelector('.btn-p');
+  if(btn){
+    btn.textContent = 'Importer comme courses';
+    btn.onclick = () => importOcrAsCourses(ta ? ta.value : '');
+  }
+  openM('noteComposeModal');
+  runOcrOnPhoto(photoUrl).then(text => {
+    if(ta){ ta.value = text || '(aucun texte détecté)'; ta.disabled = false; }
+  }).catch(err => {
+    if(ta){ ta.value = 'Erreur : ' + (err.message || err); ta.disabled = false; }
+    toast('OCR échoué', { error: true });
+  });
+}
+function importOcrAsCourses(text){
+  const lines = String(text || '').split(/\r?\n/).map(l => l.trim()).filter(l => l.length >= 2 && l.length <= 80);
+  if(!lines.length){ toast('Aucune ligne valide'); return; }
+  if(!confirm(`Ajouter ${lines.length} ligne${lines.length>1?'s':''} à ta liste de courses ?`)) return;
+  if(!Array.isArray(S.courses)) S.courses = [];
+  let added = 0;
+  lines.forEach((name, i) => {
+    // Skip si déjà présent
+    const exists = S.courses.some(c => (c.name || '').toLowerCase().trim() === name.toLowerCase().trim() && !c.bought);
+    if(exists) return;
+    S.courses.push(stamp({
+      id: uid(), order: nextOrder(S.courses) + i, bought: false,
+      name, qty: '1', unit: '', category: 'epicerie', note: '', addedBy: ownerName(getOwner())
+    }));
+    added++;
+  });
+  save();
+  closeM('noteComposeModal');
+  // Reset the noteCompose modal pour son usage normal
+  const btn = document.getElementById('noteComposeModal').querySelector('.btn-p');
+  if(btn){ btn.textContent = 'Ajouter la note'; btn.onclick = () => saveContactNote(); }
+  toast(`${added} course${added>1?'s':''} ajoutée${added>1?'s':''}`, { success: true });
+  if(curSec !== 'courses') go('courses'); else rCourses();
+}
+
+/* ══════════════════════════════════════════
    INIT
 ══════════════════════════════════════════ */
 function init(){
@@ -5852,6 +6657,8 @@ function init(){
   if(syncConfigured()){
     migrateLocalPhotos().catch(e => console.warn('Photo migration failed:', e));
   }
+  // Onboarding au tout premier lancement
+  setTimeout(() => maybeShowOnboarding(), 600);
 }
 // Re-sync quand l'onglet redevient visible (ex: l'iPhone a dormi)
 document.addEventListener('visibilitychange', () => {
