@@ -623,6 +623,195 @@ body.drag-active *{cursor:grabbing !important}
 .photo-meta .pm-when{opacity:.8;font-weight:600}
 
 /* ══════════════════════════════════════════
+   RÉACTIONS — cœur, emoji, particules
+══════════════════════════════════════════ */
+.photo-heart{
+  position:absolute;top:8px;right:42px;
+  width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.32);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:none;cursor:pointer;
+  color:rgba(255,255,255,.85);
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease), color var(--t-med) var(--ease);
+  z-index:5;
+}
+.photo-heart svg{width:18px;height:18px;fill:currentColor;stroke:none;transition:fill var(--t-med) var(--ease)}
+.photo-heart:active{transform:scale(.85)}
+.photo-heart.liked{color:#FF4E6A;background:rgba(255,255,255,.18)}
+.photo-heart.liked svg{animation:heartPop .55s var(--ease-spring)}
+.photo-heart.both{color:#FF4E6A;background:rgba(255,78,106,.92)}
+.photo-heart.both svg{color:white;fill:white}
+@keyframes heartPop{
+  0%   {transform:scale(1)}
+  30%  {transform:scale(1.45)}
+  60%  {transform:scale(.88)}
+  100% {transform:scale(1)}
+}
+.photo-emoji{
+  position:absolute;left:8px;top:8px;
+  font-size:20px;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.45));
+  pointer-events:none;
+  animation:emojiIn .4s var(--ease-spring);
+  z-index:4;
+}
+@keyframes emojiIn{
+  from{opacity:0;transform:scale(.4) rotate(-12deg)}
+  to{opacity:1;transform:scale(1) rotate(0)}
+}
+
+/* Particules au like (heart explosion) */
+.heart-particles{
+  position:absolute;pointer-events:none;
+  width:1px;height:1px;z-index:8;
+}
+.heart-particles span{
+  position:absolute;
+  width:8px;height:8px;
+  font-size:14px;line-height:1;
+  color:#FF4E6A;
+  animation:particleFly .9s var(--ease-out) forwards;
+  opacity:1;
+}
+@keyframes particleFly{
+  0%   {transform:translate(0,0) scale(.4);opacity:1}
+  60%  {opacity:1}
+  100% {transform:translate(var(--dx),var(--dy)) scale(1);opacity:0}
+}
+
+/* Menu réactions emoji (long-press) */
+.reaction-menu{
+  position:fixed;z-index:9000;
+  display:flex;gap:6px;
+  background:rgba(30,17,8,.92);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  padding:8px 10px;
+  border-radius:var(--r-f);
+  box-shadow:var(--sh-l);
+  animation:reactionIn .25s var(--ease-spring);
+}
+@keyframes reactionIn{
+  from{opacity:0;transform:translate(-50%,8px) scale(.7)}
+  to{opacity:1;transform:translate(-50%,0) scale(1)}
+}
+.reaction-menu button{
+  font-size:24px;line-height:1;
+  width:42px;height:42px;border-radius:50%;
+  background:transparent;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease);
+}
+.reaction-menu button:hover{transform:scale(1.18);background:rgba(255,255,255,.08)}
+.reaction-menu button:active{transform:scale(.85)}
+
+/* Filtre Photos — pills horizontales */
+.photo-pills{
+  display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;
+  scrollbar-width:none;padding:2px 0;
+}
+.photo-pills::-webkit-scrollbar{display:none}
+
+/* En-têtes albums / sections de groupement */
+.album-header{
+  grid-column:span 2;
+  margin:-2px 0 8px;
+}
+.album-back{
+  font-size:13px;font-weight:700;color:var(--p);
+  cursor:pointer;display:inline-block;padding:4px 0;
+  transition:opacity var(--t-fast) var(--ease);
+}
+.album-back:active{opacity:.6}
+.album-title{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-top:6px}
+.album-sub{font-size:12.5px;color:var(--t3);font-weight:500;margin-top:3px}
+.album-section{margin:6px 0 -2px}
+.album-header-inline{
+  display:flex;align-items:baseline;justify-content:space-between;
+  padding:8px 2px 4px;
+}
+.album-section-title{font-size:15px;font-weight:800;letter-spacing:-.2px;color:var(--t)}
+.album-section-sub{font-size:11.5px;font-weight:600;color:var(--t3)}
+
+/* Skeleton loaders shimmer */
+.photo-skel{
+  border-radius:var(--r-l);
+  background:linear-gradient(90deg, var(--surface-2) 0%, var(--p-tint-2) 50%, var(--surface-2) 100%);
+  background-size:200% 100%;
+  animation:shimmer 1.4s infinite linear;
+}
+@keyframes shimmer{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+
+/* Confetti à milestone */
+.confetti{
+  position:fixed;inset:0;
+  pointer-events:none;z-index:9500;overflow:hidden;
+}
+.confetti-piece{
+  position:absolute;top:-30px;
+  width:10px;height:14px;
+  border-radius:2px;
+  animation:confettiFall 2.6s cubic-bezier(.32,.64,.5,1) forwards;
+}
+@keyframes confettiFall{
+  0%   {transform:translateY(-40px) rotate(0deg);opacity:1}
+  90%  {opacity:1}
+  100% {transform:translateY(108vh) rotate(720deg);opacity:0}
+}
+
+/* Bouton diaporama dans les pills photos */
+.photo-slideshow-btn{
+  position:absolute;top:14px;right:16px;
+  padding:6px 12px;border-radius:var(--r-f);
+  background:var(--p);color:white;
+  font-size:12px;font-weight:700;
+  border:none;cursor:pointer;
+  display:inline-flex;align-items:center;gap:5px;
+  box-shadow:0 2px 8px rgba(114,72,30,.22);
+  transition:transform var(--t-fast) var(--ease-spring), box-shadow var(--t-fast) var(--ease);
+  z-index:6;
+}
+.photo-slideshow-btn:active{transform:scale(.92)}
+.photo-slideshow-btn svg{width:11px;height:11px;fill:currentColor}
+
+/* Mode slideshow lightbox : indicateur progression */
+.lb.slideshow .lb-progress{
+  position:fixed;top:0;left:0;right:0;height:3px;
+  background:rgba(255,255,255,.15);
+  z-index:10;
+}
+.lb.slideshow .lb-progress::after{
+  content:'';display:block;height:100%;width:0;
+  background:white;
+  animation:lbProgress 4s linear forwards;
+}
+@keyframes lbProgress{from{width:0}to{width:100%}}
+
+/* Pull to refresh */
+.pull-refresh-indic{
+  display:none;
+  text-align:center;font-size:12px;font-weight:700;color:var(--p);
+  padding:10px 0;
+  letter-spacing:.5px;text-transform:uppercase;
+}
+.pull-refresh-indic.active{display:block;animation:fadeInUp .3s var(--ease-out)}
+.pull-refresh-indic.spin svg{animation:spin 1s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px}
+.pull-refresh-indic svg{width:14px;height:14px;stroke:var(--p);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Stats card Settings */
+.stat-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 0;border-bottom:1px solid var(--border);
+}
+.stat-row:last-child{border-bottom:none;padding-bottom:0}
+.stat-row:first-child{padding-top:0}
+.stat-row .sr-l{font-size:13.5px;font-weight:600;color:var(--t2)}
+.stat-row .sr-v{font-size:14px;font-weight:800;color:var(--p);letter-spacing:-.2px}
+
+/* ══════════════════════════════════════════
    PARAMÈTRES
 ══════════════════════════════════════════ */
 .set-item{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border)}
@@ -886,6 +1075,10 @@ body.drag-active *{cursor:grabbing !important}
     <div class="card-lbl">Prochains séjours</div>
     <div id="dbEvents"></div>
   </div>
+  <div class="card" id="dbMemoriesCard" style="display:none">
+    <div class="card-lbl" id="dbMemoriesLbl">Souvenir du jour</div>
+    <div id="dbMemoriesBody"></div>
+  </div>
 </main>
 
 <!-- Tâches -->
@@ -974,9 +1167,18 @@ body.drag-active *{cursor:grabbing !important}
       </div>
     </div>
   </div>
-  <div class="card">
+  <div class="card" style="position:relative">
     <div class="card-lbl">Photos partagées</div>
-    <p style="font-size:12.5px;color:var(--t3);margin:-4px 0 12px;line-height:1.5">Stockées dans Airtable via la synchro cloud — visibles sur les deux appareils. Compressées automatiquement.</p>
+    <button class="photo-slideshow-btn" id="slideshowBtn" onclick="startSlideshow()" style="display:none">
+      <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg> Diaporama
+    </button>
+    <div class="photo-pills" id="photoPills">
+      <button class="pill on" onclick="setPhotoFilter('all', this)">Toutes</button>
+      <button class="pill" onclick="setPhotoFilter('hearts', this)">❤️ Coups de cœur</button>
+      <button class="pill" onclick="setPhotoFilter('sejours', this)">📅 Par séjour</button>
+      <button class="pill" onclick="setPhotoFilter('months', this)">🗓 Par mois</button>
+    </div>
+    <div class="pull-refresh-indic" id="pullRefresh"></div>
     <div class="photo-grid" id="photoGrid"></div>
     <div id="uploadBar" style="display:none"></div>
     <div class="add-photo-row">
@@ -1026,6 +1228,39 @@ body.drag-active *{cursor:grabbing !important}
         <span class="set-lbl">Prénom de votre copine</span>
       </div>
       <button class="set-btn" id="btnCop" onclick="edit('copineName')">Ma copine</button>
+    </div>
+    <div class="set-item" style="border-bottom:none">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:var(--p-tint);color:var(--p)">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M3 21a9 9 0 0118 0"/></svg>
+        </div>
+        <span class="set-lbl">Sur cet appareil je suis</span>
+      </div>
+      <button class="set-btn" id="btnOwner" onclick="toggleOwner()">Marc</button>
+    </div>
+  </div>
+
+  <div class="card" id="photoStatsCard" style="display:none">
+    <div class="card-lbl">Stats photos</div>
+    <div class="stat-row">
+      <span class="sr-l">Total</span>
+      <span class="sr-v" id="statTotal">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="sr-l" id="statMineLbl">Marc</span>
+      <span class="sr-v" id="statMine">—</span>
+    </div>
+    <div class="stat-row">
+      <span class="sr-l" id="statHersLbl">Ma copine</span>
+      <span class="sr-v" id="statHers">—</span>
+    </div>
+    <div class="stat-row">
+      <span class="sr-l">Mois le plus actif</span>
+      <span class="sr-v" id="statTopMonth">—</span>
+    </div>
+    <div class="stat-row">
+      <span class="sr-l">Coups de cœur partagés</span>
+      <span class="sr-v" id="statHearts">0</span>
     </div>
   </div>
 
@@ -1463,7 +1698,73 @@ function setTheme(t){
 // Application immédiate (avant le DOM final pour éviter le flash)
 setTheme(getTheme());
 
-const SCHEMA_VERSION = 8;
+/* ══════════════════════════════════════════
+   IDENTITÉ LOCALE — qui est sur cet appareil ?
+══════════════════════════════════════════ */
+function getOwner(){
+  try{ const o = localStorage.getItem('chalet_owner'); return (o === 'copine') ? 'copine' : 'marc'; }
+  catch(_){ return 'marc'; }
+}
+function setOwner(v){
+  if(v !== 'marc' && v !== 'copine') return;
+  try{ localStorage.setItem('chalet_owner', v); }catch(_){}
+  // Re-render des sections affectées
+  if(curSec === 'photos') renderPhotoGrid();
+  if(curSec === 'settings') rSettings();
+  if(curSec === 'dashboard') rDash();
+}
+function ownerName(role){
+  if(!role) role = getOwner();
+  return role === 'copine' ? (S.copineName || 'Ma copine') : (S.marcName || 'Marc');
+}
+function otherOwner(role){ return role === 'marc' ? 'copine' : 'marc'; }
+
+/* ══════════════════════════════════════════
+   RÉACTIONS / ALBUMS — helpers state
+══════════════════════════════════════════ */
+function getReactions(photoId){
+  if(!S.reactions) return { marc:null, copine:null };
+  return S.reactions[photoId] || { marc:null, copine:null };
+}
+function setReaction(photoId, role, value){
+  if(!S.reactions) S.reactions = {};
+  const cur = S.reactions[photoId] || { marc:null, copine:null };
+  cur[role] = value;
+  if(!cur.marc && !cur.copine){
+    delete S.reactions[photoId];
+  }else{
+    S.reactions[photoId] = cur;
+  }
+  stampField('reactions');
+  save();
+}
+function toggleHeart(photoId){
+  const role = getOwner();
+  const cur = getReactions(photoId);
+  setReaction(photoId, role, cur[role] === 'heart' ? null : 'heart');
+}
+function setEmojiReaction(photoId, emoji){
+  const role = getOwner();
+  setReaction(photoId, role, emoji);
+}
+function getPhotoEvent(photoId, photoAddedAt){
+  // Override manuel d'abord
+  if(S.eventPhotos && S.eventPhotos[photoId]) return S.eventPhotos[photoId];
+  // Auto-link : la photo tombe dans la période d'un séjour ?
+  if(!photoAddedAt || !Array.isArray(S.events)) return null;
+  const d = new Date(photoAddedAt);
+  d.setHours(0,0,0,0);
+  const t = d.getTime();
+  const ev = S.events.find(e => {
+    if(e.type !== 'sejour' || !e.startDate) return false;
+    const s = new Date(e.startDate); s.setHours(0,0,0,0);
+    const en = new Date(e.endDate || e.startDate); en.setHours(23,59,59,999);
+    return t >= s.getTime() && t <= en.getTime();
+  });
+  return ev ? ev.id : null;
+}
+
+const SCHEMA_VERSION = 9;
 const DEFAULT_STATE = {
   schemaVersion: SCHEMA_VERSION,
   chaletName:'Notre Chalet', marcName:'Marc', copineName:'Ma copine',
@@ -1475,7 +1776,12 @@ const DEFAULT_STATE = {
   syncUrl: 'https://chalet-sync.marc-beauregard.workers.dev', syncKeyHash: '', lastSyncedAt: 0,
   // Timestamps de modif pour le merge 3-way
   fieldMtimes: {},
-  deletedIds: { tasks:[], packing:[], events:[], courses:[] }
+  deletedIds: { tasks:[], packing:[], events:[], courses:[] },
+  // v9 — réactions photos, lien séjour, couvertures albums, milestones
+  reactions: {},        // { [photoId]: { marc: 'heart'|emoji|null, copine: ... } }
+  eventPhotos: {},      // { [photoId]: eventId }  — lien manuel ou auto
+  eventCovers: {},      // { [eventId]: photoId }  — couverture d'album
+  photoMilestones: { achieved: [] }  // [50, 100, 250] — confetti déjà célébrés
 };
 let S = JSON.parse(JSON.stringify(DEFAULT_STATE));
 let curSec = 'dashboard';
@@ -1530,6 +1836,12 @@ function normalizeState(raw){
       if(typeof it.order !== 'number' || !isFinite(it.order)) it.order = i * 1000;
     });
   });
+  // Migration v8→v9 : structures pour réactions / albums / milestones
+  if(!out.reactions || typeof out.reactions !== 'object') out.reactions = {};
+  if(!out.eventPhotos || typeof out.eventPhotos !== 'object') out.eventPhotos = {};
+  if(!out.eventCovers || typeof out.eventCovers !== 'object') out.eventCovers = {};
+  if(!out.photoMilestones || typeof out.photoMilestones !== 'object') out.photoMilestones = { achieved: [] };
+  if(!Array.isArray(out.photoMilestones.achieved)) out.photoMilestones.achieved = [];
   // Sync state
   if(typeof out.syncUrl !== 'string') out.syncUrl = '';
   if(typeof out.syncKeyHash !== 'string' || !/^[a-f0-9]{64}$/.test(out.syncKeyHash)) out.syncKeyHash = '';
@@ -1824,7 +2136,73 @@ function rDash(){
       </div>
     </div>`).join('')
     :`<div class="empty" style="padding:16px 0"><div class="empty-title">Aucun séjour à venir</div></div>`;
+  // Souvenirs (cœurs + souvenir du jour)
+  renderDashboardMemories();
 }
+
+/* Card "Souvenirs" du Dashboard : compteur cœurs + photo d'il y a ~1 an */
+function renderDashboardMemories(){
+  const card = document.getElementById('dbMemoriesCard');
+  const lbl = document.getElementById('dbMemoriesLbl');
+  const body = document.getElementById('dbMemoriesBody');
+  if(!card || !body) return;
+  const heartsCount = countHearts();
+  const memory = pickMemoryPhoto();
+  if(!heartsCount && !memory){
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+  let html = '';
+  if(heartsCount){
+    lbl.textContent = 'Vos coups de cœur';
+    html += `<div style="display:flex;align-items:center;gap:10px;padding:6px 0">
+      <span style="font-size:28px">❤️</span>
+      <div>
+        <div style="font-size:18px;font-weight:800;color:var(--p);letter-spacing:-.3px">${heartsCount} photo${heartsCount>1?'s':''} aimée${heartsCount>1?'s':''}</div>
+        <div style="font-size:12.5px;color:var(--t3);margin-top:2px">Touche le bouton « ❤️ Coups de cœur » dans Photos</div>
+      </div>
+    </div>`;
+  }
+  if(memory){
+    lbl.textContent = heartsCount ? 'Vos coups de cœur' : 'Souvenir';
+    const dateStr = new Date(memory.addedAt).toLocaleDateString('fr-CA', {day:'numeric', month:'long', year:'numeric'});
+    html += `<div style="margin-top:${heartsCount?'12px':'0'};border-top:${heartsCount?'1px solid var(--border)':'none'};padding-top:${heartsCount?'12px':'0'}">
+      <div style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">Il y a un an</div>
+      <div onclick="viewPhoto('${esc(memory.id)}')" style="position:relative;border-radius:14px;overflow:hidden;aspect-ratio:16/9;cursor:pointer;background:var(--surface-2)">
+        <img src="${esc(memory.thumbUrl||memory.url)}" style="width:100%;height:100%;object-fit:cover;display:block" alt="" loading="lazy">
+        <div style="position:absolute;left:0;right:0;bottom:0;padding:18px 12px 10px;background:linear-gradient(to top,rgba(0,0,0,.7),rgba(0,0,0,0));color:white;font-size:12px;font-weight:600">${esc(dateStr)}</div>
+      </div>
+    </div>`;
+  }
+  body.innerHTML = html;
+}
+function countHearts(){
+  if(!S.reactions) return 0;
+  let n = 0;
+  for(const id in S.reactions){
+    const r = S.reactions[id];
+    if(r && (r.marc === 'heart' || r.copine === 'heart')) n++;
+  }
+  return n;
+}
+function pickMemoryPhoto(){
+  if(!Array.isArray(photoCache) || !photoCache.length) return null;
+  const now = Date.now();
+  const yearMs = 365 * 24 * 3600 * 1000;
+  const window = 30 * 24 * 3600 * 1000;
+  const candidates = photoCache.filter(p => {
+    if(!p.addedAt) return false;
+    const diff = Math.abs(now - p.addedAt - yearMs);
+    return diff <= window;
+  });
+  if(!candidates.length) return null;
+  // Choisis le même chaque jour (déterministe basé sur le jour)
+  const today = new Date(); today.setHours(0,0,0,0);
+  const seed = Math.floor(today.getTime() / 86400000);
+  return candidates[seed % candidates.length];
+}
+
 function qToggle(id){const t=S.tasks.find(x=>x.id===id);if(t){t.done=!t.done;stamp(t);save();rDash()}}
 function qToggleCourse(id){const c=S.courses.find(x=>x.id===id);if(c){c.bought=!c.bought;stamp(c);save();rDash()}}
 
@@ -2186,7 +2564,7 @@ function rCourses(){
 const SYNC_SALT = 'chalet-sync-2026-v1';
 const SYNC_PULL_INTERVAL_MS = 30 * 1000;
 const SYNC_PUSH_DEBOUNCE_MS = 1500;
-const SYNC_SYNCABLE_FIELDS = ['chaletName','marcName','copineName','albumUrl','notes','chaletLocationName','chaletLat','chaletLon'];
+const SYNC_SYNCABLE_FIELDS = ['chaletName','marcName','copineName','albumUrl','notes','chaletLocationName','chaletLat','chaletLon','reactions','eventPhotos','eventCovers','photoMilestones'];
 
 function now(){ return Date.now(); }
 
@@ -2539,15 +2917,20 @@ function rCal(){
   if(!mEvs.length){
     evEl.innerHTML=`<div class="empty" style="padding:16px 0"><div class="empty-ico">${IC.emptyEv}</div><div class="empty-title">Aucun événement ce mois</div></div>`;return;
   }
-  evEl.innerHTML=[...mEvs].sort((a,b)=>a.startDate.localeCompare(b.startDate)).map(e=>`
+  evEl.innerHTML=[...mEvs].sort((a,b)=>a.startDate.localeCompare(b.startDate)).map(e=>{
+    const isSejour = e.type === 'sejour';
+    const photoCount = isSejour ? photoCache.filter(p => getPhotoEvent(p.id, p.addedAt) === e.id).length : 0;
+    return `
     <div class="ev-item">
       <div class="ev-dot" style="background:${EV_COL[e.type]||'#ccc'}"></div>
       <div class="ev-body">
         <div class="ev-title">${esc(e.title)}</div>
-        <div class="ev-date">${dispDate(e.startDate)}${e.endDate&&e.endDate!==e.startDate?' → '+dispDate(e.endDate):''} · ${e.type==='sejour'?'Séjour':e.type==='task'?'Tâche':'Rappel'}</div>
+        <div class="ev-date">${dispDate(e.startDate)}${e.endDate&&e.endDate!==e.startDate?' → '+dispDate(e.endDate):''} · ${e.type==='sejour'?'Séjour':e.type==='task'?'Tâche':'Rappel'}${photoCount?` · 📷 ${photoCount}`:''}</div>
       </div>
+      ${isSejour && photoCount ? `<button class="del-btn" aria-label="Voir les photos" onclick="viewEventGallery('${esc(e.id)}')" style="opacity:.85"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>` : ''}
       <button class="del-btn" aria-label="Supprimer l'événement" onclick="delEvent('${e.id}')">${IC.trash}</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 function calClick(ds){
   document.getElementById('evStart').value=ds;
@@ -2600,7 +2983,14 @@ function rPhotos(){
   d.className=url?'album-link':'album-lbl';
   d.innerHTML=url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="album-link">Ouvrir l'album →</a>`:'Aucun album configuré';
 
-  renderPhotoGrid();
+  // Skeletons si pas encore de photo en cache et sync configuré
+  if(syncConfigured() && photoCache.length === 0){
+    showPhotoSkeletons();
+  }else{
+    renderPhotoGrid();
+  }
+  updateSlideshowButton();
+  attachPullToRefresh();
 
   // Refetch si cache expiré ou vide — async, non bloquant
   const age = Date.now() - photoCacheFetchedAt;
@@ -2609,34 +2999,283 @@ function rPhotos(){
   }
 }
 
+// Filtre courant section Photos : 'all' | 'hearts' | 'sejours' | 'months' | 'event-<id>'
+let photoFilter = 'all';
+function setPhotoFilter(f, btn){
+  photoFilter = f;
+  if(btn){
+    document.querySelectorAll('#photoPills .pill').forEach(p => p.classList.remove('on'));
+    btn.classList.add('on');
+  }
+  renderPhotoGrid();
+}
+function viewEventGallery(eventId){
+  photoFilter = 'event-' + eventId;
+  go('photos');
+  // Met à jour les pills (aucune ne match → on désactive)
+  setTimeout(() => {
+    document.querySelectorAll('#photoPills .pill').forEach(p => p.classList.remove('on'));
+  }, 50);
+}
+
+function getFilteredPhotos(){
+  if(!Array.isArray(photoCache)) return [];
+  if(photoFilter === 'hearts'){
+    return photoCache.filter(p => {
+      const r = getReactions(p.id);
+      return r.marc === 'heart' || r.copine === 'heart';
+    });
+  }
+  return photoCache.slice();
+}
+
+function photoCellHtml(p, me, other){
+  let ratio = '4/3';
+  if(p.width && p.height && p.width > 0 && p.height > 0){
+    const rr = p.width / p.height;
+    const clamped = Math.max(0.66, Math.min(1.78, rr));
+    ratio = clamped.toFixed(3) + '/1';
+  }
+  const who = p.addedBy ? esc(p.addedBy) : '';
+  const when = p.addedAt ? esc(relativeTime(p.addedAt)) : '';
+  const r = getReactions(p.id);
+  const myReact = r[me];
+  const otherReact = r[other];
+  const myHeart = myReact === 'heart';
+  const bothHeart = myHeart && otherReact === 'heart';
+  const heartClass = bothHeart ? 'photo-heart liked both' : (myHeart ? 'photo-heart liked' : 'photo-heart');
+  const heartContent = (myReact && myReact !== 'heart')
+    ? `<span style="font-size:20px;line-height:1">${esc(myReact)}</span>`
+    : `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`;
+  let otherOverlay = '';
+  if(otherReact === 'heart') otherOverlay = `<div class="photo-emoji" aria-label="Coup de cœur de ${esc(ownerName(other))}">❤️</div>`;
+  else if(otherReact) otherOverlay = `<div class="photo-emoji" aria-label="Réaction de ${esc(ownerName(other))}">${esc(otherReact)}</div>`;
+  return `
+  <div class="photo-wrap" data-id="${esc(p.id)}" style="aspect-ratio:${ratio}">
+    <img src="${esc(p.thumbUrl||p.url)}" class="photo-thumb" onclick="viewPhoto('${esc(p.id)}')" alt="${esc(p.name||'')}" loading="lazy">
+    ${otherOverlay}
+    <button class="${heartClass}" aria-label="Coup de cœur" data-photo-id="${esc(p.id)}" onclick="event.stopPropagation();onHeartTap(event,'${esc(p.id)}')" oncontextmenu="event.preventDefault();showReactionMenu(event,'${esc(p.id)}');return false">${heartContent}</button>
+    ${(who || when) ? `<div class="photo-meta"><span class="pm-who">${who}</span><span class="pm-when">${when}</span></div>` : ''}
+    <button class="photo-del" aria-label="Supprimer la photo" onclick="event.stopPropagation();delPhoto('${esc(p.id)}')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>`;
+}
+
+function emptyPhotoBlock(title, sub){
+  return `<div class="empty" style="grid-column:span 2"><div class="empty-ico">${IC.emptyPhoto}</div><div class="empty-title">${esc(title)}</div><div class="empty-sub">${esc(sub)}</div></div>`;
+}
+
 function renderPhotoGrid(){
   const grid=document.getElementById('photoGrid');
   if(!grid) return;
   if(!syncConfigured()){
-    grid.innerHTML = `<div class="empty" style="grid-column:span 2"><div class="empty-ico">${IC.emptyPhoto}</div><div class="empty-title">Active la synchro cloud</div><div class="empty-sub">Pour partager des photos, configure la synchro dans Paramètres.</div></div>`;
+    grid.innerHTML = emptyPhotoBlock('Active la synchro cloud', 'Pour partager des photos, configure la synchro dans Paramètres.');
     return;
   }
-  if(!photoCache.length){
-    grid.innerHTML=`<div class="empty" style="grid-column:span 2"><div class="empty-ico">${IC.emptyPhoto}</div><div class="empty-title">Ajoute des photos du chalet</div><div class="empty-sub">Partagées automatiquement avec ta copine.</div></div>`;
-    return;
-  }
-  grid.innerHTML=photoCache.map(p=>{
-    // Aspect ratio naturel, capé entre 3:4 (portrait) et 16:9 (paysage)
-    let ratio = '4/3';
-    if(p.width && p.height && p.width > 0 && p.height > 0){
-      const r = p.width / p.height;
-      const clamped = Math.max(0.66, Math.min(1.78, r));
-      ratio = clamped.toFixed(3) + '/1';
-    }
-    const who = p.addedBy ? esc(p.addedBy) : '';
-    const when = p.addedAt ? esc(relativeTime(p.addedAt)) : '';
-    return `
-    <div class="photo-wrap" style="aspect-ratio:${ratio}">
-      <img src="${esc(p.thumbUrl||p.url)}" class="photo-thumb" onclick="viewPhoto('${esc(p.id)}')" alt="${esc(p.name||'')}" loading="lazy">
-      ${(who || when) ? `<div class="photo-meta"><span class="pm-who">${who}</span><span class="pm-when">${when}</span></div>` : ''}
-      <button class="photo-del" aria-label="Supprimer la photo" onclick="event.stopPropagation();delPhoto('${esc(p.id)}')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  const me = getOwner();
+  const other = otherOwner(me);
+
+  // Cas spécial : galerie d'un séjour précis
+  if(typeof photoFilter === 'string' && photoFilter.startsWith('event-')){
+    const eventId = photoFilter.slice(6);
+    const ev = (S.events || []).find(e => e.id === eventId);
+    const evTitle = ev ? ev.title : 'Séjour';
+    const evDates = ev ? `${dispDate(ev.startDate)}${ev.endDate && ev.endDate !== ev.startDate ? ' → ' + dispDate(ev.endDate) : ''}` : '';
+    const items = photoCache.filter(p => getPhotoEvent(p.id, p.addedAt) === eventId);
+    const header = `<div class="album-header">
+      <div class="album-back" onclick="setPhotoFilter('all', document.querySelector('#photoPills .pill'))">← Toutes les photos</div>
+      <div class="album-title">${esc(evTitle)}</div>
+      <div class="album-sub">${esc(evDates)} · ${items.length} photo${items.length>1?'s':''}</div>
     </div>`;
-  }).join('');
+    if(!items.length){
+      grid.innerHTML = header + emptyPhotoBlock('Aucune photo pour ce séjour', 'Les photos prises pendant les dates s’y ajoutent automatiquement.');
+      return;
+    }
+    grid.innerHTML = header + items.map(p => photoCellHtml(p, me, other)).join('');
+    grid.querySelectorAll('.photo-heart').forEach(btn => attachHeartLongPress(btn));
+    return;
+  }
+
+  // Groupement par séjour
+  if(photoFilter === 'sejours'){
+    const groups = {};
+    const orphan = [];
+    photoCache.forEach(p => {
+      const eid = getPhotoEvent(p.id, p.addedAt);
+      if(eid){
+        if(!groups[eid]) groups[eid] = [];
+        groups[eid].push(p);
+      }else orphan.push(p);
+    });
+    const events = (S.events || []).filter(e => groups[e.id])
+      .sort((a,b) => (b.startDate || '').localeCompare(a.startDate || ''));
+    if(!events.length && !orphan.length){
+      grid.innerHTML = emptyPhotoBlock('Aucune photo', 'Ajoute-en pour démarrer.');
+      return;
+    }
+    let html = '';
+    events.forEach(e => {
+      const items = groups[e.id];
+      const dates = `${dispDate(e.startDate)}${e.endDate && e.endDate !== e.startDate ? ' → ' + dispDate(e.endDate) : ''}`;
+      html += `<div class="album-section" style="grid-column:span 2">
+        <div class="album-header-inline">
+          <span class="album-section-title">${esc(e.title || 'Séjour')}</span>
+          <span class="album-section-sub">${esc(dates)} · ${items.length}</span>
+        </div>
+      </div>`;
+      html += items.map(p => photoCellHtml(p, me, other)).join('');
+    });
+    if(orphan.length){
+      html += `<div class="album-section" style="grid-column:span 2">
+        <div class="album-header-inline">
+          <span class="album-section-title">Hors séjour</span>
+          <span class="album-section-sub">${orphan.length}</span>
+        </div>
+      </div>`;
+      html += orphan.map(p => photoCellHtml(p, me, other)).join('');
+    }
+    grid.innerHTML = html;
+    grid.querySelectorAll('.photo-heart').forEach(btn => attachHeartLongPress(btn));
+    return;
+  }
+
+  // Groupement par mois
+  if(photoFilter === 'months'){
+    if(!photoCache.length){
+      grid.innerHTML = emptyPhotoBlock('Aucune photo', 'Ajoute-en pour démarrer.');
+      return;
+    }
+    const groups = {};
+    photoCache.forEach(p => {
+      if(!p.addedAt) return;
+      const d = new Date(p.addedAt);
+      const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2, '0');
+      if(!groups[key]) groups[key] = { label: MO_FR[d.getMonth()] + ' ' + d.getFullYear(), items: [] };
+      groups[key].items.push(p);
+    });
+    const keys = Object.keys(groups).sort().reverse();
+    let html = '';
+    keys.forEach(k => {
+      const g = groups[k];
+      html += `<div class="album-section" style="grid-column:span 2">
+        <div class="album-header-inline">
+          <span class="album-section-title">${esc(g.label)}</span>
+          <span class="album-section-sub">${g.items.length}</span>
+        </div>
+      </div>`;
+      html += g.items.map(p => photoCellHtml(p, me, other)).join('');
+    });
+    grid.innerHTML = html;
+    grid.querySelectorAll('.photo-heart').forEach(btn => attachHeartLongPress(btn));
+    return;
+  }
+
+  // 'all' ou 'hearts' : flat
+  const photos = getFilteredPhotos();
+  if(!photos.length){
+    if(photoFilter === 'hearts'){
+      grid.innerHTML = emptyPhotoBlock('Aucun coup de cœur', 'Tape le ❤️ sur une photo pour la marquer.');
+    }else{
+      grid.innerHTML = emptyPhotoBlock('Ajoute des photos du chalet', 'Partagées automatiquement avec ta copine.');
+    }
+    return;
+  }
+  grid.innerHTML = photos.map(p => photoCellHtml(p, me, other)).join('');
+  grid.querySelectorAll('.photo-heart').forEach(btn => attachHeartLongPress(btn));
+}
+
+// ── Actions cœur / réactions ────────────────────────────
+function onHeartTap(e, photoId){
+  if(e && e._reactionLongPress) return; // Le long-press a déjà ouvert le menu
+  const role = getOwner();
+  const cur = getReactions(photoId);
+  const wasLiked = cur[role] === 'heart';
+  setReaction(photoId, role, wasLiked ? null : 'heart');
+  // Animation particules + haptic
+  if(!wasLiked){
+    spawnHeartParticles(e ? e.currentTarget : null);
+    if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){}
+    checkPhotoMilestones();
+  }
+  renderPhotoGrid();
+}
+function attachHeartLongPress(btn){
+  let timer = null, longFired = false;
+  const start = (e) => {
+    longFired = false;
+    timer = setTimeout(() => {
+      longFired = true;
+      const evt = e.touches ? e.touches[0] : e;
+      showReactionMenu({ clientX: evt.clientX, clientY: evt.clientY, currentTarget: btn }, btn.dataset.photoId);
+    }, 380);
+  };
+  const end = (e) => {
+    if(timer){ clearTimeout(timer); timer = null; }
+    if(longFired && e && e.cancelable){ e.preventDefault(); }
+    if(longFired && e){ e._reactionLongPress = true; }
+  };
+  btn.addEventListener('touchstart', start, { passive: true });
+  btn.addEventListener('touchend', end);
+  btn.addEventListener('touchcancel', end);
+  btn.addEventListener('mousedown', start);
+  btn.addEventListener('mouseup', end);
+  btn.addEventListener('mouseleave', () => { if(timer){ clearTimeout(timer); timer = null; } });
+}
+function showReactionMenu(e, photoId){
+  // Ferme tout menu existant
+  document.querySelectorAll('.reaction-menu').forEach(m => m.remove());
+  const x = e.clientX, y = (e.clientY || 0) - 6;
+  const EMOJIS = ['❤️','🔥','😍','🤩','😂','🥹'];
+  const m = document.createElement('div');
+  m.className = 'reaction-menu';
+  m.style.left = x + 'px';
+  m.style.top = y + 'px';
+  m.style.transform = 'translate(-50%, -100%)';
+  m.innerHTML = EMOJIS.map(em => `<button data-em="${em}">${em}</button>`).join('');
+  document.body.appendChild(m);
+  // Repositionne si hors écran à gauche/droite
+  setTimeout(() => {
+    const r = m.getBoundingClientRect();
+    if(r.left < 8){ m.style.left = (8 + r.width/2) + 'px'; }
+    else if(r.right > window.innerWidth - 8){ m.style.left = (window.innerWidth - 8 - r.width/2) + 'px'; }
+    if(r.top < 8){ m.style.top = (y + 50) + 'px'; m.style.transform = 'translate(-50%, 0)'; }
+  }, 0);
+  m.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      const em = b.dataset.em;
+      const role = getOwner();
+      const cur = getReactions(photoId);
+      // Tap sur même emoji → retire
+      setReaction(photoId, role, cur[role] === em ? null : em);
+      if(navigator.vibrate) try{ navigator.vibrate(10); }catch(_){}
+      m.remove();
+      renderPhotoGrid();
+    });
+  });
+  // Ferme au tap ailleurs
+  setTimeout(() => {
+    const closer = (ev) => { if(!m.contains(ev.target)){ m.remove(); document.removeEventListener('pointerdown', closer); } };
+    document.addEventListener('pointerdown', closer);
+  }, 50);
+}
+function spawnHeartParticles(btn){
+  if(!btn) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'heart-particles';
+  const r = btn.getBoundingClientRect();
+  wrap.style.left = (r.left + r.width/2) + 'px';
+  wrap.style.top = (r.top + r.height/2) + 'px';
+  wrap.style.position = 'fixed';
+  for(let i = 0; i < 6; i++){
+    const s = document.createElement('span');
+    s.textContent = '❤';
+    const angle = (Math.PI * 2 * i / 6) + (Math.random() - 0.5) * 0.5;
+    const dist = 36 + Math.random() * 16;
+    s.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    s.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+    wrap.appendChild(s);
+  }
+  document.body.appendChild(wrap);
+  setTimeout(() => wrap.remove(), 1000);
 }
 
 // Helper: temps relatif en français (à l'instant, il y a 2 h, il y a 3 j…)
@@ -2690,7 +3329,7 @@ async function uploadOnePhoto(file){
   if(file.size > MAX_PHOTO_BYTES) throw new Error('"' + (file.name||'fichier') + '" trop lourde (>20 Mo).');
   const blob = await compressImage(file, PHOTO_MAX_SIDE, PHOTO_JPEG_QUALITY);
   const base64 = await blobToBase64(blob);
-  const me = S.marcName || 'moi';
+  const me = ownerName(getOwner());
   const res = await fetch(S.syncUrl.replace(/\/+$/,'') + '/photos', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + S.syncKeyHash, 'Content-Type': 'application/json' },
@@ -2733,7 +3372,9 @@ async function addPhotos(input){
     setTimeout(() => setUploadStatus(''), 6000);
   }else{
     setUploadStatus('');  // succès silencieux
+    if(ok > 0) checkPhotoMilestones();
   }
+  updateSlideshowButton();
 }
 
 async function delPhoto(recordId){
@@ -2756,15 +3397,18 @@ async function delPhoto(recordId){
   }
 }
 
-function viewPhoto(recordId){
+function viewPhoto(recordId, opts){
+  opts = opts || {};
   const startIdx = photoCache.findIndex(x => x.id === recordId);
   if(startIdx < 0 || !photoCache[startIdx] || !photoCache[startIdx].url) return;
   let idx = startIdx;
   let zoomed = false;
   let lastTap = 0;
+  let slideshow = !!opts.slideshow;
+  let slideshowTimer = null;
 
   const lb = document.createElement('div');
-  lb.className = 'lb';
+  lb.className = 'lb' + (slideshow ? ' slideshow' : '');
   lb.innerHTML = `
     <div class="lb-counter" id="lbCounter"></div>
     <div class="lb-img-wrap">
@@ -2795,6 +3439,15 @@ function viewPhoto(recordId){
     $prev.style.visibility = idx > 0 ? '' : 'hidden';
     $next.style.visibility = idx < photoCache.length - 1 ? '' : 'hidden';
     resetZoom();
+    // Recreate progress bar pour relancer son anim
+    if(slideshow){
+      const oldBar = lb.querySelector('.lb-progress');
+      if(oldBar) oldBar.remove();
+      const bar = document.createElement('div');
+      bar.className = 'lb-progress';
+      lb.appendChild(bar);
+      scheduleNext();
+    }
   }
   function go(delta){
     const n = idx + delta;
@@ -2804,7 +3457,16 @@ function viewPhoto(recordId){
   }
   function close(){
     document.removeEventListener('keydown', onKey);
+    if(slideshowTimer){ clearTimeout(slideshowTimer); slideshowTimer = null; }
     lb.remove();
+  }
+  function scheduleNext(){
+    if(slideshowTimer) clearTimeout(slideshowTimer);
+    if(!slideshow) return;
+    slideshowTimer = setTimeout(() => {
+      if(idx < photoCache.length - 1){ go(+1); }
+      else { close(); }
+    }, 4000);
   }
   function resetZoom(){
     zoomed = false;
@@ -2887,6 +3549,135 @@ function viewPhoto(recordId){
   });
 
   render();
+}
+
+/* ══════════════════════════════════════════
+   DIAPORAMA — auto-rotation 4s
+══════════════════════════════════════════ */
+function startSlideshow(){
+  if(!Array.isArray(photoCache) || !photoCache.length){
+    toast('Aucune photo à afficher');
+    return;
+  }
+  if(navigator.vibrate) try{ navigator.vibrate(20); }catch(_){}
+  viewPhoto(photoCache[0].id, { slideshow: true });
+}
+
+/* ══════════════════════════════════════════
+   CONFETTI — explosion subtile aux paliers
+══════════════════════════════════════════ */
+function fireConfetti(){
+  const container = document.createElement('div');
+  container.className = 'confetti';
+  document.body.appendChild(container);
+  const colors = ['#FF4E6A', '#FFC93C', '#3A6648', '#1F4F6F', '#C07B18', '#6B3FB0'];
+  for(let i = 0; i < 70; i++){
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDelay = (Math.random() * 0.4) + 's';
+    piece.style.animationDuration = (2.0 + Math.random() * 1.2) + 's';
+    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+    container.appendChild(piece);
+  }
+  setTimeout(() => container.remove(), 4000);
+}
+
+const PHOTO_MILESTONES = [25, 50, 100, 250, 500, 1000];
+function checkPhotoMilestones(){
+  if(!Array.isArray(photoCache)) return;
+  // Compte les "événements" : photos + cœurs partagés
+  const total = photoCache.length;
+  const achieved = (S.photoMilestones && Array.isArray(S.photoMilestones.achieved)) ? S.photoMilestones.achieved : [];
+  for(const t of PHOTO_MILESTONES){
+    if(total >= t && !achieved.includes(t)){
+      achieved.push(t);
+      S.photoMilestones = { achieved };
+      stampField('photoMilestones');
+      save();
+      fireConfetti();
+      toast(`🎉 ${t} photos partagées !`, { success: true });
+      if(navigator.vibrate) try{ navigator.vibrate([20, 40, 20]); }catch(_){}
+      break;  // un palier à la fois
+    }
+  }
+}
+
+/* ══════════════════════════════════════════
+   SKELETON LOADERS — pendant fetch initial
+══════════════════════════════════════════ */
+function showPhotoSkeletons(){
+  const grid = document.getElementById('photoGrid');
+  if(!grid || photoCache.length) return;  // skip si déjà des photos en cache
+  let html = '';
+  const ratios = ['4/3', '3/4', '1/1', '16/9', '4/3', '3/4'];
+  for(let i = 0; i < 6; i++){
+    html += `<div class="photo-skel" style="aspect-ratio:${ratios[i]}"></div>`;
+  }
+  grid.innerHTML = html;
+}
+
+/* ══════════════════════════════════════════
+   PULL-TO-REFRESH — section Photos
+══════════════════════════════════════════ */
+function attachPullToRefresh(){
+  const grid = document.getElementById('photoGrid');
+  const indic = document.getElementById('pullRefresh');
+  if(!grid || !indic || grid._pullAttached) return;
+  grid._pullAttached = true;
+  let startY = 0, currentY = 0, pulling = false, isReady = false;
+  const THRESHOLD = 60;
+
+  grid.addEventListener('touchstart', (e) => {
+    if(window.scrollY > 4) return;
+    if(e.touches.length !== 1) return;
+    startY = e.touches[0].clientY;
+    pulling = true;
+    isReady = false;
+  }, { passive: true });
+
+  grid.addEventListener('touchmove', (e) => {
+    if(!pulling) return;
+    currentY = e.touches[0].clientY;
+    const dy = currentY - startY;
+    if(dy > 6 && window.scrollY <= 0){
+      indic.classList.add('active');
+      if(dy >= THRESHOLD){
+        indic.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Lâche pour rafraîchir';
+        if(!isReady){ isReady = true; if(navigator.vibrate) try{ navigator.vibrate(10); }catch(_){} }
+      }else{
+        indic.innerHTML = '<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg> Tire pour rafraîchir';
+        isReady = false;
+      }
+    }
+  }, { passive: true });
+
+  grid.addEventListener('touchend', () => {
+    if(!pulling) return;
+    pulling = false;
+    if(isReady){
+      indic.classList.add('spin');
+      indic.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-dasharray="40 30"/></svg> Rafraîchissement…';
+      photoCacheFetchedAt = 0;
+      loadPhotosFromWorker().finally(() => {
+        setTimeout(() => {
+          indic.classList.remove('active','spin');
+          indic.innerHTML = '';
+        }, 400);
+      });
+    }else{
+      indic.classList.remove('active','spin');
+      indic.innerHTML = '';
+    }
+  });
+}
+
+/* Met à jour la visibilité du bouton diaporama selon le cache */
+function updateSlideshowButton(){
+  const btn = document.getElementById('slideshowBtn');
+  if(!btn) return;
+  btn.style.display = (photoCache && photoCache.length) ? '' : 'none';
 }
 
 // Helpers compression
@@ -2975,9 +3766,55 @@ function rSettings(){
   document.getElementById('notesArea').value=S.notes;
   const bl = document.getElementById('btnLoc');
   if(bl) bl.textContent = S.chaletLocationName || 'Non défini';
+  const bo = document.getElementById('btnOwner');
+  if(bo) bo.textContent = ownerName(getOwner());
   updateWxStatusLabel();
   updateSyncSettingsLabels();
   syncNames();
+  renderPhotoStats();
+}
+function toggleOwner(){
+  const next = getOwner() === 'marc' ? 'copine' : 'marc';
+  setOwner(next);
+  const bo = document.getElementById('btnOwner');
+  if(bo) bo.textContent = ownerName(next);
+  toast('Sur cet appareil tu es ' + ownerName(next));
+}
+function renderPhotoStats(){
+  const card = document.getElementById('photoStatsCard');
+  if(!card) return;
+  const total = photoCache.length;
+  if(!total){ card.style.display = 'none'; return; }
+  card.style.display = '';
+  const me = S.marcName || 'Marc';
+  const her = S.copineName || 'Ma copine';
+  let myCount = 0, herCount = 0;
+  photoCache.forEach(p => {
+    if(p.addedBy === me) myCount++;
+    else if(p.addedBy === her) herCount++;
+  });
+  const monthCount = {};
+  photoCache.forEach(p => {
+    if(!p.addedAt) return;
+    const d = new Date(p.addedAt);
+    const k = d.getFullYear() + '-' + d.getMonth();
+    monthCount[k] = (monthCount[k] || 0) + 1;
+  });
+  let topMonth = null;
+  Object.entries(monthCount).forEach(([k, c]) => {
+    if(!topMonth || c > topMonth.count){
+      const parts = k.split('-');
+      topMonth = { count: c, label: MO_FR[parseInt(parts[1])] + ' ' + parts[0] };
+    }
+  });
+  const fmt = (n) => total ? `${n} (${Math.round(n/total*100)}%)` : String(n);
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statMineLbl').textContent = me;
+  document.getElementById('statMine').textContent = fmt(myCount);
+  document.getElementById('statHersLbl').textContent = her;
+  document.getElementById('statHers').textContent = fmt(herCount);
+  document.getElementById('statTopMonth').textContent = topMonth ? `${topMonth.label} (${topMonth.count})` : '—';
+  document.getElementById('statHearts').textContent = countHearts();
 }
 function updateSyncSettingsLabels(){
   const cfg = document.getElementById('syncLblConfig');
