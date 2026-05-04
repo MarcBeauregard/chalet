@@ -1807,9 +1807,13 @@ body.drag-active *{cursor:grabbing !important}
 .lb-img-wrap{
   width:100%;height:100%;display:flex;align-items:center;justify-content:center;
   position:relative;
+  padding:calc(58px + env(safe-area-inset-top,0px)) 10px calc(90px + env(safe-area-inset-bottom,0px));
+  box-sizing:border-box;
 }
 .lb-img{
-  max-width:96%;max-height:92vh;
+  max-width:100%;max-height:100%;
+  width:auto;height:auto;
+  object-fit:contain;
   border-radius:var(--r-l);
   user-select:none;-webkit-user-select:none;
   transition:transform .25s ease;
@@ -5527,29 +5531,65 @@ function viewPhoto(recordId, opts){
   $share.onclick = async e => {
     e.stopPropagation();
     const p = photoCache[idx]; if(!p || !p.url) return;
-    if(navigator.share){
-      try{
-        await navigator.share({ url: p.url, title: p.name || 'Photo du chalet', text: 'Photo du chalet' });
-      }catch(err){ /* user cancelled — silencieux */ }
-    } else if(navigator.clipboard){
-      try{ await navigator.clipboard.writeText(p.url); toast('Lien copié dans le presse-papier'); }
-      catch(_){ toast('Partage non disponible', { error: true }); }
-    } else {
+    if(!navigator.share){
+      if(navigator.clipboard){
+        try{ await navigator.clipboard.writeText(p.url); toast('Lien copié dans le presse-papier'); return; }
+        catch(_){}
+      }
       toast('Partage non disponible', { error: true });
+      return;
+    }
+    // Essaie de partager le FICHIER directement (pas juste l'URL)
+    toast('Préparation du partage…');
+    try{
+      const r = await fetch(p.url);
+      if(!r.ok) throw new Error('fetch ' + r.status);
+      const blob = await r.blob();
+      const filename = (p.name || 'photo.jpg').replace(/[^\w.-]+/g, '_');
+      const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+      if(navigator.canShare && navigator.canShare({ files: [file] })){
+        await navigator.share({ files: [file], title: 'Photo du chalet' });
+        return;
+      }
+      // Fallback (Safari iOS sans canShare files) : URL classique
+      await navigator.share({ url: p.url, title: 'Photo du chalet' });
+    }catch(err){
+      if(err && err.name === 'AbortError') return;  // utilisateur a annulé
+      console.error('Share failed:', err);
+      // Fallback ultime : copie le lien
+      if(navigator.clipboard){
+        try{ await navigator.clipboard.writeText(p.url); toast('Lien copié à la place'); return; }
+        catch(_){}
+      }
+      toast('Partage impossible', { error: true });
     }
   };
-  $download.onclick = e => {
+  $download.onclick = async e => {
     e.stopPropagation();
     const p = photoCache[idx]; if(!p || !p.url) return;
-    const a = document.createElement('a');
-    a.href = p.url;
-    a.download = p.name || 'photo.jpg';
-    a.target = '_blank';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => a.remove(), 100);
-    toast('Photo ouverte — appuie longuement pour enregistrer');
+    try{
+      // Fetch en blob pour permettre un vrai download (pas juste un open)
+      const r = await fetch(p.url);
+      if(!r.ok) throw new Error('fetch ' + r.status);
+      const blob = await r.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = (p.name || 'photo.jpg').replace(/[^\w.-]+/g, '_');
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { a.remove(); URL.revokeObjectURL(blobUrl); }, 400);
+      toast('Photo téléchargée');
+    }catch(err){
+      console.warn('Download blob failed, fallback to direct URL:', err);
+      // Fallback : ouvre dans un nouvel onglet (iOS : long-press → Enregistrer dans Photos)
+      const a = document.createElement('a');
+      a.href = p.url; a.target = '_blank'; a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => a.remove(), 100);
+      toast('Appuie longuement sur la photo pour l’enregistrer');
+    }
   };
   $ocr.onclick = e => {
     e.stopPropagation();
