@@ -210,9 +210,14 @@ input,select,textarea{font-family:inherit}
 }
 .nav-btn.active{color:var(--p)}
 .nav-pill{
-  width:46px;height:32px;border-radius:14px;
+  width:42px;height:30px;border-radius:13px;
   display:flex;align-items:center;justify-content:center;
   transition:background-color var(--t-med) var(--ease), transform var(--t-fast) var(--ease-spring);
+}
+@media (max-width:380px){
+  .nav-pill{width:36px;height:28px}
+  .nav-btn svg{width:20px;height:20px}
+  .nav-lbl{font-size:9.5px}
 }
 .nav-btn:active .nav-pill{transform:scale(.88)}
 .nav-btn.active .nav-pill{
@@ -432,6 +437,81 @@ input,select,textarea{font-family:inherit}
 .pk-name.done{text-decoration:line-through;color:var(--t3)}
 .pk-qty{font-size:12px;color:var(--t3);font-weight:600}
 .pk-who{font-size:11px;color:var(--t3);display:block;margin-top:2px;font-weight:500}
+
+/* ══════════════════════════════════════════
+   CONTACTS — fiches CRM minimalistes
+══════════════════════════════════════════ */
+.contact-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px;background:var(--surface);
+  border-radius:16px;margin-bottom:8px;
+  box-shadow:var(--sh-s);
+  transition:transform var(--t-med) var(--ease), opacity var(--t-med) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.contact-item.removing{transform:translateX(80px);opacity:0}
+.contact-avatar{
+  width:46px;height:46px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-size:16px;font-weight:800;letter-spacing:.2px;
+  flex-shrink:0;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+  transition:transform var(--t-fast) var(--ease-spring);
+  user-select:none;
+}
+.contact-item:active .contact-avatar{transform:scale(.94)}
+.contact-body{flex:1;min-width:0;cursor:pointer;border-radius:8px;padding:2px 4px;transition:background-color var(--t-fast) var(--ease)}
+.contact-body:active{background:var(--p-tint-2)}
+.contact-name{
+  font-size:15px;font-weight:700;letter-spacing:-.1px;
+  display:flex;align-items:center;gap:6px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.contact-name .fav-star{color:var(--a);font-size:14px}
+.contact-role{
+  font-size:12.5px;color:var(--t3);font-weight:500;
+  margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.contact-chips{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+.contact-chips .chip{
+  font-size:11px;padding:3px 9px;
+  display:inline-flex;align-items:center;gap:4px;
+  cursor:pointer;text-decoration:none;
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease);
+}
+.contact-chips .chip:active{transform:scale(.94)}
+.contact-chips .ch-tel{background:rgba(58,102,72,.10);color:var(--s)}
+.contact-chips .ch-mail{background:rgba(31,79,111,.10);color:#1F4F6F}
+.contact-chips .ch-addr{background:var(--a-tint);color:var(--a)}
+.contact-fav-btn{
+  flex-shrink:0;
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--t3);
+  background:transparent;
+  transition:color var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease-spring);
+}
+.contact-fav-btn.on{color:var(--a);background:var(--a-tint)}
+.contact-fav-btn:active{transform:scale(.85)}
+.contact-fav-btn.on svg{animation:checkPop .42s var(--ease-spring)}
+.contact-fav-btn svg{width:18px;height:18px;fill:currentColor;stroke:none}
+
+/* Modal contact : tags grid */
+.tag-grid{
+  display:grid;grid-template-columns:repeat(auto-fill, minmax(96px, 1fr));
+  gap:6px;
+}
+.tag-chip{
+  font-size:12px;font-weight:700;
+  padding:8px 10px;border-radius:10px;
+  background:var(--surface-2);color:var(--t2);
+  border:1.5px solid transparent;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+  user-select:none;
+}
+.tag-chip:active{transform:scale(.92)}
+.tag-chip.on{background:var(--p);color:white;border-color:var(--p)}
 
 /* ══════════════════════════════════════════
    DRAG-AND-DROP — poignée + état dragging
@@ -1196,6 +1276,20 @@ body.drag-active *{cursor:grabbing !important}
   </div>
 </main>
 
+<!-- Contacts -->
+<main id="sec-contacts" class="sec">
+  <div class="sec-hdr"><div class="sec-title">Contacts</div></div>
+  <div class="pills" id="contactsPills">
+    <button class="pill on" onclick="setContactFilter('all', this)">Tous</button>
+    <button class="pill" onclick="setContactFilter('favorite', this)">⭐ Favoris</button>
+    <button class="pill" onclick="setContactFilter('voisin', this)">🏠 Voisins</button>
+    <button class="pill" onclick="setContactFilter('service', this)">🔧 Services</button>
+    <button class="pill" onclick="setContactFilter('commerce', this)">🛒 Commerces</button>
+    <button class="pill" onclick="setContactFilter('urgence', this)">🚨 Urgences</button>
+  </div>
+  <div id="contactList"></div>
+</main>
+
 <!-- Paramètres -->
 <main id="sec-settings" class="sec">
   <div class="sec-title" style="margin-bottom:18px">Paramètres</div>
@@ -1426,6 +1520,12 @@ body.drag-active *{cursor:grabbing !important}
     </div>
     <span class="nav-lbl">Photos</span>
   </button>
+  <button class="nav-btn" id="nav-contacts" onclick="go('contacts')">
+    <div class="nav-pill">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <span class="nav-lbl">Contacts</span>
+  </button>
 </nav>
 
 <!-- FAB -->
@@ -1597,6 +1697,29 @@ body.drag-active *{cursor:grabbing !important}
     <div class="fg"><label>Lien de l'album</label><input type="url" class="fi" id="albumUrl" placeholder="https://photos.google.com/share/…"></div>
     <button class="btn-p" onclick="saveAlbum()">Enregistrer</button>
     <button class="btn-g" onclick="closeM('albumModal')">Annuler</button>
+  </div>
+</div>
+
+<!-- Contact -->
+<div class="m-overlay" id="contactModal">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-hdr">
+      <div class="m-title" id="contactModalTitle">Nouveau contact</div>
+      <button class="m-close" aria-label="Fermer" onclick="closeM('contactModal')"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="fg"><label>Nom *</label><input class="fi" id="ctName" placeholder="Ex: Jean Dupont"></div>
+    <div class="fg"><label>Rôle / Métier</label><input class="fi" id="ctRole" placeholder="Ex: Déneigeur, Voisin, Plombier…"></div>
+    <div class="fg"><label>Téléphone</label><input class="fi" id="ctPhone" type="tel" placeholder="418-555-0000" inputmode="tel"></div>
+    <div class="fg"><label>Courriel</label><input class="fi" id="ctEmail" type="email" placeholder="exemple@…" inputmode="email"></div>
+    <div class="fg"><label>Adresse</label><input class="fi" id="ctAddr" placeholder="Ex: 123 chemin du Lac"></div>
+    <div class="fg">
+      <label>Étiquettes</label>
+      <div class="tag-grid" id="ctTags"></div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea class="fi" id="ctNotes" rows="3" style="resize:none;line-height:1.5" placeholder="Détails utiles, contexte…"></textarea></div>
+    <button class="btn-p" id="btnSaveContact" onclick="saveContact()">Ajouter le contact</button>
+    <button class="btn-g" onclick="closeM('contactModal')">Annuler</button>
   </div>
 </div>
 
@@ -1795,11 +1918,11 @@ function readFileTakenDate(file){
   return lm;
 }
 
-const SCHEMA_VERSION = 10;
+const SCHEMA_VERSION = 11;
 const DEFAULT_STATE = {
   schemaVersion: SCHEMA_VERSION,
   chaletName:'Notre Chalet', marcName:'Marc', copineName:'Ma copine',
-  tasks:[], packing:[], events:[], albumUrl:'', photos:[], notes:'', courses:[],
+  tasks:[], packing:[], events:[], albumUrl:'', photos:[], notes:'', courses:[], contacts:[],
   // Météo — défaut: Parent, QC (Haute-Mauricie)
   chaletLat: 47.9228, chaletLon: -74.6228, chaletLocationName: 'Parent, QC',
   weatherCache: null,
@@ -1807,7 +1930,7 @@ const DEFAULT_STATE = {
   syncUrl: 'https://chalet-sync.marc-beauregard.workers.dev', syncKeyHash: '', lastSyncedAt: 0,
   // Timestamps de modif pour le merge 3-way
   fieldMtimes: {},
-  deletedIds: { tasks:[], packing:[], events:[], courses:[] },
+  deletedIds: { tasks:[], packing:[], events:[], courses:[], contacts:[] },
   // v9 — réactions photos, lien séjour, couvertures albums, milestones
   reactions: {},        // { [photoId]: { marc: 'heart'|emoji|null, copine: ... } }
   eventPhotos: {},      // { [photoId]: eventId }  — lien manuel ou auto
@@ -1830,7 +1953,7 @@ function normalizeState(raw){
   if(!raw || typeof raw !== 'object') return base;
   const out = Object.assign(base, raw);
   // Forcer les types attendus
-  ['tasks','packing','events','photos','courses'].forEach(k => { if(!Array.isArray(out[k])) out[k] = []; });
+  ['tasks','packing','events','photos','courses','contacts'].forEach(k => { if(!Array.isArray(out[k])) out[k] = []; });
   ['chaletName','marcName','copineName','albumUrl','notes','chaletLocationName'].forEach(k => {
     if(typeof out[k] !== 'string') out[k] = base[k];
   });
@@ -1857,14 +1980,16 @@ function normalizeState(raw){
   out.events  = out.events.filter(e => e && typeof e === 'object').map(e => ensureId(e, {title:'', type:'note', startDate:'', endDate:'', mtime:0}));
   out.courses = out.courses.filter(c => c && typeof c === 'object').map(c => ensureId(c, {name:'', qty:'1', unit:'', category:'autre', note:'', bought:false, addedBy:'ensemble', mtime:0}));
   out.photos  = out.photos.filter(p => p && typeof p === 'object' && typeof p.data === 'string');
+  out.contacts = out.contacts.filter(c => c && typeof c === 'object').map(c => ensureId(c, {name:'', role:'', phone:'', email:'', address:'', notes:'', tags:[], favorite:false, mtime:0}));
+  out.contacts.forEach(c => { if(!Array.isArray(c.tags)) c.tags = []; if(typeof c.favorite !== 'boolean') c.favorite = false; });
   // Normalise mtime pour chaque item (number ≥ 0)
-  ['tasks','packing','events','courses'].forEach(k => {
+  ['tasks','packing','events','courses','contacts'].forEach(k => {
     out[k].forEach(it => { if(typeof it.mtime !== 'number' || !isFinite(it.mtime) || it.mtime < 0) it.mtime = 0; });
   });
   // Migration v7→v8 : ajout d'un champ `order` pour le drag-and-drop user-defined.
   // Si absent, on l'attribue à partir de la position actuelle (espacé de 1000 pour
   // permettre des insertions futures par moyenne sans rebalancer).
-  ['tasks','packing','courses'].forEach(k => {
+  ['tasks','packing','courses','contacts'].forEach(k => {
     out[k].forEach((it, i) => {
       if(typeof it.order !== 'number' || !isFinite(it.order)) it.order = i * 1000;
     });
@@ -1894,7 +2019,7 @@ function normalizeState(raw){
   // deletedIds: tombstones par liste, nettoyés au-delà de 30 jours
   if(!out.deletedIds || typeof out.deletedIds !== 'object') out.deletedIds = {};
   const tombCutoff = Date.now() - 30 * 24 * 3600 * 1000;
-  ['tasks','packing','events','courses'].forEach(listName => {
+  ['tasks','packing','events','courses','contacts'].forEach(listName => {
     const arr = Array.isArray(out.deletedIds[listName]) ? out.deletedIds[listName] : [];
     out.deletedIds[listName] = arr
       .filter(t => t && typeof t === 'object' && t.id != null && typeof t.ts === 'number' && t.ts > tombCutoff)
@@ -1940,13 +2065,14 @@ function go(name){
   if(nav)nav.classList.add('active');
   curSec=name;
   const fab=document.getElementById('fab');
-  fab.style.display=['tasks','packing','courses','calendar'].includes(name)?'flex':'none';
+  fab.style.display=['tasks','packing','courses','calendar','contacts'].includes(name)?'flex':'none';
   if(name==='dashboard')rDash();
   if(name==='tasks')rTasks();
   if(name==='packing')rPacking();
   if(name==='courses')rCourses();
   if(name==='calendar'){rCal();refreshWeather().catch(()=>{})}
   if(name==='photos')rPhotos();
+  if(name==='contacts')rContacts();
   if(name==='settings')rSettings();
 }
 
@@ -1954,6 +2080,7 @@ function fabAct(){
   if(curSec==='tasks')openTaskModal();
   else if(curSec==='packing')openPackModal();
   else if(curSec==='courses')openCrsModal();
+  else if(curSec==='contacts')openContactModal();
   else if(curSec==='calendar'){
     const t=fmtDate(new Date());
     document.getElementById('evStart').value=t;
@@ -2252,7 +2379,7 @@ function nextOrder(list){
 }
 
 // État d'édition courant (un seul modal ouvert à la fois)
-let editingTaskId = null, editingPackId = null, editingCourseId = null;
+let editingTaskId = null, editingPackId = null, editingCourseId = null, editingContactId = null;
 
 /* ══════════════════════════════════════════
    TÂCHES
@@ -2596,6 +2723,205 @@ function rCourses(){
 }
 
 /* ══════════════════════════════════════════
+   CONTACTS — fiches CRM
+══════════════════════════════════════════ */
+const CONTACT_TAGS = [
+  { id: 'voisin',      label: 'Voisin',      emoji: '🏠' },
+  { id: 'deneigeur',   label: 'Déneigeur',   emoji: '❄️' },
+  { id: 'plombier',    label: 'Plombier',    emoji: '🔧' },
+  { id: 'electricien', label: 'Électricien', emoji: '⚡' },
+  { id: 'macon',       label: 'Maçon',       emoji: '🧱' },
+  { id: 'paysagiste',  label: 'Paysagiste',  emoji: '🌿' },
+  { id: 'service',     label: 'Service',     emoji: '🛠️' },
+  { id: 'commerce',    label: 'Commerce',    emoji: '🛒' },
+  { id: 'restaurant',  label: 'Restaurant',  emoji: '🍽️' },
+  { id: 'medecin',     label: 'Santé',       emoji: '⚕️' },
+  { id: 'urgence',     label: 'Urgence',     emoji: '🚨' },
+  { id: 'ami',         label: 'Ami',         emoji: '💛' }
+];
+const CONTACT_FILTER_GROUPS = {
+  service: ['deneigeur','plombier','electricien','macon','paysagiste','service'],
+  commerce: ['commerce','restaurant'],
+  urgence: ['urgence','medecin']
+};
+function tagInfo(id){ return CONTACT_TAGS.find(t => t.id === id); }
+
+/* Avatar coloré : initiales + couleur déterministe basée sur le nom */
+function avatarInitials(name){
+  if(!name) return '?';
+  const parts = String(name).trim().split(/\s+/);
+  const a = parts[0] ? parts[0][0] : '';
+  const b = parts.length > 1 ? parts[parts.length-1][0] : '';
+  return ((a + b) || '?').toUpperCase();
+}
+function avatarColor(name){
+  let h = 0;
+  const s = String(name || '');
+  for(let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  const palette = ['#5C7C9E','#3A6648','#C07B18','#6B3FB0','#B8632C','#1F4F6F','#4A8C7A','#A24A6E','#557A5C','#3F5C7C','#7C5A3A','#5A6C9E'];
+  return palette[Math.abs(h) % palette.length];
+}
+
+/* Filtres : 'all' | 'favorite' | 'voisin' | 'service' | 'commerce' | 'urgence' | <tagId> */
+let contactFilter = 'all';
+function setContactFilter(f, btn){
+  contactFilter = f;
+  if(btn){
+    document.querySelectorAll('#contactsPills .pill').forEach(p => p.classList.remove('on'));
+    btn.classList.add('on');
+  }
+  rContacts();
+}
+
+function openContactModal(){
+  editingContactId = null;
+  document.getElementById('contactModalTitle').textContent = 'Nouveau contact';
+  document.getElementById('btnSaveContact').textContent = 'Ajouter le contact';
+  ['ctName','ctRole','ctPhone','ctEmail','ctAddr','ctNotes'].forEach(id => document.getElementById(id).value = '');
+  renderContactTags([]);
+  openM('contactModal');
+}
+function editContact(id){
+  const c = (S.contacts || []).find(x => x.id === id);
+  if(!c) return;
+  editingContactId = id;
+  document.getElementById('contactModalTitle').textContent = 'Modifier le contact';
+  document.getElementById('btnSaveContact').textContent = 'Enregistrer';
+  document.getElementById('ctName').value = c.name || '';
+  document.getElementById('ctRole').value = c.role || '';
+  document.getElementById('ctPhone').value = c.phone || '';
+  document.getElementById('ctEmail').value = c.email || '';
+  document.getElementById('ctAddr').value = c.address || '';
+  document.getElementById('ctNotes').value = c.notes || '';
+  renderContactTags(c.tags || []);
+  openM('contactModal');
+}
+function renderContactTags(selected){
+  const grid = document.getElementById('ctTags');
+  if(!grid) return;
+  const sel = new Set(selected || []);
+  grid.innerHTML = CONTACT_TAGS.map(t => `
+    <button type="button" class="tag-chip ${sel.has(t.id) ? 'on' : ''}" data-tag="${t.id}" onclick="toggleContactTag('${t.id}', this)">
+      <span aria-hidden="true">${t.emoji}</span> ${esc(t.label)}
+    </button>`).join('');
+}
+function toggleContactTag(id, btn){
+  if(btn){ btn.classList.toggle('on'); }
+  if(navigator.vibrate) try{ navigator.vibrate(8); }catch(_){}
+}
+function getSelectedContactTags(){
+  return Array.from(document.querySelectorAll('#ctTags .tag-chip.on')).map(b => b.dataset.tag);
+}
+function saveContact(){
+  const name = document.getElementById('ctName').value.trim();
+  if(!name){ alert('Entre un nom'); return; }
+  const fields = {
+    name,
+    role: document.getElementById('ctRole').value.trim(),
+    phone: document.getElementById('ctPhone').value.trim(),
+    email: document.getElementById('ctEmail').value.trim(),
+    address: document.getElementById('ctAddr').value.trim(),
+    notes: document.getElementById('ctNotes').value.trim(),
+    tags: getSelectedContactTags()
+  };
+  if(!Array.isArray(S.contacts)) S.contacts = [];
+  if(editingContactId){
+    const c = S.contacts.find(x => x.id === editingContactId);
+    if(c){ Object.assign(c, fields); stamp(c); }
+    editingContactId = null;
+  }else{
+    S.contacts.push(stamp(Object.assign({
+      id: uid(), order: nextOrder(S.contacts), favorite: false
+    }, fields)));
+  }
+  save(); closeM('contactModal');
+  rContacts();
+}
+function delContact(id){
+  if(!confirm('Supprimer ce contact ?')) return;
+  const sel = `#contactList .contact-item[data-id="${CSS.escape(String(id))}"]`;
+  animateRemove(sel, () => {
+    addTomb('contacts', id);
+    S.contacts = (S.contacts || []).filter(x => x.id !== id);
+    save(); rContacts();
+    toast('Contact supprimé');
+  });
+}
+function toggleContactFav(id){
+  const c = (S.contacts || []).find(x => x.id === id);
+  if(!c) return;
+  c.favorite = !c.favorite;
+  stamp(c);
+  save();
+  if(c.favorite && navigator.vibrate) try{ navigator.vibrate(12); }catch(_){}
+  rContacts();
+}
+
+function rContacts(){
+  const list = Array.isArray(S.contacts) ? [...S.contacts] : [];
+  // Tri : favoris d'abord, puis par order user-defined
+  list.sort((a,b) => {
+    if((b.favorite?1:0) !== (a.favorite?1:0)) return (b.favorite?1:0) - (a.favorite?1:0);
+    return (a.order||0) - (b.order||0);
+  });
+  // Filtre
+  let filtered = list;
+  if(contactFilter === 'favorite'){
+    filtered = list.filter(c => c.favorite);
+  }else if(contactFilter !== 'all'){
+    const groupTags = CONTACT_FILTER_GROUPS[contactFilter];
+    if(groupTags){
+      filtered = list.filter(c => Array.isArray(c.tags) && c.tags.some(t => groupTags.includes(t)));
+    }else{
+      filtered = list.filter(c => Array.isArray(c.tags) && c.tags.includes(contactFilter));
+    }
+  }
+  const el = document.getElementById('contactList');
+  if(!el) return;
+  if(!filtered.length){
+    const empty = list.length === 0
+      ? `<div class="empty-title">Aucun contact</div><div class="empty-sub">Appuie sur + pour ajouter un voisin, un déneigeur, un commerce…</div>`
+      : `<div class="empty-title">Aucun contact pour ce filtre</div><div class="empty-sub">Change de filtre ou ajoute un contact.</div>`;
+    el.innerHTML = `<div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>${empty}</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="drag-list">${filtered.map(c => contactItemHtml(c)).join('')}</div>`;
+  el.querySelectorAll('.drag-list').forEach(dl => attachDragList(dl, 'contacts', rContacts));
+}
+
+function contactItemHtml(c){
+  const initials = avatarInitials(c.name);
+  const color = avatarColor(c.name);
+  const roleParts = [];
+  if(c.role) roleParts.push(esc(c.role));
+  (c.tags || []).forEach(tid => {
+    const ti = tagInfo(tid);
+    if(ti) roleParts.push(ti.emoji + ' ' + esc(ti.label));
+  });
+  const roleStr = roleParts.join(' · ');
+  const chips = [];
+  if(c.phone)   chips.push(`<a class="chip ch-tel" href="tel:${esc(c.phone.replace(/\s+/g,''))}" onclick="event.stopPropagation()">📞 ${esc(c.phone)}</a>`);
+  if(c.email)   chips.push(`<a class="chip ch-mail" href="mailto:${esc(c.email)}" onclick="event.stopPropagation()">✉ ${esc(c.email)}</a>`);
+  if(c.address) chips.push(`<a class="chip ch-addr" href="https://maps.apple.com/?q=${encodeURIComponent(c.address)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">📍 ${esc(c.address)}</a>`);
+  const favIcon = c.favorite
+    ? `<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`;
+  return `
+  <div class="contact-item drag-item" data-id="${esc(c.id)}">
+    <div class="drag-handle" aria-label="Réordonner">${IC.handle}</div>
+    <div class="contact-avatar" style="background:${color}">${esc(initials)}</div>
+    <div class="contact-body" onclick="editContact('${esc(c.id)}')">
+      <div class="contact-name">${esc(c.name)}${c.favorite ? '<span class="fav-star" aria-hidden="true">★</span>' : ''}</div>
+      ${roleStr ? `<div class="contact-role">${roleStr}</div>` : ''}
+      ${chips.length ? `<div class="contact-chips">${chips.join('')}</div>` : ''}
+      ${c.notes ? `<div class="t-note" style="margin-top:5px">${esc(c.notes)}</div>` : ''}
+    </div>
+    <button class="contact-fav-btn ${c.favorite ? 'on' : ''}" aria-label="${c.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}" onclick="event.stopPropagation();toggleContactFav('${esc(c.id)}')">${favIcon}</button>
+    <button class="del-btn" aria-label="Supprimer le contact" onclick="event.stopPropagation();delContact('${esc(c.id)}')">${IC.trash}</button>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════
    SYNCHRONISATION CLOUD (Cloudflare Worker + KV)
 ══════════════════════════════════════════ */
 const SYNC_SALT = 'chalet-sync-2026-v1';
@@ -2649,7 +2975,7 @@ function mergeStates(local, remote){
   });
 
   // 2) Listes: merge par ID + tombstones
-  ['tasks','packing','events','courses'].forEach(listName => {
+  ['tasks','packing','events','courses','contacts'].forEach(listName => {
     const localList = localN[listName] || [];
     const remoteList = remoteN[listName] || [];
     const localTomb = (localN.deletedIds && localN.deletedIds[listName]) || [];
@@ -2794,6 +3120,7 @@ function rerenderCurrent(){
   else if(curSec === 'courses') rCourses();
   else if(curSec === 'calendar') rCal();
   else if(curSec === 'photos') rPhotos();
+  else if(curSec === 'contacts') rContacts();
   else if(curSec === 'settings') rSettings();
 }
 
