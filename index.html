@@ -1400,6 +1400,48 @@ body.drag-active *{cursor:grabbing !important}
 .set-val{font-size:13px;color:var(--t3);font-weight:500}
 .set-btn{font-size:14px;font-weight:700;color:var(--p)}
 
+/* Sections groupées style iOS Settings */
+.settings-group-title{
+  font-size:11.5px;font-weight:700;letter-spacing:.7px;
+  text-transform:uppercase;color:var(--t3);
+  margin:18px 6px 8px;
+  display:flex;align-items:center;
+}
+.sec.on .settings-group-title:first-of-type,
+.sec.on > .settings-group-title:nth-child(2){margin-top:6px}
+.settings-group-foot{
+  font-size:12px;color:var(--t3);font-weight:500;
+  line-height:1.5;
+  margin:8px 6px 4px;
+  padding:0 4px;
+}
+.settings-card{
+  margin-bottom:6px;
+}
+.settings-card .set-icon-wrap{
+  width:28px;height:28px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.settings-card .set-icon-wrap svg{width:15px;height:15px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.settings-card .set-icon-wrap[style*="background:var(--p-tint)"] svg,
+.settings-card .set-icon-wrap[style*="color:var(--p)"] svg{stroke:var(--p);fill:none}
+.settings-card .set-item{padding:11px 0}
+.settings-card .set-lbl{font-size:14.5px;font-weight:500;color:var(--t)}
+.settings-card .set-btn{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:14px;font-weight:600;color:var(--t3);
+  padding:4px 0;
+  background:transparent;border:none;cursor:pointer;
+  transition:color var(--t-fast) var(--ease);
+}
+.settings-card .set-btn::after{
+  content:'›';font-size:18px;color:var(--t3);opacity:.7;font-weight:400;
+  margin-left:2px;line-height:.8;
+}
+.settings-card .set-btn:active{color:var(--p)}
+.settings-card .set-btn[style*="cursor:default"]::after{display:none}
+
 /* Thèmes — vignettes 5 colonnes */
 .theme-grid{
   display:grid;
@@ -1791,10 +1833,11 @@ body.drag-active *{cursor:grabbing !important}
 
 <!-- Paramètres -->
 <main id="sec-settings" class="sec">
-  <div class="sec-title" style="margin-bottom:18px">Paramètres</div>
+  <div class="sec-title" style="margin-bottom:14px">Paramètres</div>
 
-  <div class="card">
-    <div class="card-lbl">Chalet</div>
+  <!-- ───── MON CHALET ───── -->
+  <div class="settings-group-title">Mon chalet</div>
+  <div class="card settings-card">
     <div class="set-item">
       <div class="set-left">
         <div class="set-icon-wrap" style="background:var(--p-tint);color:var(--p)">
@@ -1804,12 +1847,26 @@ body.drag-active *{cursor:grabbing !important}
       </div>
       <button class="set-btn" id="btnCN" onclick="edit('chaletName')">Notre Chalet</button>
     </div>
+    <div class="set-item" style="border-bottom:none">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:rgba(27,127,171,.10);color:#1B7FAB">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/></svg>
+        </div>
+        <span class="set-lbl">Localisation</span>
+      </div>
+      <button class="set-btn" id="btnLoc" onclick="editLoc()">Parent, QC</button>
+    </div>
+  </div>
+
+  <!-- ───── PERSONNES ───── -->
+  <div class="settings-group-title">Personnes</div>
+  <div class="card settings-card">
     <div class="set-item">
       <div class="set-left">
         <div class="set-icon-wrap" style="background:rgba(90,50,150,.08);color:#6B3FB0">
           <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
-        <span class="set-lbl">Votre prénom</span>
+        <span class="set-lbl">Vous</span>
       </div>
       <button class="set-btn" id="btnMN" onclick="edit('marcName')">Marc</button>
     </div>
@@ -1818,48 +1875,24 @@ body.drag-active *{cursor:grabbing !important}
         <div class="set-icon-wrap" style="background:rgba(90,50,150,.08);color:#6B3FB0">
           <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
-        <span class="set-lbl">Prénom de votre copine</span>
+        <span class="set-lbl">Sa·son conjoint·e</span>
       </div>
       <button class="set-btn" id="btnCop" onclick="edit('copineName')">Ma copine</button>
     </div>
     <div class="set-item" style="border-bottom:none">
       <div class="set-left">
         <div class="set-icon-wrap" style="background:var(--p-tint);color:var(--p)">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M3 21a9 9 0 0118 0"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
         </div>
-        <span class="set-lbl">Sur cet appareil je suis</span>
+        <span class="set-lbl">Sur cet appareil</span>
       </div>
       <button class="set-btn" id="btnOwner" onclick="toggleOwner()">Marc</button>
     </div>
   </div>
 
-  <div class="card" id="photoStatsCard" style="display:none">
-    <div class="card-lbl">Stats photos</div>
-    <div class="stat-row">
-      <span class="sr-l">Total</span>
-      <span class="sr-v" id="statTotal">0</span>
-    </div>
-    <div class="stat-row">
-      <span class="sr-l" id="statMineLbl">Marc</span>
-      <span class="sr-v" id="statMine">—</span>
-    </div>
-    <div class="stat-row">
-      <span class="sr-l" id="statHersLbl">Ma copine</span>
-      <span class="sr-v" id="statHers">—</span>
-    </div>
-    <div class="stat-row">
-      <span class="sr-l">Mois le plus actif</span>
-      <span class="sr-v" id="statTopMonth">—</span>
-    </div>
-    <div class="stat-row">
-      <span class="sr-l">Coups de cœur partagés</span>
-      <span class="sr-v" id="statHearts">0</span>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-lbl">Apparence</div>
-    <p style="font-size:12.5px;color:var(--t3);margin-bottom:12px;line-height:1.5">Choisis un thème — il s'applique uniquement sur cet appareil.</p>
+  <!-- ───── APPARENCE ───── -->
+  <div class="settings-group-title">Apparence</div>
+  <div class="card settings-card" style="padding:16px">
     <div class="theme-grid" id="themeGrid">
       <button class="theme-tile" data-theme-name="bois" onclick="setTheme('bois')" aria-label="Thème Bois">
         <span class="theme-swatch" style="background:linear-gradient(135deg,#72481E 0 50%,#3A6648 50% 100%)"></span>
@@ -1883,42 +1916,11 @@ body.drag-active *{cursor:grabbing !important}
       </button>
     </div>
   </div>
+  <div class="settings-group-foot">Le thème s'applique uniquement sur cet appareil.</div>
 
-  <div class="card">
-    <div class="card-lbl">Météo</div>
-    <p style="font-size:12.5px;color:var(--t3);margin-bottom:12px;line-height:1.5">Température et prévisions sur 16 jours directement dans l'agenda. Fournies par Open-Meteo (gratuit, sans compte).</p>
-    <div class="set-item">
-      <div class="set-left">
-        <div class="set-icon-wrap" style="background:rgba(27,127,171,.10);color:#1B7FAB">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/></svg>
-        </div>
-        <span class="set-lbl">Localisation</span>
-      </div>
-      <button class="set-btn" id="btnLoc" onclick="editLoc()">Parent, QC</button>
-    </div>
-    <div class="set-item">
-      <div class="set-left">
-        <div class="set-icon-wrap" style="background:rgba(27,127,171,.10);color:#1B7FAB">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><circle cx="12" cy="12" r="2"/></svg>
-        </div>
-        <span class="set-lbl">Utiliser ma position</span>
-      </div>
-      <button class="set-btn" onclick="useCurrentLoc()">Détecter</button>
-    </div>
-    <div class="set-item" style="border-bottom:none">
-      <div class="set-left">
-        <div class="set-icon-wrap" style="background:rgba(27,127,171,.10);color:#1B7FAB">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-        </div>
-        <span class="set-lbl" id="wxStatus">Rafraîchir la météo</span>
-      </div>
-      <button class="set-btn" onclick="manualRefreshWeather()">Rafraîchir</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-lbl">Synchronisation cloud</div>
-    <p style="font-size:12.5px;color:var(--t3);margin-bottom:12px;line-height:1.5">Synchronise automatiquement entre toi et ta copine via un Cloudflare Worker. Configure la même URL et le même mot de passe sur les deux appareils.</p>
+  <!-- ───── SYNCHRONISATION ───── -->
+  <div class="settings-group-title">Synchronisation</div>
+  <div class="card settings-card">
     <div class="set-item">
       <div class="set-left">
         <div class="set-icon-wrap" style="background:rgba(74,222,128,.10);color:#0E8C50">
@@ -1947,38 +1949,81 @@ body.drag-active *{cursor:grabbing !important}
       <span class="set-btn" id="syncSizeBadge" style="cursor:default">—</span>
     </div>
   </div>
+  <div class="settings-group-foot">Configure la même URL et le même mot de passe sur les deux appareils.</div>
 
-  <div class="card">
-    <div class="card-lbl">Sauvegarde manuelle</div>
-    <div class="sync-banner">
-      <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
-      <div class="sync-txt">Export/import JSON, en cas de besoin. La synchro cloud ci-dessus rend ça optionnel.</div>
+  <!-- ───── DONNÉES ───── -->
+  <div class="settings-group-title">Données</div>
+  <div class="card settings-card">
+    <div class="set-item">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:rgba(27,127,171,.10);color:#1B7FAB">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </div>
+        <span class="set-lbl" id="wxStatus">Rafraîchir la météo</span>
+      </div>
+      <button class="set-btn" onclick="manualRefreshWeather()">Rafraîchir</button>
+    </div>
+    <div class="set-item">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:rgba(27,127,171,.10);color:#1B7FAB">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><circle cx="12" cy="12" r="2"/></svg>
+        </div>
+        <span class="set-lbl">Détecter ma position</span>
+      </div>
+      <button class="set-btn" onclick="useCurrentLoc()">Détecter</button>
     </div>
     <div class="set-item">
       <div class="set-left">
         <div class="set-icon-wrap" style="background:var(--ok-tint);color:var(--ok)">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         </div>
-        <span class="set-lbl">Exporter les données</span>
+        <span class="set-lbl">Exporter (JSON)</span>
       </div>
       <button class="set-btn" onclick="exportData()">Exporter</button>
     </div>
-    <div class="set-item">
+    <div class="set-item" style="border-bottom:none">
       <div class="set-left">
         <div class="set-icon-wrap" style="background:var(--a-tint);color:var(--a)">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
-        <span class="set-lbl">Importer des données</span>
+        <span class="set-lbl">Importer (JSON)</span>
       </div>
       <label class="set-btn">Importer<input type="file" accept=".json" onchange="importData(this)" style="display:none"></label>
     </div>
   </div>
+  <div class="settings-group-foot">L'export sert de sauvegarde locale ; la synchro cloud rend ça optionnel.</div>
 
-  <div class="card">
-    <div class="card-lbl">Notes partagées</div>
-    <p style="font-size:12.5px;color:var(--t3);margin-bottom:10px;line-height:1.5">Code WiFi, contacts d'urgence, infos pratiques…</p>
-    <textarea class="notes-ta" id="notesArea" placeholder="Ex: WiFi: ChaletNord / motdepasse123&#10;Voisin: Jean-Pierre 418-555-0000" oninput="saveNotes()"></textarea>
+  <!-- ───── STATS PHOTOS (conditionnel) ───── -->
+  <div class="settings-group-title" id="photoStatsTitle" style="display:none">Statistiques photos</div>
+  <div class="card settings-card" id="photoStatsCard" style="display:none">
+    <div class="stat-row">
+      <span class="sr-l">Total</span>
+      <span class="sr-v" id="statTotal">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="sr-l" id="statMineLbl">Marc</span>
+      <span class="sr-v" id="statMine">—</span>
+    </div>
+    <div class="stat-row">
+      <span class="sr-l" id="statHersLbl">Ma copine</span>
+      <span class="sr-v" id="statHers">—</span>
+    </div>
+    <div class="stat-row">
+      <span class="sr-l">Mois le plus actif</span>
+      <span class="sr-v" id="statTopMonth">—</span>
+    </div>
+    <div class="stat-row">
+      <span class="sr-l">Coups de cœur partagés</span>
+      <span class="sr-v" id="statHearts">0</span>
+    </div>
   </div>
+
+  <!-- ───── NOTES PARTAGÉES ───── -->
+  <div class="settings-group-title">Notes partagées</div>
+  <div class="card settings-card" style="padding:14px">
+    <textarea class="notes-ta" id="notesArea" placeholder="Code WiFi, contacts d'urgence, infos pratiques…&#10;&#10;Ex: WiFi: ChaletNord / motdepasse123" oninput="saveNotes()"></textarea>
+  </div>
+  <div class="settings-group-foot" style="margin-bottom:30px">Synchronisé entre les deux appareils. Pour des notes individuelles datées, utilise le journal d'un contact.</div>
 </main>
 
 <!-- ══ NAV BAS ══ -->
@@ -5328,10 +5373,16 @@ function toggleOwner(){
 }
 function renderPhotoStats(){
   const card = document.getElementById('photoStatsCard');
+  const title = document.getElementById('photoStatsTitle');
   if(!card) return;
   const total = photoCache.length;
-  if(!total){ card.style.display = 'none'; return; }
+  if(!total){
+    card.style.display = 'none';
+    if(title) title.style.display = 'none';
+    return;
+  }
   card.style.display = '';
+  if(title) title.style.display = '';
   const me = S.marcName || 'Marc';
   const her = S.copineName || 'Ma copine';
   let myCount = 0, herCount = 0;
