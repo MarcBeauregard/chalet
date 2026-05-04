@@ -945,20 +945,30 @@ body.drag-active *{cursor:grabbing !important}
 }
 .cal-day .d-num{line-height:1;font-variant-numeric:tabular-nums}
 .cal-wx{
-  display:inline-flex;align-items:center;gap:3px;
-  font-size:10.5px;font-weight:700;line-height:1;
-  color:var(--t2);white-space:nowrap;
+  display:inline-flex;align-items:center;justify-content:center;
+  line-height:1;color:var(--t2);
 }
-.cal-wx svg{width:14px;height:14px;flex-shrink:0;stroke-width:2.2}
+.cal-wx svg{width:20px;height:20px;flex-shrink:0;stroke-width:2}
+/* Couleurs subtiles par type de météo */
+.cal-wx.wx-sun{color:#E29A1F}
+.cal-wx.wx-cloudSun{color:#B98E3A}
+.cal-wx.wx-cloud{color:#7E8A93}
+.cal-wx.wx-fog{color:#9CA4AB}
+.cal-wx.wx-drizzle{color:#5688C4}
+.cal-wx.wx-rain{color:#3B7CB6}
+.cal-wx.wx-snow{color:#7CADD9}
+.cal-wx.wx-thunder{color:#8B5FC9}
 .cal-day.today{
   background:var(--p);color:white;font-weight:800;
   box-shadow:0 3px 10px rgba(114,72,30,.28);
 }
-.cal-day.today .cal-wx{color:rgba(255,255,255,.96)}
+.cal-day.today .cal-wx,
+.cal-day.today .cal-wx[class*="wx-"]{color:rgba(255,255,255,.96)}
 .cal-day.sejour:not(.today){
   background:var(--s-tint);color:var(--s-dk);font-weight:700;
 }
-.cal-day.sejour:not(.today) .cal-wx{color:var(--s)}
+.cal-day.sejour:not(.today) .cal-wx,
+.cal-day.sejour:not(.today) .cal-wx[class*="wx-"]{color:var(--s)}
 .cal-day:hover:not(.today):not(.other){background:var(--p-tint-2)}
 .cal-day:active:not(.other){transform:scale(.96)}
 .cal-day.dot::after{
@@ -974,6 +984,113 @@ body.drag-active *{cursor:grabbing !important}
   opacity:.32;cursor:default;pointer-events:none;
   background:transparent;color:var(--t3);font-weight:500;
 }
+
+/* ══════════════════════════════════════════
+   DÉTAIL D'UN JOUR — modal météo + événements
+══════════════════════════════════════════ */
+.dd-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.dd-date{
+  font-size:13px;font-weight:700;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--t3);
+}
+.dd-title{
+  font-size:26px;font-weight:800;letter-spacing:-.5px;line-height:1.1;
+  margin-top:2px;
+}
+.dd-close{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--surface-2);color:var(--t3);
+  display:flex;align-items:center;justify-content:center;
+  border:none;cursor:pointer;flex-shrink:0;
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease);
+}
+.dd-close:active{transform:scale(.88);background:var(--p-tint)}
+.dd-close svg{width:14px;height:14px;stroke:var(--t3);fill:none;stroke-width:2.5;stroke-linecap:round}
+
+/* Hero météo */
+.dd-wx{
+  margin-top:18px;padding:18px;
+  background:var(--surface-2);
+  border-radius:18px;
+  display:flex;align-items:center;gap:16px;
+  animation:fadeInUp .4s var(--ease-out);
+}
+.dd-wx-icon{
+  width:64px;height:64px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.dd-wx-icon svg{width:54px;height:54px;stroke-width:1.8}
+.dd-wx-info{flex:1;min-width:0}
+.dd-wx-label{
+  font-size:15px;font-weight:700;letter-spacing:-.2px;
+  color:var(--t);
+}
+.dd-wx-stats{
+  display:flex;gap:12px;margin-top:6px;font-size:12.5px;color:var(--t3);font-weight:500;
+  flex-wrap:wrap;
+}
+.dd-wx-stats span strong{color:var(--t);font-weight:700}
+.dd-wx-temp{
+  text-align:right;flex-shrink:0;
+}
+.dd-wx-tmax{
+  font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1;
+  color:var(--p);
+}
+.dd-wx-tmin{
+  font-size:13px;font-weight:600;color:var(--t3);margin-top:3px;
+}
+.dd-no-wx{
+  margin-top:18px;padding:14px 16px;
+  background:var(--surface-2);border-radius:14px;
+  font-size:13.5px;color:var(--t3);text-align:center;
+}
+
+/* Section événements du jour */
+.dd-section-title{
+  font-size:11.5px;font-weight:700;letter-spacing:.6px;
+  text-transform:uppercase;color:var(--t3);
+  margin:22px 4px 10px;
+}
+.dd-events{display:flex;flex-direction:column;gap:6px}
+.dd-event{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 13px;background:var(--surface);
+  border-radius:14px;box-shadow:var(--sh-s);
+  cursor:default;
+}
+.dd-event-dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;
+}
+.dd-event-body{flex:1;min-width:0}
+.dd-event-title{font-size:14.5px;font-weight:700;letter-spacing:-.1px}
+.dd-event-meta{font-size:11.5px;color:var(--t3);margin-top:2px;font-weight:500}
+.dd-event-del{
+  width:32px;height:32px;border-radius:50%;
+  background:transparent;color:var(--t3);
+  display:flex;align-items:center;justify-content:center;
+  border:none;cursor:pointer;opacity:.55;
+  transition:opacity var(--t-fast) var(--ease), color var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease-spring);
+}
+.dd-event-del:active{transform:scale(.86);color:var(--err);background:var(--err-tint);opacity:1}
+.dd-event-del svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.dd-no-events{
+  font-size:13px;color:var(--t3);text-align:center;
+  padding:14px 8px;font-weight:500;
+}
+
+.dd-add-btn{
+  width:100%;margin-top:20px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px;
+  background:var(--p);color:white;
+  border:none;border-radius:14px;
+  font-size:15px;font-weight:700;cursor:pointer;
+  box-shadow:0 4px 14px rgba(114,72,30,.22);
+  transition:transform var(--t-fast) var(--ease-spring), box-shadow var(--t-fast) var(--ease);
+}
+.dd-add-btn:active{transform:scale(.97);box-shadow:0 2px 6px rgba(114,72,30,.18)}
+.dd-add-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 
 /* Panneau météo dans le modal événement */
 .ev-wx-box{
@@ -2060,6 +2177,14 @@ body.drag-active *{cursor:grabbing !important}
     <div class="fg"><label>Date de fin (si séjour)</label><input type="date" class="fi" id="evEnd"></div>
     <button class="btn-p" onclick="saveEvent()">Ajouter</button>
     <button class="btn-g" onclick="closeM('evModal')">Annuler</button>
+  </div>
+</div>
+
+<!-- Détail d'un jour du calendrier (météo + événements) -->
+<div class="m-overlay" id="dayModal">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div id="dayDetailContent"></div>
   </div>
 </div>
 
@@ -4111,7 +4236,7 @@ function wxChipHtml(day){
   if(!day || day.tMax==null) return '';
   const icon = wxIcon(day.code);
   const lbl = `${wxLabel(day.code)}, max ${day.tMax}°, min ${day.tMin}°`;
-  return `<span class="cal-wx" aria-label="${esc(lbl)}">${WX_SVG[icon]}<span>${day.tMax}°</span></span>`;
+  return `<span class="cal-wx wx-${icon}" aria-label="${esc(lbl)}">${WX_SVG[icon]}</span>`;
 }
 function wxByDate(){
   const wc = S.weatherCache;
@@ -4228,10 +4353,123 @@ function rCal(){
   }).join('');
 }
 function calClick(ds){
-  document.getElementById('evStart').value=ds;
-  document.getElementById('evEnd').value=ds;
-  renderEvWxBox(ds);
-  openM('evModal');
+  openDayDetail(ds);
+}
+
+/* Couleurs des types d'événements (tient avec EV_COL existant) */
+const EV_TYPE_LBL = { sejour: 'Séjour', task: 'Tâche', note: 'Rappel' };
+
+function openDayDetail(ds){
+  renderDayDetail(ds);
+  openM('dayModal');
+}
+function refreshDayDetail(){
+  const cur = document.getElementById('dayDetailContent');
+  if(!cur) return;
+  const ds = cur.dataset.ds;
+  if(ds) renderDayDetail(ds);
+}
+function renderDayDetail(ds){
+  const root = document.getElementById('dayDetailContent');
+  if(!root) return;
+  root.dataset.ds = ds;
+  const date = new Date(ds);
+  const dayLbl = JR_FR[date.getDay()];
+  const dayNum = date.getDate();
+  const monthLbl = MO_FR[date.getMonth()];
+  const yearLbl = date.getFullYear();
+  const wx = wxByDate()[ds];
+
+  // Événements ce jour (incluant séjours qui chevauchent)
+  const events = (S.events || []).filter(e => {
+    if(!e.startDate) return false;
+    return e.startDate <= ds && (e.endDate || e.startDate) >= ds;
+  });
+
+  let wxHtml = '';
+  if(wx && wx.tMax != null){
+    const icon = wxIcon(wx.code);
+    const precipTxt = wx.precip > 0 ? `${wx.precip} mm` : 'aucune';
+    wxHtml = `
+    <div class="dd-wx">
+      <div class="dd-wx-icon wx-${icon}">${WX_SVG[icon] || WX_SVG.cloud}</div>
+      <div class="dd-wx-info">
+        <div class="dd-wx-label">${esc(wxLabel(wx.code))}</div>
+        <div class="dd-wx-stats">
+          <span>Min <strong>${wx.tMin}°</strong></span>
+          <span>Précipitations <strong>${esc(precipTxt)}</strong></span>
+        </div>
+      </div>
+      <div class="dd-wx-temp">
+        <div class="dd-wx-tmax">${wx.tMax}°</div>
+        <div class="dd-wx-tmin">max</div>
+      </div>
+    </div>`;
+  }else{
+    wxHtml = `<div class="dd-no-wx">Météo non disponible pour ce jour</div>`;
+  }
+
+  const eventsHtml = events.length
+    ? `<div class="dd-events">${events.map(e => {
+        const typeColor = (typeof EV_COL !== 'undefined' && EV_COL[e.type]) || '#999';
+        const meta = (e.endDate && e.endDate !== e.startDate)
+          ? `Du ${dispDate(e.startDate)} au ${dispDate(e.endDate)} · ${EV_TYPE_LBL[e.type] || e.type}`
+          : `${EV_TYPE_LBL[e.type] || e.type}`;
+        return `
+        <div class="dd-event">
+          <div class="dd-event-dot" style="background:${typeColor}"></div>
+          <div class="dd-event-body">
+            <div class="dd-event-title">${esc(e.title)}</div>
+            <div class="dd-event-meta">${esc(meta)}</div>
+          </div>
+          <button class="dd-event-del" aria-label="Supprimer" onclick="delEventFromDay('${esc(e.id)}')">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+          </button>
+        </div>`;
+      }).join('')}</div>`
+    : `<div class="dd-no-events">Aucun événement ce jour</div>`;
+
+  root.innerHTML = `
+    <div class="dd-hdr">
+      <div>
+        <div class="dd-date">${esc(dayLbl)}</div>
+        <div class="dd-title">${dayNum} ${esc(monthLbl.toLowerCase())} ${yearLbl}</div>
+      </div>
+      <button class="dd-close" aria-label="Fermer" onclick="closeM('dayModal')">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    ${wxHtml}
+    <div class="dd-section-title">Événements</div>
+    ${eventsHtml}
+    <button class="dd-add-btn" onclick="addEventFromDay('${esc(ds)}')">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Ajouter un événement
+    </button>
+  `;
+}
+
+function addEventFromDay(ds){
+  closeM('dayModal');
+  setTimeout(() => {
+    document.getElementById('evTitle').value = '';
+    document.getElementById('evType').value = 'sejour';
+    document.getElementById('evStart').value = ds;
+    document.getElementById('evEnd').value = ds;
+    renderEvWxBox(ds);
+    openM('evModal');
+  }, 240);
+}
+
+function delEventFromDay(id){
+  if(!confirm('Supprimer cet événement ?')) return;
+  addTomb('events', id);
+  S.events = S.events.filter(e => e.id !== id);
+  save();
+  rCal();
+  rDash();
+  refreshDayDetail();
+  toast('Événement supprimé');
 }
 function renderEvWxBox(ds){
   const box = document.getElementById('evWxBox');
