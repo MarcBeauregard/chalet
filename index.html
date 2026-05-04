@@ -578,6 +578,314 @@ input,select,textarea{font-family:inherit}
   background:var(--p-tint);color:var(--p);
 }
 
+/* Avatar avec photo */
+.contact-avatar.has-photo{padding:0}
+.contact-avatar img.av-img{
+  width:100%;height:100%;border-radius:50%;
+  object-fit:cover;display:block;
+}
+
+/* Recherche contacts */
+.contact-search{
+  position:relative;margin-bottom:10px;
+}
+.contact-search input{
+  width:100%;padding:11px 14px 11px 38px;
+  border:1.5px solid transparent;border-radius:13px;
+  font-size:14.5px;background:var(--surface-2);color:var(--t);
+  outline:none;font-family:inherit;
+  transition:border-color var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.contact-search input::placeholder{color:var(--t3)}
+.contact-search input:focus{border-color:var(--p);background:var(--surface);box-shadow:0 0 0 3px var(--p-tint-2)}
+.contact-search-icon{
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;color:var(--t3);
+  pointer-events:none;
+}
+.contact-search-clear{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  width:24px;height:24px;border-radius:50%;
+  background:var(--border);color:var(--t2);
+  display:none;align-items:center;justify-content:center;
+  border:none;cursor:pointer;
+  transition:transform var(--t-fast) var(--ease-spring);
+}
+.contact-search-clear.on{display:flex}
+.contact-search-clear:active{transform:translateY(-50%) scale(.85)}
+.contact-search-clear svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round}
+
+/* ══════════════════════════════════════════
+   FICHE CONTACT DÉTAILLÉE — pleine page iOS
+══════════════════════════════════════════ */
+.modal.fullscreen{
+  border-radius:0;
+  padding:0;
+  max-height:100vh;
+  height:100vh;
+  width:100vw;
+  max-width:600px;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.cd-topbar{
+  position:sticky;top:0;z-index:5;
+  background:color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:calc(12px + env(safe-area-inset-top,0px)) 12px 12px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.cd-topbar-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:transparent;color:var(--p);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border:none;
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease);
+}
+.cd-topbar-btn:active{transform:scale(.85);background:var(--p-tint-2)}
+.cd-topbar-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.cd-topbar-actions{display:flex;align-items:center;gap:4px}
+.cd-edit-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:var(--r-f);
+  background:var(--p);color:white;
+  font-size:13.5px;font-weight:700;
+  border:none;cursor:pointer;
+  box-shadow:0 2px 6px rgba(114,72,30,.22);
+  transition:transform var(--t-fast) var(--ease-spring), box-shadow var(--t-fast) var(--ease);
+}
+.cd-edit-btn:active{transform:scale(.94);box-shadow:0 1px 3px rgba(114,72,30,.18)}
+.cd-edit-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+.cd-body{
+  flex:1;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding-bottom:calc(40px + env(safe-area-inset-bottom,0px));
+}
+.cd-hero{
+  text-align:center;padding:30px 22px 18px;
+  animation:cdHeroIn .42s var(--ease-out);
+}
+@keyframes cdHeroIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.cd-hero-avatar{
+  width:96px;height:96px;border-radius:50%;
+  margin:0 auto 14px;
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-size:34px;font-weight:800;letter-spacing:.5px;
+  box-shadow:0 8px 24px rgba(0,0,0,.14);
+  animation:cdAvatarIn .55s var(--ease-spring);
+  position:relative;
+  cursor:pointer;
+  overflow:hidden;
+  transition:transform var(--t-fast) var(--ease-spring);
+}
+.cd-hero-avatar:active{transform:scale(.94)}
+.cd-hero-avatar img.av-img{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+}
+.cd-hero-avatar .av-edit{
+  position:absolute;bottom:-2px;right:-2px;
+  width:30px;height:30px;border-radius:50%;
+  background:var(--p);color:white;
+  display:flex;align-items:center;justify-content:center;
+  border:3px solid var(--surface);
+  box-shadow:0 2px 6px rgba(0,0,0,.18);
+}
+.cd-hero-avatar .av-edit svg{width:12px;height:12px;stroke:white;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+
+/* Bloc info supplémentaire (anniversaire, conjoint) */
+.cd-info-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:var(--r-f);
+  background:var(--surface);box-shadow:var(--sh-s);
+  font-size:13px;font-weight:600;color:var(--t2);
+  margin-top:10px;cursor:default;
+}
+.cd-info-pill svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;color:var(--p)}
+.cd-info-pill.tappable{cursor:pointer;transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease)}
+.cd-info-pill.tappable:active{transform:scale(.94);background:var(--p-tint-2)}
+.cd-info-meta{
+  margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+}
+
+/* Liens auto dans journal */
+.cd-jtext a{
+  color:var(--p);
+  text-decoration:underline;
+  text-underline-offset:2px;
+  font-weight:600;
+  word-break:break-all;
+}
+.cd-jtext a:hover{color:var(--p-dk)}
+
+/* Spinner pendant upload photo de contact */
+.av-uploading::after{
+  content:'';position:absolute;inset:0;
+  background:rgba(0,0,0,.42);border-radius:50%;
+  display:block;
+}
+.av-uploading::before{
+  content:'';
+  position:absolute;top:50%;left:50%;
+  width:24px;height:24px;
+  margin:-12px 0 0 -12px;
+  border:2.5px solid rgba(255,255,255,.3);
+  border-top-color:white;border-radius:50%;
+  animation:spin .9s linear infinite;
+  z-index:2;
+}
+@keyframes cdAvatarIn{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.cd-name{
+  font-size:25px;font-weight:800;letter-spacing:-.6px;line-height:1.1;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.cd-name .fav-star{font-size:20px;color:var(--a)}
+.cd-role{font-size:14px;color:var(--t3);margin-top:5px;font-weight:500}
+.cd-tags{margin-top:12px;display:flex;justify-content:center;flex-wrap:wrap;gap:5px}
+.cd-tags .ct-tag{font-size:12px;padding:4px 11px}
+
+.cd-actions{
+  display:flex;justify-content:center;gap:14px;
+  padding:8px 22px 26px;
+}
+.cd-action-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  text-decoration:none;
+  animation:cdActionIn .5s var(--ease-spring) backwards;
+}
+.cd-action-wrap:nth-child(2){animation-delay:.05s}
+.cd-action-wrap:nth-child(3){animation-delay:.10s}
+@keyframes cdActionIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+.cd-action{
+  width:54px;height:54px;border-radius:50%;
+  background:var(--p-tint-2);color:var(--p);
+  display:flex;align-items:center;justify-content:center;
+  border:none;cursor:pointer;
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease);
+}
+.cd-action:active{transform:scale(.86);background:var(--p-tint)}
+.cd-action svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cd-action-lbl{font-size:11px;font-weight:700;color:var(--p);letter-spacing:.15px}
+
+.cd-section{padding:6px 18px 14px}
+.cd-section-title{
+  font-size:11.5px;font-weight:700;letter-spacing:.6px;
+  text-transform:uppercase;color:var(--t3);
+  margin:14px 4px 8px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.cd-section-title-add{
+  font-size:12px;font-weight:700;color:var(--p);
+  background:transparent;border:none;cursor:pointer;
+  display:inline-flex;align-items:center;gap:4px;text-transform:none;letter-spacing:0;
+  padding:4px 8px;border-radius:8px;
+  transition:background-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease-spring);
+}
+.cd-section-title-add:hover{background:var(--p-tint-2)}
+.cd-section-title-add:active{transform:scale(.94)}
+
+.cd-card{
+  background:var(--surface);border-radius:14px;
+  box-shadow:var(--sh-s);
+  overflow:hidden;
+}
+.cd-row{
+  display:flex;align-items:center;gap:14px;
+  padding:13px 14px;
+  border-bottom:1px solid var(--border);
+  text-decoration:none;color:inherit;
+  transition:background-color var(--t-fast) var(--ease);
+  cursor:pointer;
+}
+.cd-row:last-child{border-bottom:none}
+.cd-row:active{background:var(--p-tint-2)}
+.cd-row-icon{
+  width:32px;height:32px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.cd-row-icon svg{width:16px;height:16px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cd-row-icon.tel{background:rgba(58,102,72,.10);color:var(--s)}.cd-row-icon.tel svg{stroke:var(--s)}
+.cd-row-icon.mail{background:rgba(31,79,111,.10);color:#1F4F6F}.cd-row-icon.mail svg{stroke:#1F4F6F}
+.cd-row-icon.addr{background:var(--a-tint);color:var(--a)}.cd-row-icon.addr svg{stroke:var(--a)}
+.cd-row-body{flex:1;min-width:0}
+.cd-row-lbl{font-size:11px;font-weight:600;color:var(--t3);letter-spacing:.4px;text-transform:uppercase;line-height:1}
+.cd-row-val{font-size:15px;font-weight:500;color:var(--t);margin-top:3px;word-break:break-word}
+
+.cd-about{
+  background:var(--surface);
+  border-left:3px solid var(--p);
+  border-radius:12px;
+  padding:13px 14px;
+  font-size:14.5px;color:var(--t);
+  line-height:1.55;
+  white-space:pre-wrap;word-break:break-word;
+  box-shadow:var(--sh-s);
+}
+
+.cd-journal-entry{
+  background:var(--surface);
+  border-radius:14px;
+  padding:13px 14px;
+  margin-bottom:8px;
+  box-shadow:var(--sh-s);
+  position:relative;
+  animation:tagIn .35s var(--ease-spring);
+}
+.cd-jdate{
+  font-size:11px;font-weight:700;color:var(--t3);
+  letter-spacing:.4px;text-transform:uppercase;
+  margin-bottom:6px;
+  padding-right:32px;
+}
+.cd-jtext{
+  font-size:14.5px;color:var(--t);line-height:1.55;
+  white-space:pre-wrap;word-break:break-word;
+}
+.cd-jdel{
+  position:absolute;top:10px;right:10px;
+  width:28px;height:28px;border-radius:50%;
+  background:transparent;color:var(--t3);
+  display:flex;align-items:center;justify-content:center;
+  opacity:.5;border:none;cursor:pointer;
+  transition:opacity var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease-spring);
+}
+.cd-jdel:hover, .cd-jdel:active{opacity:1;color:var(--err);background:var(--err-tint)}
+.cd-jdel:active{transform:scale(.85)}
+.cd-jdel svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+
+.cd-add-note{
+  width:100%;padding:13px;
+  background:var(--surface-2);color:var(--p);
+  border:1.5px dashed var(--border);
+  border-radius:14px;
+  font-size:14px;font-weight:700;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:background-color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease-spring);
+}
+.cd-add-note:hover{background:var(--p-tint-2);border-color:var(--p-tint)}
+.cd-add-note:active{transform:scale(.98)}
+.cd-add-note svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+
+/* Modal compose : prompt iOS-like pour ajouter une note */
+.note-compose{padding:8px 6px}
+.note-compose textarea{
+  width:100%;min-height:130px;
+  padding:14px;
+  border:1.5px solid transparent;
+  border-radius:13px;
+  background:var(--surface-2);color:var(--t);
+  font-size:15px;line-height:1.55;font-family:inherit;
+  outline:none;resize:vertical;
+  transition:border-color var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.note-compose textarea:focus{border-color:var(--p);background:var(--surface);box-shadow:0 0 0 3px var(--p-tint-2)}
+
 /* ══════════════════════════════════════════
    DRAG-AND-DROP — poignée + état dragging
 ══════════════════════════════════════════ */
@@ -1208,6 +1516,7 @@ body.drag-active *{cursor:grabbing !important}
     <div class="stat-card"><div class="stat-num" id="stPacked">—</div><div class="stat-lbl">Bagages prêts</div></div>
     <div class="stat-card"><div class="stat-num" id="stCourses">0</div><div class="stat-lbl">À acheter</div></div>
   </div>
+  <div id="dbBirthday" style="display:none"></div>
   <div class="card">
     <div class="card-lbl">Tâches urgentes</div>
     <div id="dbUrgent"></div>
@@ -1344,9 +1653,20 @@ body.drag-active *{cursor:grabbing !important}
 <!-- Contacts -->
 <main id="sec-contacts" class="sec">
   <div class="sec-hdr"><div class="sec-title">Contacts</div></div>
+  <div class="contact-search">
+    <svg class="contact-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="search" id="contactSearch" placeholder="Rechercher un nom, métier, note…" autocomplete="off">
+    <button class="contact-search-clear" id="contactSearchClear" onclick="clearContactSearch()" aria-label="Effacer">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
   <div class="pills" id="contactsPills"></div>
   <div id="contactList"></div>
 </main>
+
+<!-- Input file caché pour upload photo de contact -->
+<input type="file" id="ctPhotoInput" accept="image/*" capture="environment" style="display:none">
+<input type="file" id="ctPhotoInputGallery" accept="image/*" style="display:none">
 
 <!-- Paramètres -->
 <main id="sec-settings" class="sec">
@@ -1771,6 +2091,12 @@ body.drag-active *{cursor:grabbing !important}
     <div class="fg"><label>Téléphone</label><input class="fi" id="ctPhone" type="tel" placeholder="418-555-0000" inputmode="tel"></div>
     <div class="fg"><label>Courriel</label><input class="fi" id="ctEmail" type="email" placeholder="exemple@…" inputmode="email"></div>
     <div class="fg"><label>Adresse</label><input class="fi" id="ctAddr" placeholder="Ex: 123 chemin du Lac"></div>
+    <div class="fg"><label>Anniversaire <span style="font-weight:500;color:var(--t3);text-transform:none;letter-spacing:0">(optionnel)</span></label><input class="fi" id="ctBday" type="date" placeholder="—"></div>
+    <div class="fg"><label>Conjoint·e <span style="font-weight:500;color:var(--t3);text-transform:none;letter-spacing:0">(optionnel)</span></label>
+      <select class="fs" id="ctPartner">
+        <option value="">— Aucun —</option>
+      </select>
+    </div>
     <div class="fg">
       <label>Étiquettes</label>
       <div class="tag-input-wrap" id="ctTagWrap">
@@ -1782,6 +2108,27 @@ body.drag-active *{cursor:grabbing !important}
     <div class="fg"><label>Notes</label><textarea class="fi" id="ctNotes" rows="4" style="resize:vertical;line-height:1.55;min-height:90px" placeholder="Détails utiles, contexte, anecdote — c'est mis en évidence sur la fiche."></textarea></div>
     <button class="btn-p" id="btnSaveContact" onclick="saveContact()">Ajouter le contact</button>
     <button class="btn-g" onclick="closeM('contactModal')">Annuler</button>
+  </div>
+</div>
+
+<!-- Fiche contact détaillée (plein écran) -->
+<div class="m-overlay" id="contactDetailModal">
+  <div class="modal fullscreen" id="contactDetailContent" role="dialog" aria-label="Fiche contact"></div>
+</div>
+
+<!-- Compose une nouvelle note de journal -->
+<div class="m-overlay" id="noteComposeModal">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-hdr">
+      <div class="m-title" id="noteComposeTitle">Ajouter une note</div>
+      <button class="m-close" aria-label="Fermer" onclick="closeM('noteComposeModal')"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="note-compose">
+      <textarea id="noteComposeText" placeholder="Tape ta note ici…"></textarea>
+    </div>
+    <button class="btn-p" onclick="saveContactNote()">Ajouter la note</button>
+    <button class="btn-g" onclick="closeM('noteComposeModal')">Annuler</button>
   </div>
 </div>
 
@@ -1980,7 +2327,7 @@ function readFileTakenDate(file){
   return lm;
 }
 
-const SCHEMA_VERSION = 11;
+const SCHEMA_VERSION = 13;
 const DEFAULT_STATE = {
   schemaVersion: SCHEMA_VERSION,
   chaletName:'Notre Chalet', marcName:'Marc', copineName:'Ma copine',
@@ -2042,8 +2389,24 @@ function normalizeState(raw){
   out.events  = out.events.filter(e => e && typeof e === 'object').map(e => ensureId(e, {title:'', type:'note', startDate:'', endDate:'', mtime:0}));
   out.courses = out.courses.filter(c => c && typeof c === 'object').map(c => ensureId(c, {name:'', qty:'1', unit:'', category:'autre', note:'', bought:false, addedBy:'ensemble', mtime:0}));
   out.photos  = out.photos.filter(p => p && typeof p === 'object' && typeof p.data === 'string');
-  out.contacts = out.contacts.filter(c => c && typeof c === 'object').map(c => ensureId(c, {name:'', role:'', phone:'', email:'', address:'', notes:'', tags:[], favorite:false, mtime:0}));
-  out.contacts.forEach(c => { if(!Array.isArray(c.tags)) c.tags = []; if(typeof c.favorite !== 'boolean') c.favorite = false; });
+  out.contacts = out.contacts.filter(c => c && typeof c === 'object').map(c => ensureId(c, {name:'', role:'', phone:'', email:'', address:'', notes:'', tags:[], favorite:false, journal:[], birthday:'', partnerId:'', photoId:'', mtime:0}));
+  out.contacts.forEach(c => {
+    if(!Array.isArray(c.tags)) c.tags = [];
+    if(typeof c.favorite !== 'boolean') c.favorite = false;
+    // Migration v11→v12 : journal de notes datées
+    if(!Array.isArray(c.journal)) c.journal = [];
+    c.journal = c.journal
+      .filter(j => j && typeof j === 'object' && typeof j.text === 'string')
+      .map(j => ({
+        id: String(j.id || (Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,6))),
+        text: j.text,
+        ts: typeof j.ts === 'number' && isFinite(j.ts) && j.ts > 0 ? j.ts : Date.now()
+      }));
+    // Migration v12→v13 : champs optionnels (anniversaire, conjoint, photo)
+    if(typeof c.birthday !== 'string') c.birthday = '';
+    if(typeof c.partnerId !== 'string') c.partnerId = '';
+    if(typeof c.photoId !== 'string') c.photoId = '';
+  });
   // Normalise mtime pour chaque item (number ≥ 0)
   ['tasks','packing','events','courses','contacts'].forEach(k => {
     out[k].forEach(it => { if(typeof it.mtime !== 'number' || !isFinite(it.mtime) || it.mtime < 0) it.mtime = 0; });
@@ -2362,6 +2725,32 @@ function rDash(){
     :`<div class="empty" style="padding:16px 0"><div class="empty-title">Aucun séjour à venir</div></div>`;
   // Souvenirs (cœurs + souvenir du jour)
   renderDashboardMemories();
+  // Anniversaire(s) du jour
+  renderDashboardBirthdays();
+}
+
+function renderDashboardBirthdays(){
+  const el = document.getElementById('dbBirthday');
+  if(!el) return;
+  const todays = (S.contacts || []).filter(isBirthdayToday);
+  if(!todays.length){ el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.style.display = '';
+  el.innerHTML = todays.map(c => {
+    const color = avatarColor(c.name);
+    const initials = avatarInitials(c.name);
+    const photoUrl = getContactPhotoUrl(c);
+    return `
+    <div class="card" onclick="viewContact('${esc(c.id)}')" style="display:flex;align-items:center;gap:14px;padding:14px;cursor:pointer;background:linear-gradient(135deg,var(--a-tint),var(--p-tint-2));border:1px solid var(--a-tint)">
+      <div class="contact-avatar ${photoUrl ? 'has-photo' : ''}" style="background:${color};width:44px;height:44px;font-size:15px;flex-shrink:0">
+        ${photoUrl ? `<img class="av-img" src="${esc(photoUrl)}" alt="">` : esc(initials)}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--a)">🎂 Anniversaire aujourd’hui</div>
+        <div style="font-size:16px;font-weight:800;letter-spacing:-.2px;margin-top:2px">${esc(c.name)}</div>
+        ${c.role ? `<div style="font-size:12.5px;color:var(--t3);margin-top:2px;font-weight:500">${esc(c.role)}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 /* Card "Souvenirs" du Dashboard : compteur cœurs + photo d'il y a ~1 an */
@@ -2851,16 +3240,25 @@ function renderContactPills(){
   el.innerHTML = pills.map(p => `<button class="pill${contactFilter === p.key ? ' on' : ''}" onclick="setContactFilter('${esc(p.key).replace(/'/g, "\\\\'")}', this)">${esc(p.label)}</button>`).join('');
 }
 
+function populatePartnerSelect(currentValue, excludeId){
+  const sel = document.getElementById('ctPartner');
+  if(!sel) return;
+  const others = (S.contacts || []).filter(c => c.id !== excludeId).slice().sort((a,b) => (a.name||'').localeCompare(b.name||'', 'fr'));
+  sel.innerHTML = `<option value="">— Aucun —</option>` +
+    others.map(c => `<option value="${esc(c.id)}"${c.id === currentValue ? ' selected' : ''}>${esc(c.name)}</option>`).join('');
+}
+
 function openContactModal(){
   editingContactId = null;
   document.getElementById('contactModalTitle').textContent = 'Nouveau contact';
   document.getElementById('btnSaveContact').textContent = 'Ajouter le contact';
-  ['ctName','ctRole','ctPhone','ctEmail','ctAddr','ctNotes'].forEach(id => document.getElementById(id).value = '');
+  ['ctName','ctRole','ctPhone','ctEmail','ctAddr','ctNotes','ctBday'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('ctTagInput').value = '';
   currentTags = [];
   renderCurrentTagPills();
   renderTagSuggestions('');
   initTagInput();
+  populatePartnerSelect('', null);
   openM('contactModal');
 }
 function editContact(id){
@@ -2875,11 +3273,13 @@ function editContact(id){
   document.getElementById('ctEmail').value = c.email || '';
   document.getElementById('ctAddr').value = c.address || '';
   document.getElementById('ctNotes').value = c.notes || '';
+  document.getElementById('ctBday').value = c.birthday || '';
   document.getElementById('ctTagInput').value = '';
   currentTags = Array.isArray(c.tags) ? c.tags.map(normalizeTag).filter(Boolean) : [];
   renderCurrentTagPills();
   renderTagSuggestions('');
   initTagInput();
+  populatePartnerSelect(c.partnerId || '', c.id);
   openM('contactModal');
 }
 
@@ -2959,20 +3359,53 @@ function saveContact(){
     email: document.getElementById('ctEmail').value.trim(),
     address: document.getElementById('ctAddr').value.trim(),
     notes: document.getElementById('ctNotes').value.trim(),
-    tags: currentTags.slice()
+    tags: currentTags.slice(),
+    birthday: document.getElementById('ctBday').value || '',
+    partnerId: document.getElementById('ctPartner').value || ''
   };
   if(!Array.isArray(S.contacts)) S.contacts = [];
+  let savedId;
   if(editingContactId){
     const c = S.contacts.find(x => x.id === editingContactId);
-    if(c){ Object.assign(c, fields); stamp(c); }
+    if(c){
+      const oldPartnerId = c.partnerId || '';
+      Object.assign(c, fields);
+      stamp(c);
+      savedId = c.id;
+      syncPartnership(c.id, fields.partnerId, oldPartnerId);
+    }
     editingContactId = null;
   }else{
-    S.contacts.push(stamp(Object.assign({
-      id: uid(), order: nextOrder(S.contacts), favorite: false
-    }, fields)));
+    const newC = stamp(Object.assign({
+      id: uid(), order: nextOrder(S.contacts), favorite: false, journal: [], photoId: ''
+    }, fields));
+    S.contacts.push(newC);
+    savedId = newC.id;
+    syncPartnership(newC.id, fields.partnerId, '');
   }
   save(); closeM('contactModal');
   rContacts();
+  if(viewingContactId === savedId) refreshContactDetail();
+}
+
+/* Maintient la cohérence bidirectionnelle des liens conjoint :
+   - retire ce contact du partenaire précédent
+   - définit ce contact comme partenaire du nouveau partenaire */
+function syncPartnership(myId, newPartnerId, oldPartnerId){
+  if(oldPartnerId && oldPartnerId !== newPartnerId){
+    const old = (S.contacts || []).find(x => x.id === oldPartnerId);
+    if(old && old.partnerId === myId){
+      old.partnerId = '';
+      stamp(old);
+    }
+  }
+  if(newPartnerId){
+    const np = (S.contacts || []).find(x => x.id === newPartnerId);
+    if(np && np.partnerId !== myId){
+      np.partnerId = myId;
+      stamp(np);
+    }
+  }
 }
 function delContact(id){
   if(!confirm('Supprimer ce contact ?')) return;
@@ -2995,6 +3428,7 @@ function toggleContactFav(id){
 }
 
 function rContacts(){
+  attachContactSearch();
   renderContactPills();
   const list = Array.isArray(S.contacts) ? [...S.contacts] : [];
   // Tri : favoris d'abord, puis par order user-defined
@@ -3002,13 +3436,17 @@ function rContacts(){
     if((b.favorite?1:0) !== (a.favorite?1:0)) return (b.favorite?1:0) - (a.favorite?1:0);
     return (a.order||0) - (b.order||0);
   });
-  // Filtre
+  // Filtre par catégorie/favoris
   let filtered = list;
   if(contactFilter === 'favorite'){
     filtered = list.filter(c => c.favorite);
   }else if(typeof contactFilter === 'string' && contactFilter.startsWith('tag-')){
     const tag = contactFilter.slice(4);
     filtered = list.filter(c => Array.isArray(c.tags) && c.tags.some(t => normalizeTag(t) === tag));
+  }
+  // Filtre par recherche
+  if(contactSearchQuery){
+    filtered = filtered.filter(c => contactMatchesSearch(c, contactSearchQuery));
   }
   const el = document.getElementById('contactList');
   if(!el) return;
@@ -3028,27 +3466,390 @@ function contactItemHtml(c){
   const color = avatarColor(c.name);
   const tags = (Array.isArray(c.tags) ? c.tags : []).map(normalizeTag).filter(Boolean);
   const tagsHtml = tags.length ? `<div class="contact-tags">${tags.map(t => `<span class="ct-tag">${esc(t)}</span>`).join('')}</div>` : '';
+  const journalCount = Array.isArray(c.journal) ? c.journal.length : 0;
   const chips = [];
   if(c.phone)   chips.push(`<a class="chip ch-tel" href="tel:${esc(c.phone.replace(/\s+/g,''))}" onclick="event.stopPropagation()">📞 ${esc(c.phone)}</a>`);
   if(c.email)   chips.push(`<a class="chip ch-mail" href="mailto:${esc(c.email)}" onclick="event.stopPropagation()">✉ ${esc(c.email)}</a>`);
   if(c.address) chips.push(`<a class="chip ch-addr" href="https://maps.apple.com/?q=${encodeURIComponent(c.address)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">📍 ${esc(c.address)}</a>`);
+  if(journalCount) chips.push(`<span class="chip" style="background:var(--p-tint);color:var(--p)">📝 ${journalCount} note${journalCount>1?'s':''}</span>`);
   const favIcon = c.favorite
     ? `<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`
     : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`;
+  const photoUrl = getContactPhotoUrl(c);
+  const avatarInner = photoUrl
+    ? `<img class="av-img" src="${esc(photoUrl)}" alt="">`
+    : esc(initials);
   return `
   <div class="contact-item drag-item" data-id="${esc(c.id)}">
     <div class="drag-handle" aria-label="Réordonner">${IC.handle}</div>
-    <div class="contact-avatar" style="background:${color}">${esc(initials)}</div>
-    <div class="contact-body" onclick="editContact('${esc(c.id)}')">
+    <div class="contact-avatar ${photoUrl ? 'has-photo' : ''}" style="background:${color}">${avatarInner}</div>
+    <div class="contact-body" onclick="viewContact('${esc(c.id)}')">
       <div class="contact-name">${esc(c.name)}${c.favorite ? '<span class="fav-star" aria-hidden="true">★</span>' : ''}</div>
       ${c.role ? `<div class="contact-role">${esc(c.role)}</div>` : ''}
       ${tagsHtml}
       ${chips.length ? `<div class="contact-chips">${chips.join('')}</div>` : ''}
-      ${c.notes ? `<div class="contact-note">${esc(c.notes)}</div>` : ''}
     </div>
     <button class="contact-fav-btn ${c.favorite ? 'on' : ''}" aria-label="${c.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}" onclick="event.stopPropagation();toggleContactFav('${esc(c.id)}')">${favIcon}</button>
     <button class="del-btn" aria-label="Supprimer le contact" onclick="event.stopPropagation();delContact('${esc(c.id)}')">${IC.trash}</button>
   </div>`;
+}
+
+/* Déclenche le file picker pour photo de contact (depuis fiche détail) */
+function pickContactPhoto(){
+  const inp = document.getElementById('ctPhotoInputGallery');
+  if(!inp) return;
+  // Wire l'event handler une fois
+  if(!inp._wired){
+    inp._wired = true;
+    inp.addEventListener('change', () => uploadContactPhoto(inp));
+  }
+  inp.click();
+}
+
+/* ══════════════════════════════════════════
+   FICHE CONTACT — vue lecture iOS-like
+══════════════════════════════════════════ */
+let viewingContactId = null;
+let pendingNoteContactId = null;
+
+function viewContact(id){
+  const c = (S.contacts || []).find(x => x.id === id);
+  if(!c) return;
+  viewingContactId = id;
+  renderContactDetail(c);
+  openM('contactDetailModal');
+}
+function closeContactDetail(){
+  closeM('contactDetailModal');
+  viewingContactId = null;
+}
+function editContactFromDetail(){
+  if(!viewingContactId) return;
+  const id = viewingContactId;
+  closeContactDetail();
+  setTimeout(() => editContact(id), 200);  // attend la fin de l'anim de fermeture
+}
+function refreshContactDetail(){
+  if(!viewingContactId) return;
+  const c = (S.contacts || []).find(x => x.id === viewingContactId);
+  if(!c){ closeContactDetail(); return; }
+  renderContactDetail(c);
+}
+
+function renderContactDetail(c){
+  const root = document.getElementById('contactDetailContent');
+  if(!root) return;
+  const initials = avatarInitials(c.name);
+  const color = avatarColor(c.name);
+  const tags = (Array.isArray(c.tags) ? c.tags : []).map(normalizeTag).filter(Boolean);
+  const journal = Array.isArray(c.journal) ? [...c.journal].sort((a,b) => (b.ts||0) - (a.ts||0)) : [];
+  const photoUrl = getContactPhotoUrl(c);
+  const partner = c.partnerId ? (S.contacts || []).find(x => x.id === c.partnerId) : null;
+  const bdayToday = isBirthdayToday(c);
+
+  // Actions rapides
+  const actions = [];
+  if(c.phone){
+    actions.push(`<a class="cd-action-wrap" href="tel:${esc(c.phone.replace(/\s+/g,''))}" aria-label="Appeler">
+      <span class="cd-action"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.86 19.86 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.86 19.86 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.37 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0122 16.92z"/></svg></span>
+      <span class="cd-action-lbl">Appeler</span>
+    </a>`);
+  }
+  if(c.email){
+    actions.push(`<a class="cd-action-wrap" href="mailto:${esc(c.email)}" aria-label="Écrire">
+      <span class="cd-action"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/><polyline points="22 6 12 13 2 6"/></svg></span>
+      <span class="cd-action-lbl">Écrire</span>
+    </a>`);
+  }
+  if(c.address){
+    actions.push(`<a class="cd-action-wrap" href="https://maps.apple.com/?q=${encodeURIComponent(c.address)}" target="_blank" rel="noopener" aria-label="Itinéraire">
+      <span class="cd-action"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+      <span class="cd-action-lbl">Itinéraire</span>
+    </a>`);
+  }
+
+  // Coordonnées
+  const coordRows = [];
+  if(c.phone){
+    coordRows.push(`<a class="cd-row" href="tel:${esc(c.phone.replace(/\s+/g,''))}">
+      <div class="cd-row-icon tel"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.86 19.86 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.86 19.86 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.37 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0122 16.92z"/></svg></div>
+      <div class="cd-row-body"><div class="cd-row-lbl">Téléphone</div><div class="cd-row-val">${esc(c.phone)}</div></div>
+    </a>`);
+  }
+  if(c.email){
+    coordRows.push(`<a class="cd-row" href="mailto:${esc(c.email)}">
+      <div class="cd-row-icon mail"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/><polyline points="22 6 12 13 2 6"/></svg></div>
+      <div class="cd-row-body"><div class="cd-row-lbl">Courriel</div><div class="cd-row-val">${esc(c.email)}</div></div>
+    </a>`);
+  }
+  if(c.address){
+    coordRows.push(`<a class="cd-row" href="https://maps.apple.com/?q=${encodeURIComponent(c.address)}" target="_blank" rel="noopener">
+      <div class="cd-row-icon addr"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+      <div class="cd-row-body"><div class="cd-row-lbl">Adresse</div><div class="cd-row-val">${esc(c.address)}</div></div>
+    </a>`);
+  }
+
+  const html = `
+    <div class="cd-topbar">
+      <button class="cd-topbar-btn" onclick="closeContactDetail()" aria-label="Retour">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="cd-topbar-actions">
+        <button class="cd-topbar-btn" onclick="toggleContactFav('${esc(c.id)}');refreshContactDetail()" aria-label="Favori">
+          ${c.favorite
+            ? `<svg viewBox="0 0 24 24" fill="${esc('var(--a)') /* purement esthétique */}" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z" fill="#C07B18"/></svg>`
+            : `<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`}
+        </button>
+        <button class="cd-edit-btn" onclick="editContactFromDetail()" aria-label="Modifier">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Modifier
+        </button>
+      </div>
+    </div>
+
+    <div class="cd-body">
+      <div class="cd-hero">
+        <div class="cd-hero-avatar ${photoUrl ? 'has-photo' : ''}" style="background:${color}" onclick="pickContactPhoto()" role="button" aria-label="Changer la photo">
+          ${photoUrl ? `<img class="av-img" src="${esc(photoUrl)}" alt="">` : esc(initials)}
+          <span class="av-edit" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </span>
+        </div>
+        <div class="cd-name">${esc(c.name)}${c.favorite ? '<span class="fav-star" aria-hidden="true">★</span>' : ''}</div>
+        ${c.role ? `<div class="cd-role">${esc(c.role)}</div>` : ''}
+        ${tags.length ? `<div class="cd-tags">${tags.map(t => `<span class="ct-tag">${esc(t)}</span>`).join('')}</div>` : ''}
+        ${(c.birthday || partner) ? `<div class="cd-info-meta">
+          ${c.birthday ? `<span class="cd-info-pill">
+            <svg viewBox="0 0 24 24"><path d="M20 19a2 2 0 01-2 2H6a2 2 0 01-2-2v-9h16v9z"/><path d="M4 10V8a2 2 0 012-2h12a2 2 0 012 2v2"/><path d="M12 6V2"/><path d="M9 4l3-2 3 2"/></svg>
+            ${bdayToday ? "🎂 Anniversaire aujourd’hui" : esc(formatBirthday(c.birthday))}
+          </span>` : ''}
+          ${partner ? `<span class="cd-info-pill tappable" onclick="viewContact('${esc(partner.id)}')">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            ${esc(partner.name)}
+          </span>` : ''}
+        </div>` : ''}
+      </div>
+
+      ${actions.length ? `<div class="cd-actions">${actions.join('')}</div>` : ''}
+
+      ${coordRows.length ? `
+        <div class="cd-section">
+          <div class="cd-section-title">Coordonnées</div>
+          <div class="cd-card">${coordRows.join('')}</div>
+        </div>` : ''}
+
+      ${c.notes ? `
+        <div class="cd-section">
+          <div class="cd-section-title">À propos</div>
+          <div class="cd-about">${esc(c.notes)}</div>
+        </div>` : ''}
+
+      <div class="cd-section">
+        <div class="cd-section-title">
+          <span>Journal${journal.length ? ' · ' + journal.length : ''}</span>
+          <button class="cd-section-title-add" onclick="openContactNoteCompose('${esc(c.id)}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter
+          </button>
+        </div>
+        ${journal.length
+          ? journal.map(j => `
+            <div class="cd-journal-entry">
+              <div class="cd-jdate">${esc(formatJournalDate(j.ts))}</div>
+              <div class="cd-jtext">${linkifyText(j.text)}</div>
+              <button class="cd-jdel" onclick="delContactNote('${esc(c.id)}','${esc(j.id)}')" aria-label="Supprimer cette note">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>`).join('')
+          : `<button class="cd-add-note" onclick="openContactNoteCompose('${esc(c.id)}')">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ajouter une première note
+            </button>`}
+      </div>
+    </div>
+  `;
+  root.innerHTML = html;
+  root.scrollTop = 0;
+}
+
+function formatJournalDate(ts){
+  if(!ts) return '';
+  const d = new Date(ts);
+  const day = d.toLocaleDateString('fr-CA', { day:'numeric', month:'long', year:'numeric' });
+  const time = d.toLocaleTimeString('fr-CA', { hour:'2-digit', minute:'2-digit' });
+  return day + ' · ' + time + '  ·  ' + relativeTime(ts);
+}
+
+/* ── Linkify : convertit URLs / téléphones / emails en liens cliquables ── */
+function linkifyText(text){
+  if(!text) return '';
+  // Order matters : URL d'abord (pour ne pas matcher dans une URL ce qui ressemble à un mail)
+  // On découpe en segments {type, value} puis rebuild en HTML escapé.
+  const tokens = [];
+  let rest = String(text);
+  const URL_RE   = /(https?:\/\/[^\s<>"']+)/i;
+  const MAIL_RE  = /([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/;
+  const TEL_RE   = /(\+?1?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4})/;
+  while(rest.length){
+    let bestIdx = -1, bestType = '', bestMatch = '', bestRe = null;
+    [{re: URL_RE, type:'url'}, {re: MAIL_RE, type:'mail'}, {re: TEL_RE, type:'tel'}].forEach(({re, type}) => {
+      const m = re.exec(rest);
+      if(m && (bestIdx === -1 || m.index < bestIdx)){
+        bestIdx = m.index; bestType = type; bestMatch = m[0]; bestRe = re;
+      }
+    });
+    if(bestIdx === -1){
+      tokens.push({type:'text', value: rest});
+      break;
+    }
+    if(bestIdx > 0) tokens.push({type:'text', value: rest.slice(0, bestIdx)});
+    tokens.push({type: bestType, value: bestMatch});
+    rest = rest.slice(bestIdx + bestMatch.length);
+  }
+  return tokens.map(t => {
+    if(t.type === 'text') return esc(t.value);
+    if(t.type === 'url')  return `<a href="${esc(t.value)}" target="_blank" rel="noopener">${esc(t.value)}</a>`;
+    if(t.type === 'mail') return `<a href="mailto:${esc(t.value)}">${esc(t.value)}</a>`;
+    if(t.type === 'tel'){
+      const clean = t.value.replace(/[\s.()-]/g,'');
+      return `<a href="tel:${esc(clean)}">${esc(t.value)}</a>`;
+    }
+    return esc(t.value);
+  }).join('');
+}
+
+/* ── Anniversaire helpers ── */
+function isBirthdayToday(c){
+  if(!c || !c.birthday) return false;
+  const m = /^(\d{4}-)?(\d{2})-(\d{2})$/.exec(c.birthday);
+  if(!m) return false;
+  const today = new Date();
+  return parseInt(m[2]) === (today.getMonth() + 1) && parseInt(m[3]) === today.getDate();
+}
+function formatBirthday(birthday){
+  if(!birthday) return '';
+  const m = /^(\d{4})?-?(\d{2})-(\d{2})$/.exec(birthday);
+  if(!m) return birthday;
+  const monthName = MO_FR[parseInt(m[2]) - 1] || '';
+  const day = parseInt(m[3]);
+  const yearStr = m[1] ? ' ' + m[1] : '';
+  return day + ' ' + monthName.toLowerCase() + yearStr;
+}
+
+/* ── Photo de contact ── */
+async function uploadContactPhoto(input){
+  const file = input.files && input.files[0];
+  const reset = () => { try{ input.value = ''; }catch(_){ } };
+  if(!file){ reset(); return; }
+  if(!viewingContactId){ reset(); return; }
+  if(!syncConfigured()){
+    toast("Active d'abord la synchro cloud", { error: true });
+    reset(); return;
+  }
+  const c = (S.contacts || []).find(x => x.id === viewingContactId);
+  if(!c){ reset(); return; }
+  // Spinner sur l'avatar
+  const av = document.querySelector('.cd-hero-avatar');
+  if(av) av.classList.add('av-uploading');
+  try{
+    const photo = await uploadOnePhoto(file);
+    if(photo && photo.id){
+      c.photoId = photo.id;
+      stamp(c);
+      // L'ajoute aussi en cache pour l'affichage immédiat
+      photoCache.unshift(photo);
+      sortPhotoCache();
+      photoCacheFetchedAt = Date.now();
+      save();
+      refreshContactDetail();
+      rContacts();
+      toast('Photo ajoutée', { success: true });
+    }
+  }catch(err){
+    console.error(err);
+    toast("Échec : " + (err.message || err), { error: true });
+  }finally{
+    if(av) av.classList.remove('av-uploading');
+    reset();
+  }
+}
+function getContactPhotoUrl(c){
+  if(!c || !c.photoId) return null;
+  const p = (photoCache || []).find(x => x.id === c.photoId);
+  return p ? (p.thumbUrl || p.url) : null;
+}
+
+/* ── Recherche contacts ── */
+let contactSearchQuery = '';
+function clearContactSearch(){
+  contactSearchQuery = '';
+  const inp = document.getElementById('contactSearch');
+  if(inp) inp.value = '';
+  const x = document.getElementById('contactSearchClear');
+  if(x) x.classList.remove('on');
+  rContacts();
+}
+function attachContactSearch(){
+  const inp = document.getElementById('contactSearch');
+  if(!inp || inp._inited) return;
+  inp._inited = true;
+  inp.addEventListener('input', e => {
+    contactSearchQuery = (e.target.value || '').trim().toLowerCase();
+    const x = document.getElementById('contactSearchClear');
+    if(x) x.classList.toggle('on', contactSearchQuery.length > 0);
+    rContacts();
+  });
+}
+function contactMatchesSearch(c, q){
+  if(!q) return true;
+  const haystack = [
+    c.name, c.role, c.phone, c.email, c.address, c.notes,
+    ...(Array.isArray(c.tags) ? c.tags : []),
+    ...(Array.isArray(c.journal) ? c.journal.map(j => j.text) : [])
+  ].join(' ').toLowerCase();
+  return haystack.includes(q);
+}
+
+/* Compose une nouvelle note du journal */
+function openContactNoteCompose(contactId){
+  pendingNoteContactId = contactId;
+  document.getElementById('noteComposeText').value = '';
+  document.getElementById('noteComposeTitle').textContent = 'Ajouter une note';
+  openM('noteComposeModal');
+  setTimeout(() => { try{ document.getElementById('noteComposeText').focus(); }catch(_){} }, 240);
+}
+function saveContactNote(){
+  const text = document.getElementById('noteComposeText').value.trim();
+  if(!text){ toast('Note vide'); return; }
+  const id = pendingNoteContactId;
+  if(!id){ closeM('noteComposeModal'); return; }
+  const c = (S.contacts || []).find(x => x.id === id);
+  if(!c){ closeM('noteComposeModal'); return; }
+  if(!Array.isArray(c.journal)) c.journal = [];
+  c.journal.unshift({
+    id: Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,6),
+    text,
+    ts: Date.now()
+  });
+  stamp(c);
+  save();
+  pendingNoteContactId = null;
+  closeM('noteComposeModal');
+  refreshContactDetail();
+  rContacts();
+  toast('Note ajoutée', { success: true });
+  if(navigator.vibrate) try{ navigator.vibrate(12); }catch(_){}
+}
+function delContactNote(contactId, noteId){
+  if(!confirm('Supprimer cette note ?')) return;
+  const c = (S.contacts || []).find(x => x.id === contactId);
+  if(!c || !Array.isArray(c.journal)) return;
+  c.journal = c.journal.filter(j => j.id !== noteId);
+  stamp(c);
+  save();
+  refreshContactDetail();
+  rContacts();
+  toast('Note supprimée');
 }
 
 /* ══════════════════════════════════════════
