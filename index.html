@@ -1747,12 +1747,14 @@ function setEmojiReaction(photoId, emoji){
   const role = getOwner();
   setReaction(photoId, role, emoji);
 }
-function getPhotoEvent(photoId, photoAddedAt){
+function getPhotoEvent(photoId, photoFallbackDate){
   // Override manuel d'abord
   if(S.eventPhotos && S.eventPhotos[photoId]) return S.eventPhotos[photoId];
   // Auto-link : la photo tombe dans la période d'un séjour ?
-  if(!photoAddedAt || !Array.isArray(S.events)) return null;
-  const d = new Date(photoAddedAt);
+  // Priorité : date de prise (takenAt) > date d'upload (addedAt)
+  const refDate = (S.photoTakenAt && S.photoTakenAt[photoId]) || photoFallbackDate;
+  if(!refDate || !Array.isArray(S.events)) return null;
+  const d = new Date(refDate);
   d.setHours(0,0,0,0);
   const t = d.getTime();
   const ev = S.events.find(e => {
@@ -1764,7 +1766,36 @@ function getPhotoEvent(photoId, photoAddedAt){
   return ev ? ev.id : null;
 }
 
-const SCHEMA_VERSION = 9;
+/* Date effective d'une photo : date de prise si connue, sinon date d'upload */
+function getPhotoDate(p){
+  if(!p) return 0;
+  if(S.photoTakenAt && S.photoTakenAt[p.id]) return S.photoTakenAt[p.id];
+  return p.addedAt || 0;
+}
+function sortPhotoCache(){
+  if(!Array.isArray(photoCache)) return;
+  photoCache.sort((a,b) => getPhotoDate(b) - getPhotoDate(a));
+}
+function setPhotoTakenAt(photoId, epochMs){
+  if(!photoId || !epochMs) return;
+  if(!S.photoTakenAt) S.photoTakenAt = {};
+  S.photoTakenAt[photoId] = epochMs;
+  stampField('photoTakenAt');
+  save();
+}
+/* Lit la date de prise d'un fichier (file.lastModified, validée). */
+function readFileTakenDate(file){
+  if(!file) return 0;
+  const lm = Number(file.lastModified) || 0;
+  if(!lm) return 0;
+  // Filtre les valeurs aberrantes : avant 1990 ou après "demain + 1 jour"
+  const min = new Date('1990-01-01').getTime();
+  const max = Date.now() + 24 * 3600 * 1000;
+  if(lm < min || lm > max) return 0;
+  return lm;
+}
+
+const SCHEMA_VERSION = 10;
 const DEFAULT_STATE = {
   schemaVersion: SCHEMA_VERSION,
   chaletName:'Notre Chalet', marcName:'Marc', copineName:'Ma copine',
@@ -1781,7 +1812,9 @@ const DEFAULT_STATE = {
   reactions: {},        // { [photoId]: { marc: 'heart'|emoji|null, copine: ... } }
   eventPhotos: {},      // { [photoId]: eventId }  — lien manuel ou auto
   eventCovers: {},      // { [eventId]: photoId }  — couverture d'album
-  photoMilestones: { achieved: [] }  // [50, 100, 250] — confetti déjà célébrés
+  photoMilestones: { achieved: [] },  // [50, 100, 250] — confetti déjà célébrés
+  // v10 — date de prise réelle (du fichier source, pas du upload)
+  photoTakenAt: {}      // { [photoId]: epochMs }
 };
 let S = JSON.parse(JSON.stringify(DEFAULT_STATE));
 let curSec = 'dashboard';
@@ -1842,6 +1875,8 @@ function normalizeState(raw){
   if(!out.eventCovers || typeof out.eventCovers !== 'object') out.eventCovers = {};
   if(!out.photoMilestones || typeof out.photoMilestones !== 'object') out.photoMilestones = { achieved: [] };
   if(!Array.isArray(out.photoMilestones.achieved)) out.photoMilestones.achieved = [];
+  // Migration v9→v10 : map des dates de prise (séparées de la date d'upload)
+  if(!out.photoTakenAt || typeof out.photoTakenAt !== 'object') out.photoTakenAt = {};
   // Sync state
   if(typeof out.syncUrl !== 'string') out.syncUrl = '';
   if(typeof out.syncKeyHash !== 'string' || !/^[a-f0-9]{64}$/.test(out.syncKeyHash)) out.syncKeyHash = '';
@@ -2166,7 +2201,8 @@ function renderDashboardMemories(){
   }
   if(memory){
     lbl.textContent = heartsCount ? 'Vos coups de cœur' : 'Souvenir';
-    const dateStr = new Date(memory.addedAt).toLocaleDateString('fr-CA', {day:'numeric', month:'long', year:'numeric'});
+    const memDate = getPhotoDate(memory);
+    const dateStr = memDate ? new Date(memDate).toLocaleDateString('fr-CA', {day:'numeric', month:'long', year:'numeric'}) : '';
     html += `<div style="margin-top:${heartsCount?'12px':'0'};border-top:${heartsCount?'1px solid var(--border)':'none'};padding-top:${heartsCount?'12px':'0'}">
       <div style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">Il y a un an</div>
       <div onclick="viewPhoto('${esc(memory.id)}')" style="position:relative;border-radius:14px;overflow:hidden;aspect-ratio:16/9;cursor:pointer;background:var(--surface-2)">
@@ -2192,8 +2228,9 @@ function pickMemoryPhoto(){
   const yearMs = 365 * 24 * 3600 * 1000;
   const window = 30 * 24 * 3600 * 1000;
   const candidates = photoCache.filter(p => {
-    if(!p.addedAt) return false;
-    const diff = Math.abs(now - p.addedAt - yearMs);
+    const d = getPhotoDate(p);
+    if(!d) return false;
+    const diff = Math.abs(now - d - yearMs);
     return diff <= window;
   });
   if(!candidates.length) return null;
@@ -2564,7 +2601,7 @@ function rCourses(){
 const SYNC_SALT = 'chalet-sync-2026-v1';
 const SYNC_PULL_INTERVAL_MS = 30 * 1000;
 const SYNC_PUSH_DEBOUNCE_MS = 1500;
-const SYNC_SYNCABLE_FIELDS = ['chaletName','marcName','copineName','albumUrl','notes','chaletLocationName','chaletLat','chaletLon','reactions','eventPhotos','eventCovers','photoMilestones'];
+const SYNC_SYNCABLE_FIELDS = ['chaletName','marcName','copineName','albumUrl','notes','chaletLocationName','chaletLat','chaletLon','reactions','eventPhotos','eventCovers','photoMilestones','photoTakenAt'];
 
 function now(){ return Date.now(); }
 
@@ -3037,7 +3074,8 @@ function photoCellHtml(p, me, other){
     ratio = clamped.toFixed(3) + '/1';
   }
   const who = p.addedBy ? esc(p.addedBy) : '';
-  const when = p.addedAt ? esc(relativeTime(p.addedAt)) : '';
+  const dateRef = getPhotoDate(p);
+  const when = dateRef ? esc(relativeTime(dateRef)) : '';
   const r = getReactions(p.id);
   const myReact = r[me];
   const otherReact = r[other];
@@ -3146,8 +3184,9 @@ function renderPhotoGrid(){
     }
     const groups = {};
     photoCache.forEach(p => {
-      if(!p.addedAt) return;
-      const d = new Date(p.addedAt);
+      const ts = getPhotoDate(p);
+      if(!ts) return;
+      const d = new Date(ts);
       const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2, '0');
       if(!groups[key]) groups[key] = { label: MO_FR[d.getMonth()] + ' ' + d.getFullYear(), items: [] };
       groups[key].items.push(p);
@@ -3305,6 +3344,7 @@ async function loadPhotosFromWorker(){
       if(!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       photoCache = Array.isArray(data.photos) ? data.photos : [];
+      sortPhotoCache();
       photoCacheFetchedAt = Date.now();
       if(curSec === 'photos') renderPhotoGrid();
     } finally {
@@ -3327,6 +3367,8 @@ function setUploadStatus(msg, isError){
 async function uploadOnePhoto(file){
   if(!/^image\//i.test(file.type)) throw new Error('"' + (file.name||'fichier') + '" n\'est pas une image.');
   if(file.size > MAX_PHOTO_BYTES) throw new Error('"' + (file.name||'fichier') + '" trop lourde (>20 Mo).');
+  // Capte la date de prise AVANT compression (lastModified du fichier source)
+  const takenAt = readFileTakenDate(file);
   const blob = await compressImage(file, PHOTO_MAX_SIDE, PHOTO_JPEG_QUALITY);
   const base64 = await blobToBase64(blob);
   const me = ownerName(getOwner());
@@ -3339,7 +3381,9 @@ async function uploadOnePhoto(file){
     const err = await res.json().catch(()=>({}));
     throw new Error(err.error || ('HTTP ' + res.status));
   }
-  return await res.json();
+  const photo = await res.json();
+  if(takenAt && photo && photo.id) setPhotoTakenAt(photo.id, takenAt);
+  return photo;
 }
 
 async function addPhotos(input){
@@ -3358,6 +3402,7 @@ async function addPhotos(input){
     try{
       const photo = await uploadOnePhoto(file);
       photoCache.unshift(photo);
+      sortPhotoCache();
       photoCacheFetchedAt = Date.now();
       renderPhotoGrid();
       ok++;
@@ -3434,7 +3479,8 @@ function viewPhoto(recordId, opts){
     $img.alt = p.name || '';
     $counter.textContent = (idx+1) + ' / ' + photoCache.length;
     const who = p.addedBy ? esc(p.addedBy) : '';
-    const when = p.addedAt ? esc(relativeTime(p.addedAt)) : '';
+    const dRef = getPhotoDate(p);
+    const when = dRef ? esc(relativeTime(dRef)) : '';
     $meta.innerHTML = (who || when) ? `${who}${when ? `<span class="lm-when">${when}</span>` : ''}` : '';
     $prev.style.visibility = idx > 0 ? '' : 'hidden';
     $next.style.visibility = idx < photoCache.length - 1 ? '' : 'hidden';
@@ -3795,8 +3841,9 @@ function renderPhotoStats(){
   });
   const monthCount = {};
   photoCache.forEach(p => {
-    if(!p.addedAt) return;
-    const d = new Date(p.addedAt);
+    const ts = getPhotoDate(p);
+    if(!ts) return;
+    const d = new Date(ts);
     const k = d.getFullYear() + '-' + d.getMonth();
     monthCount[k] = (monthCount[k] || 0) + 1;
   });
