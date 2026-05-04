@@ -496,22 +496,87 @@ input,select,textarea{font-family:inherit}
 .contact-fav-btn.on svg{animation:checkPop .42s var(--ease-spring)}
 .contact-fav-btn svg{width:18px;height:18px;fill:currentColor;stroke:none}
 
-/* Modal contact : tags grid */
-.tag-grid{
-  display:grid;grid-template-columns:repeat(auto-fill, minmax(96px, 1fr));
-  gap:6px;
+/* Note du contact mise en évidence */
+.contact-note{
+  margin-top:10px;
+  padding:10px 12px 10px 14px;
+  background:var(--p-tint-2);
+  border-left:3px solid var(--p);
+  border-radius:10px;
+  font-size:13.5px;
+  color:var(--t);
+  line-height:1.55;
+  font-weight:500;
+  white-space:pre-wrap;
+  word-break:break-word;
 }
-.tag-chip{
+
+/* Modal contact : input libre de tags + auto-suggestion */
+.tag-input-wrap{
+  background:var(--surface-2);
+  border:1.5px solid transparent;
+  border-radius:13px;
+  padding:8px 12px 6px;
+  transition:border-color var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.tag-input-wrap.focused{
+  border-color:var(--p);
+  background:var(--surface);
+  box-shadow:0 0 0 3px var(--p-tint-2);
+}
+.tag-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.tag-pills:empty{display:none}
+.tp-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 6px 5px 10px;border-radius:var(--r-f);
+  background:var(--p);color:white;
   font-size:12px;font-weight:700;
-  padding:8px 10px;border-radius:10px;
-  background:var(--surface-2);color:var(--t2);
-  border:1.5px solid transparent;cursor:pointer;
-  display:inline-flex;align-items:center;justify-content:center;gap:5px;
-  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
-  user-select:none;
+  cursor:pointer;border:none;
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease);
+  animation:tagIn .25s var(--ease-spring);
 }
-.tag-chip:active{transform:scale(.92)}
-.tag-chip.on{background:var(--p);color:white;border-color:var(--p)}
+.tp-chip:active{transform:scale(.9)}
+.tp-chip .tp-x{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:16px;height:16px;border-radius:50%;
+  background:rgba(255,255,255,.22);
+  font-size:11px;font-weight:900;line-height:1;
+}
+@keyframes tagIn{
+  from{opacity:0;transform:scale(.6)}
+  to{opacity:1;transform:scale(1)}
+}
+.tag-input{
+  width:100%;border:none;background:transparent;
+  outline:none;
+  font-size:14.5px;color:var(--t);
+  padding:6px 0;
+  font-family:inherit;
+}
+.tag-input::placeholder{color:var(--t3)}
+.tag-suggestions{
+  display:flex;flex-wrap:wrap;gap:5px;
+  margin-top:8px;padding-top:8px;
+  border-top:1px solid var(--border);
+}
+.tag-suggestions:empty{display:none;border-top:none}
+.ts-chip{
+  padding:5px 11px;border-radius:var(--r-f);
+  background:var(--surface);border:1px solid var(--border);
+  font-size:12px;font-weight:600;color:var(--t2);
+  cursor:pointer;
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.ts-chip:hover{background:var(--p-tint-2);color:var(--p);border-color:var(--p-tint)}
+.ts-chip:active{transform:scale(.92)}
+
+/* Tags affichés dans la fiche contact */
+.contact-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.contact-tags .ct-tag{
+  font-size:11px;font-weight:700;letter-spacing:.1px;
+  padding:3px 9px;border-radius:var(--r-f);
+  background:var(--p-tint);color:var(--p);
+}
 
 /* ══════════════════════════════════════════
    DRAG-AND-DROP — poignée + état dragging
@@ -1279,14 +1344,7 @@ body.drag-active *{cursor:grabbing !important}
 <!-- Contacts -->
 <main id="sec-contacts" class="sec">
   <div class="sec-hdr"><div class="sec-title">Contacts</div></div>
-  <div class="pills" id="contactsPills">
-    <button class="pill on" onclick="setContactFilter('all', this)">Tous</button>
-    <button class="pill" onclick="setContactFilter('favorite', this)">⭐ Favoris</button>
-    <button class="pill" onclick="setContactFilter('voisin', this)">🏠 Voisins</button>
-    <button class="pill" onclick="setContactFilter('service', this)">🔧 Services</button>
-    <button class="pill" onclick="setContactFilter('commerce', this)">🛒 Commerces</button>
-    <button class="pill" onclick="setContactFilter('urgence', this)">🚨 Urgences</button>
-  </div>
+  <div class="pills" id="contactsPills"></div>
   <div id="contactList"></div>
 </main>
 
@@ -1715,9 +1773,13 @@ body.drag-active *{cursor:grabbing !important}
     <div class="fg"><label>Adresse</label><input class="fi" id="ctAddr" placeholder="Ex: 123 chemin du Lac"></div>
     <div class="fg">
       <label>Étiquettes</label>
-      <div class="tag-grid" id="ctTags"></div>
+      <div class="tag-input-wrap" id="ctTagWrap">
+        <div class="tag-pills" id="ctTagPills"></div>
+        <input class="tag-input" id="ctTagInput" placeholder="Tape une étiquette puis Entrée — ex: Déneigeur, Voisin, Restaurant…" autocomplete="off" autocapitalize="words">
+        <div class="tag-suggestions" id="ctTagSuggestions"></div>
+      </div>
     </div>
-    <div class="fg"><label>Notes</label><textarea class="fi" id="ctNotes" rows="3" style="resize:none;line-height:1.5" placeholder="Détails utiles, contexte…"></textarea></div>
+    <div class="fg"><label>Notes</label><textarea class="fi" id="ctNotes" rows="4" style="resize:vertical;line-height:1.55;min-height:90px" placeholder="Détails utiles, contexte, anecdote — c'est mis en évidence sur la fiche."></textarea></div>
     <button class="btn-p" id="btnSaveContact" onclick="saveContact()">Ajouter le contact</button>
     <button class="btn-g" onclick="closeM('contactModal')">Annuler</button>
   </div>
@@ -2723,28 +2785,24 @@ function rCourses(){
 }
 
 /* ══════════════════════════════════════════
-   CONTACTS — fiches CRM
+   CONTACTS — fiches CRM (tags libres, note en évidence)
 ══════════════════════════════════════════ */
-const CONTACT_TAGS = [
-  { id: 'voisin',      label: 'Voisin',      emoji: '🏠' },
-  { id: 'deneigeur',   label: 'Déneigeur',   emoji: '❄️' },
-  { id: 'plombier',    label: 'Plombier',    emoji: '🔧' },
-  { id: 'electricien', label: 'Électricien', emoji: '⚡' },
-  { id: 'macon',       label: 'Maçon',       emoji: '🧱' },
-  { id: 'paysagiste',  label: 'Paysagiste',  emoji: '🌿' },
-  { id: 'service',     label: 'Service',     emoji: '🛠️' },
-  { id: 'commerce',    label: 'Commerce',    emoji: '🛒' },
-  { id: 'restaurant',  label: 'Restaurant',  emoji: '🍽️' },
-  { id: 'medecin',     label: 'Santé',       emoji: '⚕️' },
-  { id: 'urgence',     label: 'Urgence',     emoji: '🚨' },
-  { id: 'ami',         label: 'Ami',         emoji: '💛' }
-];
-const CONTACT_FILTER_GROUPS = {
-  service: ['deneigeur','plombier','electricien','macon','paysagiste','service'],
-  commerce: ['commerce','restaurant'],
-  urgence: ['urgence','medecin']
-};
-function tagInfo(id){ return CONTACT_TAGS.find(t => t.id === id); }
+function normalizeTag(t){
+  return String(t || '').trim().replace(/\s+/g, ' ');
+}
+function getAllExistingTags(){
+  const counts = new Map();
+  (S.contacts || []).forEach(c => {
+    (Array.isArray(c.tags) ? c.tags : []).forEach(t => {
+      const n = normalizeTag(t);
+      if(!n) return;
+      counts.set(n, (counts.get(n) || 0) + 1);
+    });
+  });
+  return Array.from(counts.entries())
+    .sort((a,b) => (b[1] - a[1]) || a[0].localeCompare(b[0], 'fr'))
+    .map(([t]) => t);
+}
 
 /* Avatar coloré : initiales + couleur déterministe basée sur le nom */
 function avatarInitials(name){
@@ -2762,8 +2820,10 @@ function avatarColor(name){
   return palette[Math.abs(h) % palette.length];
 }
 
-/* Filtres : 'all' | 'favorite' | 'voisin' | 'service' | 'commerce' | 'urgence' | <tagId> */
+/* Filtres : 'all' | 'favorite' | 'tag-<TagName>' */
 let contactFilter = 'all';
+let currentTags = [];  // tags du contact en cours d'édition
+
 function setContactFilter(f, btn){
   contactFilter = f;
   if(btn){
@@ -2773,12 +2833,34 @@ function setContactFilter(f, btn){
   rContacts();
 }
 
+function renderContactPills(){
+  const el = document.getElementById('contactsPills');
+  if(!el) return;
+  const tags = getAllExistingTags();
+  const fixed = [
+    { key: 'all',      label: 'Tous' },
+    { key: 'favorite', label: '⭐ Favoris' }
+  ];
+  const tagPills = tags.map(t => ({ key: 'tag-' + t, label: t }));
+  // Si le filtre courant est un tag qui n'existe plus, retombe sur 'all'
+  if(typeof contactFilter === 'string' && contactFilter.startsWith('tag-')){
+    const t = contactFilter.slice(4);
+    if(!tags.includes(t)) contactFilter = 'all';
+  }
+  const pills = [...fixed, ...tagPills];
+  el.innerHTML = pills.map(p => `<button class="pill${contactFilter === p.key ? ' on' : ''}" onclick="setContactFilter('${esc(p.key).replace(/'/g, "\\\\'")}', this)">${esc(p.label)}</button>`).join('');
+}
+
 function openContactModal(){
   editingContactId = null;
   document.getElementById('contactModalTitle').textContent = 'Nouveau contact';
   document.getElementById('btnSaveContact').textContent = 'Ajouter le contact';
   ['ctName','ctRole','ctPhone','ctEmail','ctAddr','ctNotes'].forEach(id => document.getElementById(id).value = '');
-  renderContactTags([]);
+  document.getElementById('ctTagInput').value = '';
+  currentTags = [];
+  renderCurrentTagPills();
+  renderTagSuggestions('');
+  initTagInput();
   openM('contactModal');
 }
 function editContact(id){
@@ -2793,28 +2875,83 @@ function editContact(id){
   document.getElementById('ctEmail').value = c.email || '';
   document.getElementById('ctAddr').value = c.address || '';
   document.getElementById('ctNotes').value = c.notes || '';
-  renderContactTags(c.tags || []);
+  document.getElementById('ctTagInput').value = '';
+  currentTags = Array.isArray(c.tags) ? c.tags.map(normalizeTag).filter(Boolean) : [];
+  renderCurrentTagPills();
+  renderTagSuggestions('');
+  initTagInput();
   openM('contactModal');
 }
-function renderContactTags(selected){
-  const grid = document.getElementById('ctTags');
-  if(!grid) return;
-  const sel = new Set(selected || []);
-  grid.innerHTML = CONTACT_TAGS.map(t => `
-    <button type="button" class="tag-chip ${sel.has(t.id) ? 'on' : ''}" data-tag="${t.id}" onclick="toggleContactTag('${t.id}', this)">
-      <span aria-hidden="true">${t.emoji}</span> ${esc(t.label)}
-    </button>`).join('');
+
+function renderCurrentTagPills(){
+  const el = document.getElementById('ctTagPills');
+  if(!el) return;
+  el.innerHTML = currentTags.map(t =>
+    `<button type="button" class="tp-chip" onclick="removeCurrentTag('${esc(t).replace(/'/g, "\\\\'")}')" aria-label="Retirer ${esc(t)}">
+       ${esc(t)}<span class="tp-x" aria-hidden="true">✕</span>
+     </button>`
+  ).join('');
 }
-function toggleContactTag(id, btn){
-  if(btn){ btn.classList.toggle('on'); }
+function renderTagSuggestions(query){
+  const el = document.getElementById('ctTagSuggestions');
+  if(!el) return;
+  const all = getAllExistingTags();
+  const q = (query || '').toLowerCase().trim();
+  const suggestions = all
+    .filter(t => !currentTags.includes(t))
+    .filter(t => !q || t.toLowerCase().includes(q))
+    .slice(0, 10);
+  el.innerHTML = suggestions.map(t =>
+    `<button type="button" class="ts-chip" onclick="addCurrentTagFromSuggestion('${esc(t).replace(/'/g, "\\\\'")}')">+ ${esc(t)}</button>`
+  ).join('');
+}
+function addCurrentTag(text){
+  const n = normalizeTag(text);
+  if(!n) return;
+  // Évite les doublons (insensible à la casse)
+  if(currentTags.some(t => t.toLowerCase() === n.toLowerCase())) return;
+  currentTags.push(n);
+  renderCurrentTagPills();
+  const inp = document.getElementById('ctTagInput');
+  renderTagSuggestions(inp ? inp.value : '');
   if(navigator.vibrate) try{ navigator.vibrate(8); }catch(_){}
 }
-function getSelectedContactTags(){
-  return Array.from(document.querySelectorAll('#ctTags .tag-chip.on')).map(b => b.dataset.tag);
+function removeCurrentTag(text){
+  currentTags = currentTags.filter(t => t !== text);
+  renderCurrentTagPills();
+  const inp = document.getElementById('ctTagInput');
+  renderTagSuggestions(inp ? inp.value : '');
 }
+function addCurrentTagFromSuggestion(text){ addCurrentTag(text); }
+
+function initTagInput(){
+  const inp = document.getElementById('ctTagInput');
+  const wrap = document.getElementById('ctTagWrap');
+  if(!inp || !wrap || inp._inited) return;
+  inp._inited = true;
+  inp.addEventListener('focus', () => wrap.classList.add('focused'));
+  inp.addEventListener('blur', () => wrap.classList.remove('focused'));
+  inp.addEventListener('input', e => renderTagSuggestions(e.target.value));
+  inp.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ','){
+      e.preventDefault();
+      const v = inp.value;
+      if(v.trim()){ addCurrentTag(v); inp.value = ''; }
+    }else if(e.key === 'Backspace' && !inp.value && currentTags.length){
+      removeCurrentTag(currentTags[currentTags.length - 1]);
+    }
+  });
+  wrap.addEventListener('click', e => {
+    if(e.target === wrap) inp.focus();
+  });
+}
+
 function saveContact(){
   const name = document.getElementById('ctName').value.trim();
   if(!name){ alert('Entre un nom'); return; }
+  // Si l'utilisateur a tapé un tag sans valider par Entrée, on le récupère quand même
+  const inp = document.getElementById('ctTagInput');
+  if(inp && inp.value.trim()){ addCurrentTag(inp.value); inp.value = ''; }
   const fields = {
     name,
     role: document.getElementById('ctRole').value.trim(),
@@ -2822,7 +2959,7 @@ function saveContact(){
     email: document.getElementById('ctEmail').value.trim(),
     address: document.getElementById('ctAddr').value.trim(),
     notes: document.getElementById('ctNotes').value.trim(),
-    tags: getSelectedContactTags()
+    tags: currentTags.slice()
   };
   if(!Array.isArray(S.contacts)) S.contacts = [];
   if(editingContactId){
@@ -2858,6 +2995,7 @@ function toggleContactFav(id){
 }
 
 function rContacts(){
+  renderContactPills();
   const list = Array.isArray(S.contacts) ? [...S.contacts] : [];
   // Tri : favoris d'abord, puis par order user-defined
   list.sort((a,b) => {
@@ -2868,13 +3006,9 @@ function rContacts(){
   let filtered = list;
   if(contactFilter === 'favorite'){
     filtered = list.filter(c => c.favorite);
-  }else if(contactFilter !== 'all'){
-    const groupTags = CONTACT_FILTER_GROUPS[contactFilter];
-    if(groupTags){
-      filtered = list.filter(c => Array.isArray(c.tags) && c.tags.some(t => groupTags.includes(t)));
-    }else{
-      filtered = list.filter(c => Array.isArray(c.tags) && c.tags.includes(contactFilter));
-    }
+  }else if(typeof contactFilter === 'string' && contactFilter.startsWith('tag-')){
+    const tag = contactFilter.slice(4);
+    filtered = list.filter(c => Array.isArray(c.tags) && c.tags.some(t => normalizeTag(t) === tag));
   }
   const el = document.getElementById('contactList');
   if(!el) return;
@@ -2892,13 +3026,8 @@ function rContacts(){
 function contactItemHtml(c){
   const initials = avatarInitials(c.name);
   const color = avatarColor(c.name);
-  const roleParts = [];
-  if(c.role) roleParts.push(esc(c.role));
-  (c.tags || []).forEach(tid => {
-    const ti = tagInfo(tid);
-    if(ti) roleParts.push(ti.emoji + ' ' + esc(ti.label));
-  });
-  const roleStr = roleParts.join(' · ');
+  const tags = (Array.isArray(c.tags) ? c.tags : []).map(normalizeTag).filter(Boolean);
+  const tagsHtml = tags.length ? `<div class="contact-tags">${tags.map(t => `<span class="ct-tag">${esc(t)}</span>`).join('')}</div>` : '';
   const chips = [];
   if(c.phone)   chips.push(`<a class="chip ch-tel" href="tel:${esc(c.phone.replace(/\s+/g,''))}" onclick="event.stopPropagation()">📞 ${esc(c.phone)}</a>`);
   if(c.email)   chips.push(`<a class="chip ch-mail" href="mailto:${esc(c.email)}" onclick="event.stopPropagation()">✉ ${esc(c.email)}</a>`);
@@ -2912,9 +3041,10 @@ function contactItemHtml(c){
     <div class="contact-avatar" style="background:${color}">${esc(initials)}</div>
     <div class="contact-body" onclick="editContact('${esc(c.id)}')">
       <div class="contact-name">${esc(c.name)}${c.favorite ? '<span class="fav-star" aria-hidden="true">★</span>' : ''}</div>
-      ${roleStr ? `<div class="contact-role">${roleStr}</div>` : ''}
+      ${c.role ? `<div class="contact-role">${esc(c.role)}</div>` : ''}
+      ${tagsHtml}
       ${chips.length ? `<div class="contact-chips">${chips.join('')}</div>` : ''}
-      ${c.notes ? `<div class="t-note" style="margin-top:5px">${esc(c.notes)}</div>` : ''}
+      ${c.notes ? `<div class="contact-note">${esc(c.notes)}</div>` : ''}
     </div>
     <button class="contact-fav-btn ${c.favorite ? 'on' : ''}" aria-label="${c.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}" onclick="event.stopPropagation();toggleContactFav('${esc(c.id)}')">${favIcon}</button>
     <button class="del-btn" aria-label="Supprimer le contact" onclick="event.stopPropagation();delContact('${esc(c.id)}')">${IC.trash}</button>
