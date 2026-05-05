@@ -1358,9 +1358,8 @@ body.drag-active *{cursor:grabbing !important}
 /* ══════════════════════════════════════════
    PHOTOS
 ══════════════════════════════════════════ */
-.photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.photo-wrap{position:relative}
-.photo-thumb{width:100%;aspect-ratio:1;border-radius:var(--r-l);object-fit:cover;display:block;cursor:pointer}
+/* La règle .photo-grid principale est définie plus bas (grille uniforme iOS Photos). */
+.photo-thumb{width:100%;aspect-ratio:1;object-fit:cover;display:block;cursor:pointer}
 .photo-del{
   position:absolute;top:7px;right:7px;
   width:36px;height:36px;border-radius:var(--r-f);
@@ -1412,148 +1411,53 @@ body.drag-active *{cursor:grabbing !important}
 .upload-bar.err .upload-spinner{display:none}
 
 /* ══════════════════════════════════════════
-   GALERIE ÉDITORIALE — Hero + Carrousels + Bento
+   GALERIE — Grille uniforme iOS Photos
 ══════════════════════════════════════════ */
-.editorial-feed{display:flex;flex-direction:column;gap:18px;margin-bottom:18px}
-
-/* Hero photo plein largeur */
-.ef-hero{
-  position:relative;
-  width:100%;
-  aspect-ratio:4/3;
-  border-radius:26px;
-  overflow:hidden;
-  background:var(--surface-2);
-  cursor:pointer;
-  box-shadow:var(--sh-m);
-  transition:transform var(--t-fast) var(--ease-spring);
-  animation:fadeInUp .55s var(--ease-out);
-}
-.ef-hero:active{transform:scale(.99)}
-.ef-hero img{
-  position:absolute;inset:0;
-  width:100%;height:100%;object-fit:cover;
-  transition:transform .6s ease;
-}
-.ef-hero:hover img{transform:scale(1.03)}
-.ef-hero-overlay{
-  position:absolute;left:0;right:0;bottom:0;
-  padding:18px 20px 16px;
-  background:linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.32) 50%, transparent 100%);
-  color:white;
-  pointer-events:none;
-}
-.ef-hero-tag{
-  font-size:10.5px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;
-  opacity:.85;margin-bottom:4px;
-  display:inline-block;padding:2px 8px;
-  border:1px solid rgba(255,255,255,.4);
-  border-radius:9999px;
-}
-.ef-hero-title{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.15;margin-top:6px}
-.ef-hero-sub{font-size:13px;opacity:.85;margin-top:3px;font-weight:500}
-
-/* Section header avec titre + lien "Voir tout" */
-.ef-section-hdr{
-  display:flex;align-items:baseline;justify-content:space-between;
-  margin:6px 4px 10px;
-}
-.ef-section-title{font-size:17px;font-weight:800;letter-spacing:-.3px;color:var(--t)}
-.ef-section-action{
-  font-size:13px;font-weight:600;color:var(--p);
-  background:none;border:none;cursor:pointer;padding:4px 0;
-}
-
-/* Carrousels horizontaux */
-.ef-carousel{
-  display:flex;gap:8px;
-  overflow-x:auto;
-  scroll-snap-type:x mandatory;
-  scrollbar-width:none;
-  padding:2px 4px 6px;
-  margin:0 -4px;
-}
-.ef-carousel::-webkit-scrollbar{display:none}
-.ef-card{
-  flex:0 0 auto;
-  width:140px;
-  height:180px;
-  border-radius:22px;
-  overflow:hidden;
-  position:relative;
-  scroll-snap-align:start;
-  background:var(--surface-2);
-  cursor:pointer;
-  transition:transform var(--t-fast) var(--ease-spring);
-  box-shadow:var(--sh-s);
-}
-.ef-card:active{transform:scale(.95)}
-.ef-card img{width:100%;height:100%;object-fit:cover;display:block}
-.ef-card-meta{
-  position:absolute;left:0;right:0;bottom:0;
-  padding:14px 10px 8px;
-  background:linear-gradient(to top, rgba(0,0,0,.65), transparent);
-  color:white;font-size:11px;font-weight:700;
-  display:flex;align-items:center;gap:4px;
-}
-.ef-card.has-react::after{
-  content:'❤';
-  position:absolute;top:8px;right:8px;
-  font-size:14px;color:#FF4E6A;
-  filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));
-}
-
-/* Bento grid asymétrique avec placement intelligent (zéro trou) */
-.bento-grid{
-  display:grid;
-  grid-template-columns:repeat(4, 1fr);
-  grid-auto-rows:84px;
-  gap:8px;
-}
-.bento-cell{
-  position:relative;
-  border-radius:22px;
-  overflow:hidden;
-  background:var(--surface-2);
-  cursor:pointer;
-  transition:transform var(--t-fast) var(--ease-spring), box-shadow var(--t-med) var(--ease);
-  /* Position et taille calculées en JS via custom properties */
-  grid-column:var(--bc, auto) / span var(--bw, 1);
-  grid-row:var(--br, auto) / span var(--bh, 1);
-}
-.bento-cell:active{transform:scale(.97)}
-.bento-cell.has-react{box-shadow:0 0 0 2px rgba(255,78,106,.45)}
-.bento-cell img{width:100%;height:100%;object-fit:cover;display:block}
-.bento-cell .photo-heart{top:6px;right:6px;width:26px;height:26px}
-.bento-cell .photo-heart svg{width:12px;height:12px}
-.bento-cell .photo-emoji{font-size:15px;left:6px;top:6px}
-@media (max-width:380px){
-  .bento-grid{grid-template-columns:repeat(3, 1fr);grid-auto-rows:74px;gap:7px}
-}
-
-/* Galerie en vrai masonry via CSS columns (1/2/3 colonnes ajustables) */
+/* Grille uniforme : carrés serrés, gap minuscule, comme iPhone Photos.
+   Variable --photo-cols contrôlée par pinch-to-zoom (1 / 2 / 3). */
 .photo-grid{
-  display:block;
-  column-count:var(--photo-cols, 2);
-  column-gap:8px;
-  transition:column-count .15s ease;
+  display:grid;
+  grid-template-columns:repeat(var(--photo-cols, 3), 1fr);
+  gap:2px;
+  transition:gap .15s ease;
 }
-.photo-grid.cols-1{--photo-cols:1}
-.photo-grid.cols-2{--photo-cols:2}
-.photo-grid.cols-3{--photo-cols:3}
+.photo-grid.cols-1{--photo-cols:1;gap:4px}
+.photo-grid.cols-2{--photo-cols:2;gap:3px}
+.photo-grid.cols-3{--photo-cols:3;gap:2px}
 
-/* En-têtes des Moments / Mois / Séjours */
-.moment-header{
-  break-inside:avoid;
-  break-after:always;
-  column-span:all;
-  margin:14px 4px 8px;
-  display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+/* En-têtes de section (jour / mois / séjour / moment) — sticky iOS-like */
+.date-header,
+.moment-header,
+.album-section{
+  grid-column:1 / -1;
+  position:sticky;top:0;z-index:3;
+  margin:0;padding:14px 4px 8px;
+  background:linear-gradient(to bottom, var(--bg) 0%, var(--bg) 70%, transparent 100%);
+  backdrop-filter:saturate(1.4) blur(14px);
+  -webkit-backdrop-filter:saturate(1.4) blur(14px);
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
 }
-.moment-header:first-child{margin-top:0}
-.moment-title{font-size:15px;font-weight:800;letter-spacing:-.2px;color:var(--t)}
-.moment-sub{font-size:11.5px;color:var(--t3);font-weight:600}
+.date-header:first-child,
+.moment-header:first-child,
+.album-section:first-child{padding-top:4px}
+.date-title,
+.moment-title,
+.album-section-title{
+  font-size:20px;font-weight:800;letter-spacing:-.4px;color:var(--t);
+  line-height:1.15;
+}
+.date-sub,
+.moment-sub,
+.album-section-sub{
+  font-size:13px;color:var(--t3);font-weight:600;
+  flex-shrink:0;
+}
+
+/* Sur les vignettes du grid : on retire tout le bruit (cœur, méta, emoji).
+   Tout reste accessible dans la lightbox. La photo EST le contenu. */
+.photo-grid .photo-heart,
+.photo-grid .photo-meta,
+.photo-grid .photo-emoji{display:none !important}
 
 /* Drawer EXIF dans la lightbox */
 .lb-info-drawer{
@@ -1591,22 +1495,21 @@ body.drag-active *{cursor:grabbing !important}
 .lb-info-row a{color:#7CADD9;text-decoration:none;font-weight:600}
 .photo-wrap{
   position:relative;
-  border-radius:22px;
+  aspect-ratio:1;
+  width:100%;
+  margin:0;
+  border-radius:0;
   overflow:hidden;
   background:var(--surface-2);
-  break-inside:avoid;
-  margin-bottom:10px;
   display:block;
-  width:100%;
-  transition:box-shadow var(--t-med) var(--ease), transform var(--t-fast) var(--ease-spring);
+  transition:opacity var(--t-fast) var(--ease);
 }
-.photo-wrap.has-react{
-  box-shadow:0 0 0 2px rgba(255,78,106,.45), var(--sh-s);
-}
+.photo-wrap.has-react{box-shadow:none}
 .photo-thumb{
-  width:100%;height:auto;
+  width:100%;height:100%;
   object-fit:cover;display:block;
-  cursor:pointer;transition:transform .25s var(--ease);
+  cursor:pointer;
+  transition:transform var(--t-fast) var(--ease);
 }
 .photo-wrap:active .photo-thumb{transform:scale(.98)}
 /* Cœur grand qui pop au double-tap */
@@ -1741,13 +1644,9 @@ body.drag-active *{cursor:grabbing !important}
 .album-back:active{opacity:.6}
 .album-title{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-top:6px}
 .album-sub{font-size:12.5px;color:var(--t3);font-weight:500;margin-top:3px}
-.album-section{margin:6px 0 -2px}
-.album-header-inline{
-  display:flex;align-items:baseline;justify-content:space-between;
-  padding:8px 2px 4px;
-}
-.album-section-title{font-size:15px;font-weight:800;letter-spacing:-.2px;color:var(--t)}
-.album-section-sub{font-size:11.5px;font-weight:600;color:var(--t3)}
+/* .album-section / .album-header-inline / .album-section-title / -sub
+   sont stylés plus haut (en-têtes sticky façon iOS Photos) */
+.album-header-inline{display:contents}
 
 /* Skeleton loaders — gradient chaleureux aux couleurs du thème */
 .photo-skel{
@@ -5695,35 +5594,17 @@ function formatMomentLabel(m){
   return `${dateStr} · ${Math.min(startH, endH)}h–${Math.max(startH, endH)}h`;
 }
 
+/* Vignette minimaliste façon iPhone Photos : carré, image plein-cadre,
+   AUCUN overlay. Le cœur/méta/emoji sont délibérément retirés du grid
+   (et restent disponibles dans la lightbox). */
 function photoCellHtml(p, me, other){
-  let ratio = '4/3';
-  if(p.width && p.height && p.width > 0 && p.height > 0){
-    const rr = p.width / p.height;
-    const clamped = Math.max(0.66, Math.min(1.78, rr));
-    ratio = clamped.toFixed(3) + '/1';
-  }
-  const who = p.addedBy ? esc(p.addedBy) : '';
-  const dateRef = getPhotoDate(p);
-  const when = dateRef ? esc(relativeTime(dateRef)) : '';
   const r = getReactions(p.id);
-  const myReact = r[me];
-  const otherReact = r[other];
-  const myHeart = myReact === 'heart';
-  const bothHeart = myHeart && otherReact === 'heart';
-  const heartClass = bothHeart ? 'photo-heart liked both' : (myHeart ? 'photo-heart liked' : 'photo-heart');
-  const heartContent = (myReact && myReact !== 'heart')
-    ? `<span style="font-size:20px;line-height:1">${esc(myReact)}</span>`
-    : `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`;
-  let otherOverlay = '';
-  if(otherReact === 'heart') otherOverlay = `<div class="photo-emoji" aria-label="Coup de cœur de ${esc(ownerName(other))}">❤️</div>`;
-  else if(otherReact) otherOverlay = `<div class="photo-emoji" aria-label="Réaction de ${esc(ownerName(other))}">${esc(otherReact)}</div>`;
+  const myReact = r && r[me];
+  const otherReact = r && r[other];
   const hasReact = !!(myReact || otherReact);
   return `
-  <div class="photo-wrap${hasReact ? ' has-react' : ''}" data-id="${esc(p.id)}" style="aspect-ratio:${ratio}">
+  <div class="photo-wrap${hasReact ? ' has-react' : ''}" data-id="${esc(p.id)}">
     <img src="${esc(p.thumbUrl||p.url)}" class="photo-thumb" onclick="onPhotoTileTap(event,'${esc(p.id)}')" alt="${esc(p.name||'')}" loading="lazy" decoding="async">
-    ${otherOverlay}
-    <button class="${heartClass}" aria-label="Coup de cœur" data-photo-id="${esc(p.id)}" onclick="event.stopPropagation();onHeartTap(event,'${esc(p.id)}')" oncontextmenu="event.preventDefault();showReactionMenu(event,'${esc(p.id)}');return false">${heartContent}</button>
-    ${(who || when) ? `<div class="photo-meta"><span class="pm-who">${who}</span><span class="pm-when">${when}</span></div>` : ''}
   </div>`;
 }
 
@@ -5767,7 +5648,44 @@ function spawnTileHeartBurst(wrap){
 }
 
 function emptyPhotoBlock(title, sub){
-  return `<div class="empty" style="grid-column:span 2"><div class="empty-ico">${IC.emptyPhoto}</div><div class="empty-title">${esc(title)}</div><div class="empty-sub">${esc(sub)}</div></div>`;
+  return `<div class="empty" style="grid-column:1/-1"><div class="empty-ico">${IC.emptyPhoto}</div><div class="empty-title">${esc(title)}</div><div class="empty-sub">${esc(sub)}</div></div>`;
+}
+
+/* ── Regroupement façon iPhone Photos : libellés intelligents par jour ── */
+function groupPhotosByDay(photos){
+  if(!photos || !photos.length) return [];
+  const sorted = [...photos].sort((a,b) => (getPhotoDate(b) || 0) - (getPhotoDate(a) || 0));
+  const today = new Date(); today.setHours(0,0,0,0);
+  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+  const groups = new Map();
+  for(const p of sorted){
+    const ts = getPhotoDate(p);
+    let key, label;
+    if(!ts){
+      key = 'unknown';
+      label = 'Sans date';
+    }else{
+      const d = new Date(ts); d.setHours(0,0,0,0);
+      key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      const diffDays = Math.round((today - d) / 86400000);
+      if(diffDays === 0) label = "Aujourd'hui";
+      else if(diffDays === 1) label = 'Hier';
+      else if(diffDays > 1 && diffDays < 7){
+        label = d.toLocaleDateString('fr-CA', { weekday: 'long' });
+        label = label.charAt(0).toUpperCase() + label.slice(1);
+      }
+      else if(d.getFullYear() === today.getFullYear()){
+        label = d.toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long' });
+        label = label.charAt(0).toUpperCase() + label.slice(1);
+      }
+      else{
+        label = d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+    }
+    if(!groups.has(key)) groups.set(key, { label, items: [] });
+    groups.get(key).items.push(p);
+  }
+  return Array.from(groups.values());
 }
 
 function renderPhotoGrid(){
@@ -5822,7 +5740,7 @@ function renderPhotoGrid(){
     events.forEach(e => {
       const items = groups[e.id];
       const dates = `${dispDate(e.startDate)}${e.endDate && e.endDate !== e.startDate ? ' → ' + dispDate(e.endDate) : ''}`;
-      html += `<div class="album-section" style="grid-column:span 2">
+      html += `<div class="album-section">
         <div class="album-header-inline">
           <span class="album-section-title">${esc(e.title || 'Séjour')}</span>
           <span class="album-section-sub">${esc(dates)} · ${items.length}</span>
@@ -5831,7 +5749,7 @@ function renderPhotoGrid(){
       html += items.map(p => photoCellHtml(p, me, other)).join('');
     });
     if(orphan.length){
-      html += `<div class="album-section" style="grid-column:span 2">
+      html += `<div class="album-section">
         <div class="album-header-inline">
           <span class="album-section-title">Hors séjour</span>
           <span class="album-section-sub">${orphan.length}</span>
@@ -5863,7 +5781,7 @@ function renderPhotoGrid(){
     let html = '';
     keys.forEach(k => {
       const g = groups[k];
-      html += `<div class="album-section" style="grid-column:span 2">
+      html += `<div class="album-section">
         <div class="album-header-inline">
           <span class="album-section-title">${esc(g.label)}</span>
           <span class="album-section-sub">${g.items.length}</span>
@@ -5896,13 +5814,26 @@ function renderPhotoGrid(){
     return;
   }
 
-  // Filtre 'all' : feed éditorial (Hero + carrousels + bento)
+  // Filtre 'all' : grille uniforme façon iPhone Photos, regroupée par jour
   if(photoFilter === 'all'){
     if(!photoCache.length){
       grid.innerHTML = emptyPhotoBlock('Ajoute des photos du chalet', 'Partagées automatiquement avec ta copine.');
       return;
     }
-    if(renderEditorialFeed()) return;
+    const sorted = [...photoCache].sort((a,b) => (getPhotoDate(b) || 0) - (getPhotoDate(a) || 0));
+    const visible = sorted.slice(0, photoRenderLimit);
+    const groups = groupPhotosByDay(visible);
+    let html = '';
+    groups.forEach(g => {
+      html += `<div class="date-header">
+        <span class="date-title">${esc(g.label)}</span>
+        <span class="date-sub">${g.items.length} photo${g.items.length>1?'s':''}</span>
+      </div>`;
+      html += g.items.map(p => photoCellHtml(p, me, other)).join('');
+    });
+    grid.innerHTML = html;
+    setupPhotoPagination();
+    return;
   }
 
   // 'hearts' / 'byMarc' / 'byCopine' : flat (avec pagination de rendu)
@@ -5919,7 +5850,6 @@ function renderPhotoGrid(){
   }
   const visible = photos.slice(0, photoRenderLimit);
   grid.innerHTML = visible.map(p => photoCellHtml(p, me, other)).join('');
-  grid.querySelectorAll('.photo-heart').forEach(btn => attachHeartLongPress(btn));
   setupPhotoPagination();
 }
 
@@ -6816,10 +6746,10 @@ function checkHeartMilestones(){
   }
 }
 
-/* ── Pinch-to-zoom grille (1 / 2 / 3 colonnes) ── */
+/* ── Pinch-to-zoom grille (1 / 2 / 3 colonnes), défaut 3 façon iPhone Photos ── */
 function getPhotoGridCols(){
-  try{ const v = parseInt(localStorage.getItem('chalet_photo_cols') || '2', 10); return [1,2,3].includes(v) ? v : 2; }
-  catch(_){ return 2; }
+  try{ const v = parseInt(localStorage.getItem('chalet_photo_cols') || '3', 10); return [1,2,3].includes(v) ? v : 3; }
+  catch(_){ return 3; }
 }
 function setPhotoGridCols(n){
   if(![1,2,3].includes(n)) return;
@@ -6835,7 +6765,7 @@ function attachPinchGrid(){
   const grid = document.getElementById('photoGrid');
   if(!grid || grid._pinchAttached) return;
   grid._pinchAttached = true;
-  let initialDist = 0, initialCols = 2;
+  let initialDist = 0, initialCols = 3;
   grid.addEventListener('touchstart', e => {
     if(e.touches.length === 2){
       const dx = e.touches[0].clientX - e.touches[1].clientX;
