@@ -1411,12 +1411,63 @@ body.drag-active *{cursor:grabbing !important}
 .upload-bar.err{background:var(--err-tint);border-color:var(--err);color:var(--err)}
 .upload-bar.err .upload-spinner{display:none}
 
-/* Galerie en vrai masonry via CSS columns */
+/* Galerie en vrai masonry via CSS columns (1/2/3 colonnes ajustables) */
 .photo-grid{
   display:block;
-  column-count:2;
+  column-count:var(--photo-cols, 2);
   column-gap:8px;
+  transition:column-count .15s ease;
 }
+.photo-grid.cols-1{--photo-cols:1}
+.photo-grid.cols-2{--photo-cols:2}
+.photo-grid.cols-3{--photo-cols:3}
+
+/* En-têtes des Moments / Mois / Séjours */
+.moment-header{
+  break-inside:avoid;
+  break-after:always;
+  column-span:all;
+  margin:14px 4px 8px;
+  display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+}
+.moment-header:first-child{margin-top:0}
+.moment-title{font-size:15px;font-weight:800;letter-spacing:-.2px;color:var(--t)}
+.moment-sub{font-size:11.5px;color:var(--t3);font-weight:600}
+
+/* Drawer EXIF dans la lightbox */
+.lb-info-drawer{
+  position:fixed;
+  left:50%;transform:translateX(-50%) translateY(100%);
+  bottom:0;
+  width:100%;max-width:560px;
+  background:rgba(20,20,20,.96);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-radius:22px 22px 0 0;
+  padding:18px 22px calc(28px + env(safe-area-inset-bottom,0px));
+  z-index:11;
+  color:white;
+  transition:transform .35s var(--ease-out);
+}
+.lb-info-drawer.on{transform:translateX(-50%) translateY(0)}
+.lb-info-handle{
+  width:38px;height:5px;background:rgba(255,255,255,.3);
+  border-radius:9999px;margin:0 auto 14px;
+}
+.lb-info-title{
+  font-size:11.5px;font-weight:700;letter-spacing:.5px;
+  text-transform:uppercase;color:rgba(255,255,255,.55);
+  margin-bottom:10px;
+}
+.lb-info-row{
+  display:flex;justify-content:space-between;
+  padding:9px 0;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  font-size:14px;
+}
+.lb-info-row:last-child{border-bottom:none}
+.lb-info-lbl{color:rgba(255,255,255,.7)}
+.lb-info-val{color:white;font-weight:600;text-align:right}
+.lb-info-row a{color:#7CADD9;text-decoration:none;font-weight:600}
 .photo-wrap{
   position:relative;
   border-radius:var(--r-l);
@@ -2113,9 +2164,12 @@ body.drag-active *{cursor:grabbing !important}
     </button>
     <div class="photo-pills" id="photoPills">
       <button class="pill on" onclick="setPhotoFilter('all', this)">Toutes</button>
+      <button class="pill" onclick="setPhotoFilter('moments', this)">✨ Moments</button>
       <button class="pill" onclick="setPhotoFilter('hearts', this)">❤️ Coups de cœur</button>
       <button class="pill" onclick="setPhotoFilter('sejours', this)">📅 Par séjour</button>
       <button class="pill" onclick="setPhotoFilter('months', this)">🗓 Par mois</button>
+      <button class="pill" id="pillByMarc" onclick="setPhotoFilter('byMarc', this)">👤 Marc</button>
+      <button class="pill" id="pillByCopine" onclick="setPhotoFilter('byCopine', this)">👤 Mélanie</button>
     </div>
     <div class="pull-refresh-indic" id="pullRefresh"></div>
     <div class="photo-grid" id="photoGrid"></div>
@@ -2930,7 +2984,7 @@ function readFileTakenDate(file){
   return lm;
 }
 
-const SCHEMA_VERSION = 15;
+const SCHEMA_VERSION = 16;
 const DEFAULT_STATE = {
   schemaVersion: SCHEMA_VERSION,
   chaletName:'Notre Chalet', marcName:'Marc', copineName:'Ma copine',
@@ -2955,7 +3009,10 @@ const DEFAULT_STATE = {
   packingTemplates: {}, // { [templateName]: [items snapshot] }
   photoHashes: {},      // { [photoId]: pHash hex } pour détection doublons
   // v15 — photo de couverture (affichée en bannière Dashboard)
-  coverPhotoId: ''      // photoId choisi comme couverture
+  coverPhotoId: '',     // photoId choisi comme couverture
+  // v16 — EXIF metadata par photo + milestones cœurs partagés
+  photoExif: {},        // { [photoId]: { dateOriginal, make, model, iso, shutter, fnum, lat, lng, w, h } }
+  heartMilestones: { achieved: [] }
 };
 let S = JSON.parse(JSON.stringify(DEFAULT_STATE));
 let curSec = 'dashboard';
@@ -3043,6 +3100,10 @@ function normalizeState(raw){
   if(!out.photoHashes || typeof out.photoHashes !== 'object') out.photoHashes = {};
   // Migration v14→v15
   if(typeof out.coverPhotoId !== 'string') out.coverPhotoId = '';
+  // Migration v15→v16
+  if(!out.photoExif || typeof out.photoExif !== 'object') out.photoExif = {};
+  if(!out.heartMilestones || typeof out.heartMilestones !== 'object') out.heartMilestones = { achieved: [] };
+  if(!Array.isArray(out.heartMilestones.achieved)) out.heartMilestones.achieved = [];
   // Sync state
   if(typeof out.syncUrl !== 'string') out.syncUrl = '';
   if(typeof out.syncKeyHash !== 'string' || !/^[a-f0-9]{64}$/.test(out.syncKeyHash)) out.syncKeyHash = '';
@@ -4148,9 +4209,9 @@ function contactItemHtml(c){
   const favIcon = c.favorite
     ? `<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`
     : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`;
-  const photoUrl_ct = getContactPhotoUrl(c);
-  const avatarInner = photoUrl_ct
-    ? `<img class="av-img" src="${esc(photoUrl_ct)}" alt="">`
+  const photoUrl = getContactPhotoUrl(c);
+  const avatarInner = photoUrl
+    ? `<img class="av-img" src="${esc(photoUrl)}" alt="">`
     : esc(initials);
   return `
   <div class="contact-item drag-item" data-id="${esc(c.id)}">
@@ -4531,7 +4592,7 @@ function delContactNote(contactId, noteId){
 const SYNC_SALT = 'chalet-sync-2026-v1';
 const SYNC_PULL_INTERVAL_MS = 30 * 1000;
 const SYNC_PUSH_DEBOUNCE_MS = 1500;
-const SYNC_SYNCABLE_FIELDS = ['chaletName','marcName','copineName','albumUrl','notes','chaletLocationName','chaletLat','chaletLon','reactions','eventPhotos','eventCovers','photoMilestones','photoTakenAt','itemsHistory','packingTemplates','photoHashes','coverPhotoId'];
+const SYNC_SYNCABLE_FIELDS = ['chaletName','marcName','copineName','albumUrl','notes','chaletLocationName','chaletLat','chaletLon','reactions','eventPhotos','eventCovers','photoMilestones','photoTakenAt','itemsHistory','packingTemplates','photoHashes','coverPhotoId','photoExif','heartMilestones'];
 
 function now(){ return Date.now(); }
 
@@ -5073,6 +5134,9 @@ function rPhotos(){
   const url=safeUrl(S.albumUrl);
   d.className=url?'album-link':'album-lbl';
   d.innerHTML=url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="album-link">Ouvrir l'album →</a>`:'Aucun album configuré';
+  refreshPhotoPillLabels();
+  applyPhotoGridCols();
+  attachPinchGrid();
 
   // Reset pagination chaque fois qu'on entre dans la section
   photoRenderLimit = PHOTO_PAGE_SIZE;
@@ -5100,7 +5164,16 @@ function setPhotoFilter(f, btn){
     document.querySelectorAll('#photoPills .pill').forEach(p => p.classList.remove('on'));
     btn.classList.add('on');
   }
+  // Reset pagination quand on change de filtre
+  photoRenderLimit = PHOTO_PAGE_SIZE;
   renderPhotoGrid();
+}
+// Met à jour les libellés des pills "par auteur" avec les vrais noms
+function refreshPhotoPillLabels(){
+  const pm = document.getElementById('pillByMarc');
+  const pc = document.getElementById('pillByCopine');
+  if(pm) pm.textContent = '👤 ' + (S.marcName || 'Marc');
+  if(pc) pc.textContent = '👤 ' + (S.copineName || 'Copine');
 }
 function viewEventGallery(eventId){
   photoFilter = 'event-' + eventId;
@@ -5119,7 +5192,49 @@ function getFilteredPhotos(){
       return r.marc === 'heart' || r.copine === 'heart';
     });
   }
+  if(photoFilter === 'byMarc'){
+    const me = S.marcName || 'Marc';
+    return photoCache.filter(p => (p.addedBy || '') === me);
+  }
+  if(photoFilter === 'byCopine'){
+    const her = S.copineName || 'Copine';
+    return photoCache.filter(p => (p.addedBy || '') === her);
+  }
   return photoCache.slice();
+}
+
+/* ── MOMENTS — clusters temporels ── */
+function buildMoments(photos){
+  if(!photos.length) return [];
+  const sorted = [...photos].sort((a,b) => getPhotoDate(b) - getPhotoDate(a));
+  const moments = [];
+  const TWO_HOURS = 2 * 60 * 60 * 1000;
+  let current = null;
+  for(const p of sorted){
+    const t = getPhotoDate(p);
+    if(!t){ continue; }
+    if(!current || (current.startTs - t) > TWO_HOURS){
+      current = { startTs: t, endTs: t, items: [p] };
+      moments.push(current);
+    }else{
+      current.items.push(p);
+      if(t < current.startTs) current.startTs = t;
+    }
+  }
+  return moments;
+}
+function formatMomentLabel(m){
+  if(!m || !m.endTs) return '';
+  const d = new Date(m.endTs);
+  const dateStr = d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' });
+  const sameDay = (new Date(m.startTs)).toDateString() === d.toDateString();
+  if(!sameDay) return dateStr;
+  const startH = new Date(m.startTs).getHours();
+  const endH = d.getHours();
+  if(Math.abs(endH - startH) < 1){
+    return `${dateStr} · ${endH}h`;
+  }
+  return `${dateStr} · ${Math.min(startH, endH)}h–${Math.max(startH, endH)}h`;
 }
 
 function photoCellHtml(p, me, other){
@@ -5303,11 +5418,33 @@ function renderPhotoGrid(){
     return;
   }
 
-  // 'all' ou 'hearts' : flat (avec pagination de rendu)
+  // Vue MOMENTS : clusters temporels
+  if(photoFilter === 'moments'){
+    if(!photoCache.length){
+      grid.innerHTML = emptyPhotoBlock('Aucun moment', 'Ajoute des photos pour démarrer.');
+      return;
+    }
+    const moments = buildMoments(photoCache);
+    let html = '';
+    moments.forEach(m => {
+      html += `<div class="moment-header">
+        <span class="moment-title">${esc(formatMomentLabel(m))}</span>
+        <span class="moment-sub">${m.items.length} photo${m.items.length>1?'s':''}</span>
+      </div>`;
+      html += m.items.map(p => photoCellHtml(p, me, other)).join('');
+    });
+    grid.innerHTML = html;
+    grid.querySelectorAll('.photo-heart').forEach(btn => attachHeartLongPress(btn));
+    return;
+  }
+
+  // 'all' / 'hearts' / 'byMarc' / 'byCopine' : flat (avec pagination de rendu)
   const photos = getFilteredPhotos();
   if(!photos.length){
     if(photoFilter === 'hearts'){
       grid.innerHTML = emptyPhotoBlock('Aucun coup de cœur', 'Tape le ❤️ sur une photo pour la marquer.');
+    }else if(photoFilter === 'byMarc' || photoFilter === 'byCopine'){
+      grid.innerHTML = emptyPhotoBlock('Aucune photo', 'Cette personne n\'a rien ajouté pour l\'instant.');
     }else{
       grid.innerHTML = emptyPhotoBlock('Ajoute des photos du chalet', 'Partagées automatiquement avec ta copine.');
     }
@@ -5331,6 +5468,7 @@ function onHeartTap(e, photoId){
     spawnHeartParticles(e ? e.currentTarget : null);
     if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){}
     checkPhotoMilestones();
+    checkHeartMilestones();
   }
   renderPhotoGrid();
 }
@@ -5466,6 +5604,8 @@ async function uploadOnePhoto(file){
   if(file.size > MAX_PHOTO_BYTES) throw new Error('"' + (file.name||'fichier') + '" trop lourde (>20 Mo).');
   // Capte la date de prise AVANT compression (lastModified du fichier source)
   const takenAt = readFileTakenDate(file);
+  // Lit EXIF avant compression (canvas perd les EXIF)
+  const exifData = await readExifFromFile(file);
   // Détection de doublons via pHash perceptuel
   const pHash = await computePerceptualHash(file);
   if(pHash){
@@ -5492,6 +5632,11 @@ async function uploadOnePhoto(file){
     if(!S.photoHashes) S.photoHashes = {};
     S.photoHashes[photo.id] = pHash;
     stampField('photoHashes');
+  }
+  if(exifData && photo && photo.id){
+    if(!S.photoExif) S.photoExif = {};
+    S.photoExif[photo.id] = exifData;
+    stampField('photoExif');
   }
   return photo;
 }
@@ -5586,6 +5731,9 @@ function viewPhoto(recordId, opts){
       <button class="lb-action" id="lbDownload" aria-label="Télécharger">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       </button>
+      <button class="lb-action" id="lbInfo" aria-label="Détails de la photo">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      </button>
       <button class="lb-action ocr" id="lbOcr" aria-label="Détecter le texte (OCR)">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/><line x1="7" y1="17" x2="13" y2="17"/></svg>
       </button>
@@ -5617,6 +5765,7 @@ function viewPhoto(recordId, opts){
   const $delete = lb.querySelector('#lbDelete');
   const $ocr = lb.querySelector('#lbOcr');
   const $cover = lb.querySelector('#lbCover');
+  const $info = lb.querySelector('#lbInfo');
 
   function render(){
     const p = photoCache[idx];
@@ -5787,6 +5936,10 @@ function viewPhoto(recordId, opts){
     e.stopPropagation();
     const p = photoCache[idx]; if(!p || !p.url) return;
     showOcrResult(p.url);
+  };
+  $info.onclick = e => {
+    e.stopPropagation();
+    toggleLightboxInfo(lb, photoCache[idx]);
   };
   $cover.onclick = e => {
     e.stopPropagation();
@@ -6000,6 +6153,129 @@ function fireConfetti(){
 }
 
 const PHOTO_MILESTONES = [25, 50, 100, 250, 500, 1000];
+/* ── Drawer EXIF dans la lightbox ── */
+function toggleLightboxInfo(lb, photo){
+  if(!lb || !photo) return;
+  let drawer = lb.querySelector('.lb-info-drawer');
+  if(drawer){
+    if(drawer.classList.contains('on')){
+      drawer.classList.remove('on');
+      setTimeout(() => drawer.remove(), 350);
+    }
+    return;
+  }
+  drawer = document.createElement('div');
+  drawer.className = 'lb-info-drawer';
+  drawer.onclick = e => e.stopPropagation();
+  const exif = (S.photoExif && S.photoExif[photo.id]) || {};
+  const rows = [];
+  rows.push(['Ajoutée par', esc(photo.addedBy || '—')]);
+  if(photo.addedAt){
+    const d = new Date(photo.addedAt);
+    rows.push(['Date d’ajout', esc(d.toLocaleString('fr-CA', {dateStyle:'long', timeStyle:'short'}))]);
+  }
+  if(exif.dateOriginal){
+    rows.push(['Date de prise', esc(exif.dateOriginal)]);
+  }
+  if(exif.make || exif.model){
+    rows.push(['Appareil', esc([exif.make, exif.model].filter(Boolean).join(' '))]);
+  }
+  if(exif.iso) rows.push(['ISO', String(exif.iso)]);
+  if(exif.shutter) rows.push(['Vitesse', esc(formatExifShutter(exif.shutter))]);
+  if(exif.fnum) rows.push(['Ouverture', 'f/' + exif.fnum.toFixed(1)]);
+  if(photo.width && photo.height){
+    rows.push(['Dimensions', `${photo.width} × ${photo.height} px`]);
+  }
+  if(exif.lat && exif.lng){
+    const url = `https://maps.apple.com/?ll=${exif.lat},${exif.lng}&q=Photo`;
+    rows.push(['Lieu', `<a href="${esc(url)}" target="_blank" rel="noopener">${exif.lat.toFixed(4)}, ${exif.lng.toFixed(4)} →</a>`]);
+  }
+  if(rows.length === 0){
+    rows.push(['', '<span style="opacity:.7">Aucune donnée disponible.<br>Les EXIF sont préservés pour les photos uploadées avec cette version.</span>']);
+  }
+  drawer.innerHTML = `
+    <div class="lb-info-handle"></div>
+    <div class="lb-info-title">Détails</div>
+    ${rows.map(([k, v]) => `<div class="lb-info-row"><span class="lb-info-lbl">${esc(k)}</span><span class="lb-info-val">${v}</span></div>`).join('')}
+  `;
+  lb.appendChild(drawer);
+  requestAnimationFrame(() => drawer.classList.add('on'));
+  // Tap n'importe où en dehors du drawer = ferme
+  const closer = (ev) => {
+    if(!drawer.contains(ev.target)){
+      drawer.classList.remove('on');
+      setTimeout(() => drawer.remove(), 350);
+      lb.removeEventListener('click', closer, true);
+    }
+  };
+  setTimeout(() => lb.addEventListener('click', closer, true), 50);
+}
+
+/* ── Milestones cœurs partagés ── */
+const HEART_MILESTONES = [10, 25, 50, 100, 250, 500];
+function checkHeartMilestones(){
+  const total = countHearts();
+  const achieved = (S.heartMilestones && Array.isArray(S.heartMilestones.achieved)) ? S.heartMilestones.achieved : [];
+  for(const t of HEART_MILESTONES){
+    if(total >= t && !achieved.includes(t)){
+      achieved.push(t);
+      S.heartMilestones = { achieved };
+      stampField('heartMilestones');
+      save();
+      if(typeof fireConfetti === 'function') fireConfetti();
+      toast(`💕 ${t} coups de cœur partagés !`, { success: true });
+      if(navigator.vibrate) try{ navigator.vibrate([15, 30, 15]); }catch(_){}
+      break;
+    }
+  }
+}
+
+/* ── Pinch-to-zoom grille (1 / 2 / 3 colonnes) ── */
+function getPhotoGridCols(){
+  try{ const v = parseInt(localStorage.getItem('chalet_photo_cols') || '2', 10); return [1,2,3].includes(v) ? v : 2; }
+  catch(_){ return 2; }
+}
+function setPhotoGridCols(n){
+  if(![1,2,3].includes(n)) return;
+  try{ localStorage.setItem('chalet_photo_cols', String(n)); }catch(_){}
+  const grid = document.getElementById('photoGrid');
+  if(grid){
+    grid.classList.remove('cols-1','cols-2','cols-3');
+    grid.classList.add('cols-' + n);
+  }
+}
+function applyPhotoGridCols(){ setPhotoGridCols(getPhotoGridCols()); }
+function attachPinchGrid(){
+  const grid = document.getElementById('photoGrid');
+  if(!grid || grid._pinchAttached) return;
+  grid._pinchAttached = true;
+  let initialDist = 0, initialCols = 2;
+  grid.addEventListener('touchstart', e => {
+    if(e.touches.length === 2){
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      initialDist = Math.hypot(dx, dy);
+      initialCols = getPhotoGridCols();
+    }
+  }, { passive: true });
+  grid.addEventListener('touchmove', e => {
+    if(e.touches.length === 2 && initialDist){
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const ratio = dist / initialDist;
+      let next = initialCols;
+      if(ratio > 1.4) next = Math.max(1, initialCols - 1);
+      else if(ratio < 0.7) next = Math.min(3, initialCols + 1);
+      if(next !== getPhotoGridCols()){
+        setPhotoGridCols(next);
+        if(navigator.vibrate) try{ navigator.vibrate(10); }catch(_){}
+      }
+    }
+  }, { passive: true });
+  grid.addEventListener('touchend', () => { initialDist = 0; });
+}
+
 function checkPhotoMilestones(){
   if(!Array.isArray(photoCache)) return;
   // Compte les "événements" : photos + cœurs partagés
@@ -6807,6 +7083,127 @@ function findSimilarPhoto(hash){
     }
   }
   return null;
+}
+
+/* ══════════════════════════════════════════
+   EXIF PARSER — extrait métadonnées avant compression
+   (parse minimal d'un JPEG : APP1/EXIF, lit DateTimeOriginal,
+    Make, Model, ISO, ExposureTime, FNumber, GPSLatitude/Longitude)
+══════════════════════════════════════════ */
+async function readExifFromFile(file){
+  if(!file || !file.type || !/jpeg|jpg/i.test(file.type)) return null;
+  try{
+    const buf = await file.slice(0, Math.min(256*1024, file.size)).arrayBuffer();
+    const v = new DataView(buf);
+    if(v.byteLength < 4) return null;
+    if(v.getUint16(0) !== 0xFFD8) return null;
+    let p = 2;
+    while(p < v.byteLength - 4){
+      const marker = v.getUint16(p);
+      if((marker & 0xFF00) !== 0xFF00) return null;
+      const size = v.getUint16(p + 2);
+      if(marker === 0xFFE1){
+        // APP1 (EXIF)
+        const exifStart = p + 4;
+        // "Exif\0\0" (6 bytes)
+        if(v.getUint32(exifStart) !== 0x45786966) return null;
+        const tiff = exifStart + 6;
+        const little = v.getUint16(tiff) === 0x4949;
+        const get16 = (o) => little ? v.getUint16(o, true) : v.getUint16(o, false);
+        const get32 = (o) => little ? v.getUint32(o, true) : v.getUint32(o, false);
+        if(get16(tiff + 2) !== 0x002A) return null;
+        const ifd0 = tiff + get32(tiff + 4);
+        const result = {};
+        // Lit IFD
+        function readIfd(off){
+          const n = get16(off);
+          const out = {};
+          for(let i = 0; i < n; i++){
+            const e = off + 2 + i * 12;
+            const tag = get16(e);
+            const type = get16(e + 2);
+            const count = get32(e + 4);
+            const dataOff = e + 8;
+            out[tag] = { type, count, dataOff };
+          }
+          out.next = get32(off + 2 + n * 12);
+          return out;
+        }
+        function readString(entry){
+          const len = entry.count;
+          const inline = (entry.type === 2) && len <= 4;
+          const start = inline ? entry.dataOff : tiff + get32(entry.dataOff);
+          let s = '';
+          for(let i = 0; i < len - 1; i++){
+            s += String.fromCharCode(v.getUint8(start + i));
+          }
+          return s.trim().replace(/\0/g, '');
+        }
+        function readRational(entry){
+          if(entry.type !== 5) return null;
+          const start = tiff + get32(entry.dataOff);
+          const num = get32(start), den = get32(start + 4);
+          return den ? num / den : null;
+        }
+        function readShort(entry){
+          if(entry.type === 3){
+            return little ? v.getUint16(entry.dataOff, true) : v.getUint16(entry.dataOff, false);
+          }
+          return null;
+        }
+        function readGpsRationalArray(entry){
+          if(entry.type !== 5 || entry.count !== 3) return null;
+          const start = tiff + get32(entry.dataOff);
+          const out = [];
+          for(let i = 0; i < 3; i++){
+            const num = get32(start + i*8), den = get32(start + i*8 + 4);
+            out.push(den ? num / den : 0);
+          }
+          return out[0] + out[1]/60 + out[2]/3600;
+        }
+        const ifd0Entries = readIfd(ifd0);
+        if(ifd0Entries[0x010F]) result.make = readString(ifd0Entries[0x010F]);
+        if(ifd0Entries[0x0110]) result.model = readString(ifd0Entries[0x0110]);
+        // EXIF subIFD
+        if(ifd0Entries[0x8769]){
+          const subOff = tiff + get32(ifd0Entries[0x8769].dataOff);
+          const sub = readIfd(subOff);
+          if(sub[0x9003]) result.dateOriginal = readString(sub[0x9003]);
+          if(sub[0x8827]) result.iso = readShort(sub[0x8827]);
+          if(sub[0x829A]) result.shutter = readRational(sub[0x829A]);
+          if(sub[0x829D]) result.fnum = readRational(sub[0x829D]);
+        }
+        // GPS
+        if(ifd0Entries[0x8825]){
+          const gpsOff = tiff + get32(ifd0Entries[0x8825].dataOff);
+          const gps = readIfd(gpsOff);
+          if(gps[0x0002] && gps[0x0004]){
+            let lat = readGpsRationalArray(gps[0x0002]);
+            let lng = readGpsRationalArray(gps[0x0004]);
+            if(gps[0x0001]){
+              const ref = readString(gps[0x0001]);
+              if(ref === 'S') lat = -lat;
+            }
+            if(gps[0x0003]){
+              const ref = readString(gps[0x0003]);
+              if(ref === 'W') lng = -lng;
+            }
+            result.lat = lat;
+            result.lng = lng;
+          }
+        }
+        return Object.keys(result).length ? result : null;
+      }
+      p += 2 + size;
+    }
+  }catch(_){}
+  return null;
+}
+
+function formatExifShutter(s){
+  if(!s) return '';
+  if(s >= 1) return s.toFixed(1) + ' s';
+  return '1/' + Math.round(1/s) + ' s';
 }
 
 /* ══════════════════════════════════════════
