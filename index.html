@@ -1411,6 +1411,129 @@ body.drag-active *{cursor:grabbing !important}
 .upload-bar.err{background:var(--err-tint);border-color:var(--err);color:var(--err)}
 .upload-bar.err .upload-spinner{display:none}
 
+/* ══════════════════════════════════════════
+   GALERIE ÉDITORIALE — Hero + Carrousels + Bento
+══════════════════════════════════════════ */
+.editorial-feed{display:flex;flex-direction:column;gap:18px;margin-bottom:18px}
+
+/* Hero photo plein largeur */
+.ef-hero{
+  position:relative;
+  width:100%;
+  aspect-ratio:4/3;
+  border-radius:20px;
+  overflow:hidden;
+  background:var(--surface-2);
+  cursor:pointer;
+  box-shadow:var(--sh-m);
+  transition:transform var(--t-fast) var(--ease-spring);
+  animation:fadeInUp .55s var(--ease-out);
+}
+.ef-hero:active{transform:scale(.99)}
+.ef-hero img{
+  position:absolute;inset:0;
+  width:100%;height:100%;object-fit:cover;
+  transition:transform .6s ease;
+}
+.ef-hero:hover img{transform:scale(1.03)}
+.ef-hero-overlay{
+  position:absolute;left:0;right:0;bottom:0;
+  padding:18px 20px 16px;
+  background:linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.32) 50%, transparent 100%);
+  color:white;
+  pointer-events:none;
+}
+.ef-hero-tag{
+  font-size:10.5px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;
+  opacity:.85;margin-bottom:4px;
+  display:inline-block;padding:2px 8px;
+  border:1px solid rgba(255,255,255,.4);
+  border-radius:9999px;
+}
+.ef-hero-title{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.15;margin-top:6px}
+.ef-hero-sub{font-size:13px;opacity:.85;margin-top:3px;font-weight:500}
+
+/* Section header avec titre + lien "Voir tout" */
+.ef-section-hdr{
+  display:flex;align-items:baseline;justify-content:space-between;
+  margin:6px 4px 10px;
+}
+.ef-section-title{font-size:17px;font-weight:800;letter-spacing:-.3px;color:var(--t)}
+.ef-section-action{
+  font-size:13px;font-weight:600;color:var(--p);
+  background:none;border:none;cursor:pointer;padding:4px 0;
+}
+
+/* Carrousels horizontaux */
+.ef-carousel{
+  display:flex;gap:8px;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  scrollbar-width:none;
+  padding:2px 4px 6px;
+  margin:0 -4px;
+}
+.ef-carousel::-webkit-scrollbar{display:none}
+.ef-card{
+  flex:0 0 auto;
+  width:140px;
+  height:180px;
+  border-radius:14px;
+  overflow:hidden;
+  position:relative;
+  scroll-snap-align:start;
+  background:var(--surface-2);
+  cursor:pointer;
+  transition:transform var(--t-fast) var(--ease-spring);
+  box-shadow:var(--sh-s);
+}
+.ef-card:active{transform:scale(.95)}
+.ef-card img{width:100%;height:100%;object-fit:cover;display:block}
+.ef-card-meta{
+  position:absolute;left:0;right:0;bottom:0;
+  padding:14px 10px 8px;
+  background:linear-gradient(to top, rgba(0,0,0,.65), transparent);
+  color:white;font-size:11px;font-weight:700;
+  display:flex;align-items:center;gap:4px;
+}
+.ef-card.has-react::after{
+  content:'❤';
+  position:absolute;top:8px;right:8px;
+  font-size:14px;color:#FF4E6A;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));
+}
+
+/* Bento grid asymétrique */
+.bento-grid{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  grid-auto-rows:80px;
+  grid-auto-flow:dense;
+  gap:6px;
+}
+.bento-cell{
+  position:relative;
+  border-radius:12px;
+  overflow:hidden;
+  background:var(--surface-2);
+  cursor:pointer;
+  transition:transform var(--t-fast) var(--ease-spring), box-shadow var(--t-med) var(--ease);
+}
+.bento-cell:active{transform:scale(.97)}
+.bento-cell.has-react{box-shadow:0 0 0 2px rgba(255,78,106,.45)}
+.bento-cell img{width:100%;height:100%;object-fit:cover;display:block}
+.bento-cell .photo-heart{top:4px;right:4px;width:24px;height:24px}
+.bento-cell .photo-heart svg{width:11px;height:11px}
+.bento-cell .photo-emoji{font-size:14px;left:4px;top:4px}
+.bento-2x2{grid-column:span 2;grid-row:span 2}
+.bento-2x1{grid-column:span 2;grid-row:span 1}
+.bento-1x2{grid-column:span 1;grid-row:span 2}
+.bento-1x1{grid-column:span 1;grid-row:span 1}
+@media (max-width:380px){
+  .bento-grid{grid-template-columns:repeat(3, 1fr);grid-auto-rows:70px}
+}
+
 /* Galerie en vrai masonry via CSS columns (1/2/3 colonnes ajustables) */
 .photo-grid{
   display:block;
@@ -5266,6 +5389,219 @@ function getFilteredPhotos(){
   return photoCache.slice();
 }
 
+/* ══════════════════════════════════════════
+   GALERIE ÉDITORIALE — Hero + Carrousels + Bento
+══════════════════════════════════════════ */
+
+/* Score d'engagement d'une photo (cœurs + emoji + récence) */
+function photoScore(p){
+  if(!p) return 0;
+  const r = getReactions(p.id);
+  let score = 0;
+  if(r.marc === 'heart') score += 4;
+  if(r.copine === 'heart') score += 4;
+  if(r.marc && r.marc !== 'heart') score += 2;
+  if(r.copine && r.copine !== 'heart') score += 2;
+  if(S.coverPhotoId === p.id) score += 100; // booste la cover
+  // Boost récence (max +3 pour <7 jours)
+  const ageDays = (Date.now() - getPhotoDate(p)) / 86400000;
+  if(ageDays < 7) score += 3 - Math.floor(ageDays / 3);
+  return score;
+}
+
+/* Sélectionne la photo Hero : cover si définie, sinon top-score, sinon plus récente */
+function selectHeroPhoto(){
+  if(!Array.isArray(photoCache) || !photoCache.length) return null;
+  if(S.coverPhotoId){
+    const cover = photoCache.find(p => p.id === S.coverPhotoId);
+    if(cover) return cover;
+  }
+  const sorted = [...photoCache].sort((a, b) => photoScore(b) - photoScore(a));
+  return sorted[0];
+}
+
+/* Photos avec au moins 1 cœur */
+function getHeartedPhotos(){
+  return (photoCache || []).filter(p => {
+    const r = getReactions(p.id);
+    return r.marc === 'heart' || r.copine === 'heart';
+  });
+}
+
+/* Trouve le dernier séjour avec photos */
+function getLastSejourWithPhotos(){
+  const events = (S.events || []).filter(e => e.type === 'sejour');
+  // Trier par endDate desc
+  events.sort((a, b) => (b.endDate || b.startDate || '').localeCompare(a.endDate || a.startDate || ''));
+  for(const ev of events){
+    const photos = (photoCache || []).filter(p => getPhotoEvent(p.id, p.addedAt) === ev.id);
+    if(photos.length >= 2){
+      return { event: ev, photos };
+    }
+  }
+  return null;
+}
+
+/* Photos d'il y a ~1 an (±30 jours) */
+function getOneYearAgoPhotos(){
+  if(!Array.isArray(photoCache) || !photoCache.length) return [];
+  const now = Date.now();
+  const yearMs = 365 * 86400000;
+  const window = 30 * 86400000;
+  return photoCache.filter(p => {
+    const d = getPhotoDate(p);
+    if(!d) return false;
+    return Math.abs(now - d - yearMs) <= window;
+  });
+}
+
+/* Détermine le sizing bento d'une photo selon score + ratio */
+function bentoClass(p, isHero){
+  if(isHero) return 'bento-2x2';
+  const score = photoScore(p);
+  const isPortrait = p.height && p.width && (p.height > p.width * 1.1);
+  const isLandscape = p.width && p.height && (p.width > p.height * 1.3);
+  if(score >= 4){
+    return isPortrait ? 'bento-1x2' : (isLandscape ? 'bento-2x1' : 'bento-2x2');
+  }
+  if(score >= 1){
+    return isPortrait ? 'bento-1x2' : (isLandscape ? 'bento-2x1' : 'bento-1x1');
+  }
+  return 'bento-1x1';
+}
+
+/* Carte mini pour carrousel */
+function carouselCardHtml(p){
+  const r = getReactions(p.id);
+  const hasReact = r.marc === 'heart' || r.copine === 'heart' || r.marc || r.copine;
+  const dateRef = getPhotoDate(p);
+  const when = dateRef ? esc(relativeTime(dateRef)) : '';
+  return `
+    <div class="ef-card${hasReact ? ' has-react' : ''}" onclick="viewPhoto('${esc(p.id)}', { sourceEl: this })">
+      <img src="${esc(p.thumbUrl || p.url)}" alt="${esc(p.name || '')}" loading="lazy" decoding="async">
+      ${when ? `<div class="ef-card-meta">${when}</div>` : ''}
+    </div>`;
+}
+
+/* Cellule bento (réutilise photoCellHtml mais wrapper différent) */
+function bentoCellHtml(p, sizeClass){
+  const r = getReactions(p.id);
+  const me = getOwner(), other = otherOwner(me);
+  const myReact = r[me], otherReact = r[other];
+  const hasReact = !!(myReact || otherReact);
+  const myHeart = myReact === 'heart';
+  const bothHeart = myHeart && otherReact === 'heart';
+  const heartClass = bothHeart ? 'photo-heart liked both' : (myHeart ? 'photo-heart liked' : 'photo-heart');
+  const heartContent = (myReact && myReact !== 'heart')
+    ? `<span style="font-size:14px;line-height:1">${esc(myReact)}</span>`
+    : `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`;
+  let otherOverlay = '';
+  if(otherReact === 'heart') otherOverlay = `<div class="photo-emoji">❤️</div>`;
+  else if(otherReact) otherOverlay = `<div class="photo-emoji">${esc(otherReact)}</div>`;
+  return `
+    <div class="bento-cell ${sizeClass}${hasReact ? ' has-react' : ''}" data-id="${esc(p.id)}">
+      <img src="${esc(p.thumbUrl || p.url)}" onclick="onPhotoTileTap(event,'${esc(p.id)}')" alt="${esc(p.name || '')}" loading="lazy" decoding="async">
+      ${otherOverlay}
+      <button class="${heartClass}" aria-label="Coup de cœur" data-photo-id="${esc(p.id)}" onclick="event.stopPropagation();onHeartTap(event,'${esc(p.id)}')" oncontextmenu="event.preventDefault();showReactionMenu(event,'${esc(p.id)}');return false">${heartContent}</button>
+    </div>`;
+}
+
+/* Rendu du feed éditorial complet */
+function renderEditorialFeed(){
+  const grid = document.getElementById('photoGrid');
+  if(!grid || !photoCache.length) return false;
+  const hero = selectHeroPhoto();
+  const heartPhotos = getHeartedPhotos().slice(0, 10);
+  const lastSejour = getLastSejourWithPhotos();
+  const yearAgo = getOneYearAgoPhotos().slice(0, 8);
+
+  // Photos déjà mises en avant (à exclure du bento pour éviter doublons)
+  const featuredIds = new Set();
+  if(hero) featuredIds.add(hero.id);
+  // On peut laisser les photos des carrousels apparaître aussi en bento (c'est OK)
+
+  let html = '<div class="editorial-feed">';
+
+  // HERO
+  if(hero){
+    const dateRef = getPhotoDate(hero);
+    const when = dateRef ? esc(relativeTime(dateRef)) : '';
+    const tag = S.coverPhotoId === hero.id ? 'À la une' : 'Photo du moment';
+    html += `<div class="ef-hero" onclick="viewPhoto('${esc(hero.id)}', { sourceEl: this })">
+      <img src="${esc(hero.url)}" alt="${esc(hero.name || '')}">
+      <div class="ef-hero-overlay">
+        <span class="ef-hero-tag">${esc(tag)}</span>
+        <div class="ef-hero-title">${esc(hero.addedBy || 'Photo partagée')}</div>
+        <div class="ef-hero-sub">${when}</div>
+      </div>
+    </div>`;
+  }
+
+  // Coups de cœur
+  if(heartPhotos.length >= 3){
+    html += `<div>
+      <div class="ef-section-hdr">
+        <span class="ef-section-title">❤️ Coups de cœur</span>
+        <button class="ef-section-action" onclick="setPhotoFilter('hearts', null);document.querySelectorAll('#photoPills .pill').forEach((p,i)=>p.classList.toggle('on',i===2))">Voir tout</button>
+      </div>
+      <div class="ef-carousel">${heartPhotos.map(carouselCardHtml).join('')}</div>
+    </div>`;
+  }
+
+  // Dernier séjour
+  if(lastSejour && lastSejour.photos.length >= 2){
+    const ev = lastSejour.event;
+    const photos = lastSejour.photos.slice(0, 10);
+    html += `<div>
+      <div class="ef-section-hdr">
+        <span class="ef-section-title">📅 ${esc(ev.title)}</span>
+        <button class="ef-section-action" onclick="viewEventGallery('${esc(ev.id)}')">Voir tout</button>
+      </div>
+      <div class="ef-carousel">${photos.map(carouselCardHtml).join('')}</div>
+    </div>`;
+  }
+
+  // Il y a 1 an
+  if(yearAgo.length >= 2){
+    html += `<div>
+      <div class="ef-section-hdr">
+        <span class="ef-section-title">✨ Il y a un an</span>
+      </div>
+      <div class="ef-carousel">${yearAgo.map(carouselCardHtml).join('')}</div>
+    </div>`;
+  }
+
+  // Bento : reste des photos (limité au render limit)
+  const sortedAll = [...photoCache].sort((a,b) => getPhotoDate(b) - getPhotoDate(a));
+  const bentoPhotos = sortedAll.slice(0, photoRenderLimit);
+  if(bentoPhotos.length){
+    html += `<div>
+      <div class="ef-section-hdr">
+        <span class="ef-section-title">Tous les moments</span>
+        <span class="ef-section-action" style="cursor:default;color:var(--t3)">${photoCache.length} photo${photoCache.length>1?'s':''}</span>
+      </div>
+      <div class="bento-grid">`;
+    // Détermine la photo "vedette" du bento (top score parmi celles non hero)
+    const candidates = sortedAll.filter(p => p.id !== (hero && hero.id));
+    candidates.sort((a,b) => photoScore(b) - photoScore(a));
+    const featuredBentoId = candidates[0] ? candidates[0].id : null;
+    bentoPhotos.forEach(p => {
+      const isFeatured = p.id === featuredBentoId;
+      const sz = bentoClass(p, isFeatured);
+      html += bentoCellHtml(p, sz);
+    });
+    html += `</div></div>`;
+  }
+
+  html += '</div>';
+  grid.innerHTML = html;
+  // Attach long-press réactions sur les photo-heart bento
+  grid.querySelectorAll('.photo-heart').forEach(btn => attachHeartLongPress(btn));
+  // Pagination scroll bas pour augmenter limit
+  setupPhotoPagination();
+  return true;
+}
+
 /* ── MOMENTS — clusters temporels ── */
 function buildMoments(photos){
   if(!photos.length) return [];
@@ -5501,7 +5837,16 @@ function renderPhotoGrid(){
     return;
   }
 
-  // 'all' / 'hearts' / 'byMarc' / 'byCopine' : flat (avec pagination de rendu)
+  // Filtre 'all' : feed éditorial (Hero + carrousels + bento)
+  if(photoFilter === 'all'){
+    if(!photoCache.length){
+      grid.innerHTML = emptyPhotoBlock('Ajoute des photos du chalet', 'Partagées automatiquement avec ta copine.');
+      return;
+    }
+    if(renderEditorialFeed()) return;
+  }
+
+  // 'hearts' / 'byMarc' / 'byCopine' : flat (avec pagination de rendu)
   const photos = getFilteredPhotos();
   if(!photos.length){
     if(photoFilter === 'hearts'){
