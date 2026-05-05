@@ -2165,18 +2165,6 @@ body.drag-active *{cursor:grabbing !important}
 <!-- Photos -->
 <main id="sec-photos" class="sec">
   <div class="sec-hdr"><div class="sec-title">Photos</div></div>
-  <div class="card">
-    <div class="card-lbl">Album partagé</div>
-    <div class="album-row">
-      <div class="album-icon">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-      </div>
-      <div>
-        <div id="albumDisplay" class="album-lbl">Aucun album configuré</div>
-        <button class="album-cfg" onclick="openM('albumModal')">Configurer l'album →</button>
-      </div>
-    </div>
-  </div>
   <div class="card" style="position:relative">
     <div class="card-lbl">Photos partagées</div>
     <button class="photo-slideshow-btn" id="slideshowBtn" onclick="startSlideshow()" style="display:none">
@@ -2638,21 +2626,6 @@ body.drag-active *{cursor:grabbing !important}
   <div class="modal">
     <div class="m-handle"></div>
     <div id="dayDetailContent"></div>
-  </div>
-</div>
-
-<!-- Album -->
-<div class="m-overlay" id="albumModal">
-  <div class="modal">
-    <div class="m-handle"></div>
-    <div class="m-hdr">
-      <div class="m-title">Album partagé</div>
-      <button class="m-close" aria-label="Fermer" onclick="closeM('albumModal')"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <p style="font-size:14px;color:var(--t3);line-height:1.6;margin-bottom:18px">Entrez le lien de votre album Google Photos ou iCloud partagé. Vous pouvez tous les deux y ajouter des photos directement.</p>
-    <div class="fg"><label>Lien de l'album</label><input type="url" class="fi" id="albumUrl" placeholder="https://photos.google.com/share/…"></div>
-    <button class="btn-p" onclick="saveAlbum()">Enregistrer</button>
-    <button class="btn-g" onclick="closeM('albumModal')">Annuler</button>
   </div>
 </div>
 
@@ -5212,11 +5185,7 @@ let photoCacheFetchedAt = 0;
 let photoListInFlight = null;
 
 function rPhotos(){
-  // En-tête album (inchangé)
-  const d=document.getElementById('albumDisplay');
-  const url=safeUrl(S.albumUrl);
-  d.className=url?'album-link':'album-lbl';
-  d.innerHTML=url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="album-link">Ouvrir l'album →</a>`:'Aucun album configuré';
+  // (Carte « Album partagé » retirée — Marc ne l'utilise pas)
   refreshPhotoPillLabels();
   applyPhotoGridCols();
   attachPinchGrid();
@@ -6952,16 +6921,7 @@ async function migrateLocalPhotos(){
   save();
   if(curSec === 'photos'){ loadPhotosFromWorker().catch(()=>{}); }
 }
-function saveAlbum(){
-  const raw=document.getElementById('albumUrl').value.trim();
-  if(raw && !safeUrl(raw)){
-    alert("L'URL doit commencer par https:// (ou http://). Lien ignoré.");
-    return;
-  }
-  S.albumUrl=safeUrl(raw);
-  stampField('albumUrl');
-  save();closeM('albumModal');rPhotos();
-}
+// (saveAlbum retiré : la carte « Album partagé » n'est plus exposée)
 
 /* ══════════════════════════════════════════
    PARAMÈTRES
@@ -7840,7 +7800,6 @@ function init(){
   document.getElementById('hdrTitle').textContent=S.chaletName;
   syncNames();
   rDash();
-  document.getElementById('albumUrl').value=S.albumUrl||'';
   // Lance un fetch météo en arrière-plan (respecte le cache 1h)
   refreshWeather().catch(e => console.warn('Initial weather fetch failed:', e));
   // Démarre la synchro cloud si configurée
