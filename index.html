@@ -501,12 +501,35 @@ input,select,textarea{font-family:inherit}
   background:linear-gradient(148deg,#3A6648 0%,#1F3D28 100%);
   border-radius:var(--r-xl);padding:var(--s5);
   margin-bottom:var(--s3);position:relative;overflow:hidden;color:white;
+  min-height:130px;
 }
 .cd-card::before{
   content:'';position:absolute;inset:0;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 140'%3E%3Cpath d='M0 140 L50 62 L90 88 L140 18 L190 72 L230 32 L270 78 L300 48 L300 140Z' fill='rgba(255,255,255,0.07)'/%3E%3Cpath d='M0 140 L80 98 L130 118 L200 65 L250 100 L300 78 L300 140Z' fill='rgba(255,255,255,0.05)'/%3E%3C/svg%3E")
   no-repeat right bottom/contain;pointer-events:none;
 }
+/* Quand une photo de couverture est définie : remplace le gradient */
+.cd-card.with-cover{padding:24px 20px}
+.cd-card.with-cover::before{
+  background:linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.55) 100%);
+  z-index:1;
+}
+.cd-cover-img{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  z-index:0;
+  animation:coverFadeIn .6s var(--ease-out);
+}
+@keyframes coverFadeIn{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:scale(1)}}
+
+/* Bouton "Cover" dans la lightbox */
+.lb-action.cover svg{stroke-width:1.8}
+.lb-action.cover.on{
+  background:rgba(255,200,80,.32);
+  color:#FFC850;
+}
+.lb-action.cover.on svg{fill:currentColor;stroke:currentColor}
 .cd-inner{position:relative;z-index:1}
 .cd-lbl{font-size:11.5px;font-weight:500;opacity:.82;margin-bottom:4px;letter-spacing:.2px}
 .cd-days{font-size:50px;font-weight:900;letter-spacing:-2.5px;line-height:1}
@@ -1388,10 +1411,48 @@ body.drag-active *{cursor:grabbing !important}
 .upload-bar.err{background:var(--err-tint);border-color:var(--err);color:var(--err)}
 .upload-bar.err .upload-spinner{display:none}
 
-/* Vignettes : ratio naturel + meta */
-.photo-wrap{position:relative;border-radius:var(--r-l);overflow:hidden;background:var(--surface-2)}
-.photo-thumb{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;transition:transform .25s}
+/* Galerie en vrai masonry via CSS columns */
+.photo-grid{
+  display:block;
+  column-count:2;
+  column-gap:8px;
+}
+.photo-wrap{
+  position:relative;
+  border-radius:var(--r-l);
+  overflow:hidden;
+  background:var(--surface-2);
+  break-inside:avoid;
+  margin-bottom:8px;
+  display:block;
+  width:100%;
+  transition:box-shadow var(--t-med) var(--ease), transform var(--t-fast) var(--ease-spring);
+}
+.photo-wrap.has-react{
+  box-shadow:0 0 0 2px rgba(255,78,106,.45), var(--sh-s);
+}
+.photo-thumb{
+  width:100%;height:auto;
+  object-fit:cover;display:block;
+  cursor:pointer;transition:transform .25s var(--ease);
+}
 .photo-wrap:active .photo-thumb{transform:scale(.98)}
+/* Cœur grand qui pop au double-tap */
+.heart-burst{
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%, -50%) scale(.2);
+  font-size:80px;line-height:1;
+  color:#FF4E6A;
+  pointer-events:none;z-index:9;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,.25));
+  animation:heartBurst .9s var(--ease-spring) forwards;
+}
+@keyframes heartBurst{
+  0%   {transform:translate(-50%,-50%) scale(.2);opacity:0}
+  35%  {transform:translate(-50%,-50%) scale(1.15);opacity:1}
+  60%  {transform:translate(-50%,-50%) scale(.95);opacity:1}
+  100% {transform:translate(-50%,-50%) scale(1.1);opacity:0}
+}
 .photo-meta{
   position:absolute;left:0;right:0;bottom:0;
   padding:18px 10px 7px;
@@ -1516,16 +1577,25 @@ body.drag-active *{cursor:grabbing !important}
 .album-section-title{font-size:15px;font-weight:800;letter-spacing:-.2px;color:var(--t)}
 .album-section-sub{font-size:11.5px;font-weight:600;color:var(--t3)}
 
-/* Skeleton loaders shimmer */
+/* Skeleton loaders — gradient chaleureux aux couleurs du thème */
 .photo-skel{
   border-radius:var(--r-l);
-  background:linear-gradient(90deg, var(--surface-2) 0%, var(--p-tint-2) 50%, var(--surface-2) 100%);
-  background-size:200% 100%;
-  animation:shimmer 1.4s infinite linear;
+  background:linear-gradient(110deg,
+    var(--surface-2) 0%,
+    var(--p-tint-2) 25%,
+    var(--p-tint) 45%,
+    var(--p-tint-2) 65%,
+    var(--surface-2) 100%);
+  background-size:220% 100%;
+  animation:shimmer 1.6s infinite linear;
+  break-inside:avoid;
+  margin-bottom:8px;
+  display:block;
+  width:100%;
 }
 @keyframes shimmer{
-  0%{background-position:200% 0}
-  100%{background-position:-200% 0}
+  0%{background-position:220% 0}
+  100%{background-position:-220% 0}
 }
 
 /* Confetti à milestone */
@@ -1912,7 +1982,8 @@ body.drag-active *{cursor:grabbing !important}
 
 <!-- Dashboard -->
 <main id="sec-dashboard" class="sec on">
-  <div class="cd-card">
+  <div class="cd-card" id="cdCard">
+    <img class="cd-cover-img" id="cdCoverImg" alt="" style="display:none">
     <div class="cd-inner">
       <div class="cd-lbl">Prochaine visite au chalet</div>
       <div class="cd-days" id="cdDays">—</div>
@@ -2859,7 +2930,7 @@ function readFileTakenDate(file){
   return lm;
 }
 
-const SCHEMA_VERSION = 14;
+const SCHEMA_VERSION = 15;
 const DEFAULT_STATE = {
   schemaVersion: SCHEMA_VERSION,
   chaletName:'Notre Chalet', marcName:'Marc', copineName:'Ma copine',
@@ -2882,7 +2953,9 @@ const DEFAULT_STATE = {
   // v14 — historique d'utilisation pour suggestions + templates de bagages
   itemsHistory: { courses: {}, packing: {}, tasks: {} },  // { [list]: { [name]: count } }
   packingTemplates: {}, // { [templateName]: [items snapshot] }
-  photoHashes: {}       // { [photoId]: pHash hex } pour détection doublons
+  photoHashes: {},      // { [photoId]: pHash hex } pour détection doublons
+  // v15 — photo de couverture (affichée en bannière Dashboard)
+  coverPhotoId: ''      // photoId choisi comme couverture
 };
 let S = JSON.parse(JSON.stringify(DEFAULT_STATE));
 let curSec = 'dashboard';
@@ -2968,6 +3041,8 @@ function normalizeState(raw){
   ['courses','packing','tasks'].forEach(k => { if(!out.itemsHistory[k] || typeof out.itemsHistory[k] !== 'object') out.itemsHistory[k] = {}; });
   if(!out.packingTemplates || typeof out.packingTemplates !== 'object') out.packingTemplates = {};
   if(!out.photoHashes || typeof out.photoHashes !== 'object') out.photoHashes = {};
+  // Migration v14→v15
+  if(typeof out.coverPhotoId !== 'string') out.coverPhotoId = '';
   // Sync state
   if(typeof out.syncUrl !== 'string') out.syncUrl = '';
   if(typeof out.syncKeyHash !== 'string' || !/^[a-f0-9]{64}$/.test(out.syncKeyHash)) out.syncKeyHash = '';
@@ -3222,7 +3297,30 @@ function isSoon(ds){
 /* ══════════════════════════════════════════
    DASHBOARD
 ══════════════════════════════════════════ */
+function renderDashboardCover(){
+  const card = document.getElementById('cdCard');
+  const img = document.getElementById('cdCoverImg');
+  if(!card || !img) return;
+  const id = S.coverPhotoId;
+  if(!id){
+    card.classList.remove('with-cover');
+    img.style.display = 'none';
+    img.src = '';
+    return;
+  }
+  const photo = (photoCache || []).find(p => p.id === id);
+  if(!photo || !photo.url){
+    card.classList.remove('with-cover');
+    img.style.display = 'none';
+    return;
+  }
+  card.classList.add('with-cover');
+  img.style.display = '';
+  if(img.src !== photo.url) img.src = photo.url;
+}
+
 function rDash(){
+  renderDashboardCover();
   const today=new Date();today.setHours(0,0,0,0);
   // Compte à rebours
   const nxt=S.events.filter(e=>e.type==='sejour'&&(parseDateLocal(e.startDate)||new Date(0))>=today)
@@ -4050,9 +4148,9 @@ function contactItemHtml(c){
   const favIcon = c.favorite
     ? `<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`
     : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`;
-  const photoUrl = getContactPhotoUrl(c);
-  const avatarInner = photoUrl
-    ? `<img class="av-img" src="${esc(photoUrl)}" alt="">`
+  const photoUrl_ct = getContactPhotoUrl(c);
+  const avatarInner = photoUrl_ct
+    ? `<img class="av-img" src="${esc(photoUrl_ct)}" alt="">`
     : esc(initials);
   return `
   <div class="contact-item drag-item" data-id="${esc(c.id)}">
@@ -4433,7 +4531,7 @@ function delContactNote(contactId, noteId){
 const SYNC_SALT = 'chalet-sync-2026-v1';
 const SYNC_PULL_INTERVAL_MS = 30 * 1000;
 const SYNC_PUSH_DEBOUNCE_MS = 1500;
-const SYNC_SYNCABLE_FIELDS = ['chaletName','marcName','copineName','albumUrl','notes','chaletLocationName','chaletLat','chaletLon','reactions','eventPhotos','eventCovers','photoMilestones','photoTakenAt','itemsHistory','packingTemplates','photoHashes'];
+const SYNC_SYNCABLE_FIELDS = ['chaletName','marcName','copineName','albumUrl','notes','chaletLocationName','chaletLat','chaletLon','reactions','eventPhotos','eventCovers','photoMilestones','photoTakenAt','itemsHistory','packingTemplates','photoHashes','coverPhotoId'];
 
 function now(){ return Date.now(); }
 
@@ -5046,13 +5144,53 @@ function photoCellHtml(p, me, other){
   let otherOverlay = '';
   if(otherReact === 'heart') otherOverlay = `<div class="photo-emoji" aria-label="Coup de cœur de ${esc(ownerName(other))}">❤️</div>`;
   else if(otherReact) otherOverlay = `<div class="photo-emoji" aria-label="Réaction de ${esc(ownerName(other))}">${esc(otherReact)}</div>`;
+  const hasReact = !!(myReact || otherReact);
   return `
-  <div class="photo-wrap" data-id="${esc(p.id)}" style="aspect-ratio:${ratio}">
-    <img src="${esc(p.thumbUrl||p.url)}" class="photo-thumb" onclick="viewPhoto('${esc(p.id)}')" alt="${esc(p.name||'')}" loading="lazy">
+  <div class="photo-wrap${hasReact ? ' has-react' : ''}" data-id="${esc(p.id)}" style="aspect-ratio:${ratio}">
+    <img src="${esc(p.thumbUrl||p.url)}" class="photo-thumb" onclick="onPhotoTileTap(event,'${esc(p.id)}')" alt="${esc(p.name||'')}" loading="lazy" decoding="async">
     ${otherOverlay}
     <button class="${heartClass}" aria-label="Coup de cœur" data-photo-id="${esc(p.id)}" onclick="event.stopPropagation();onHeartTap(event,'${esc(p.id)}')" oncontextmenu="event.preventDefault();showReactionMenu(event,'${esc(p.id)}');return false">${heartContent}</button>
     ${(who || when) ? `<div class="photo-meta"><span class="pm-who">${who}</span><span class="pm-when">${when}</span></div>` : ''}
   </div>`;
+}
+
+/* Tap sur vignette : single-tap = ouvre lightbox (avec zoom hero),
+   double-tap (≤320ms) = like + animation cœur */
+const _tileLastTap = {};
+function onPhotoTileTap(ev, photoId){
+  const now = Date.now();
+  const last = _tileLastTap[photoId] || 0;
+  if(now - last < 320){
+    // Double-tap → like
+    _tileLastTap[photoId] = 0;
+    const role = getOwner();
+    const cur = getReactions(photoId);
+    if(cur[role] !== 'heart'){
+      setReaction(photoId, role, 'heart');
+      checkPhotoMilestones();
+    }
+    spawnTileHeartBurst(ev.currentTarget && ev.currentTarget.parentElement);
+    if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){}
+    renderPhotoGrid();
+    return;
+  }
+  _tileLastTap[photoId] = now;
+  // Tap simple → on lance la lightbox après un tout petit délai pour laisser
+  // la chance à un éventuel double-tap, mais on annule si la photo n'est plus là
+  setTimeout(() => {
+    if(_tileLastTap[photoId] === now){
+      _tileLastTap[photoId] = 0;
+      viewPhoto(photoId, { sourceEl: ev.currentTarget });
+    }
+  }, 250);
+}
+function spawnTileHeartBurst(wrap){
+  if(!wrap) return;
+  const el = document.createElement('div');
+  el.className = 'heart-burst';
+  el.textContent = '❤';
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 950);
 }
 
 function emptyPhotoBlock(title, sub){
@@ -5427,6 +5565,8 @@ function viewPhoto(recordId, opts){
   let lastTap = 0;
   let slideshow = !!opts.slideshow;
   let slideshowTimer = null;
+  // Source DOM element pour animation FLIP au open/close
+  const sourceEl = opts.sourceEl || document.querySelector(`.photo-wrap[data-id="${CSS.escape(String(recordId))}"]`);
 
   const lb = document.createElement('div');
   lb.className = 'lb' + (slideshow ? ' slideshow' : '');
@@ -5449,6 +5589,9 @@ function viewPhoto(recordId, opts){
       <button class="lb-action ocr" id="lbOcr" aria-label="Détecter le texte (OCR)">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/><line x1="7" y1="17" x2="13" y2="17"/></svg>
       </button>
+      <button class="lb-action cover" id="lbCover" aria-label="Définir comme couverture">
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+      </button>
       <button class="lb-action danger" id="lbDelete" aria-label="Supprimer">
         <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
       </button>
@@ -5458,6 +5601,11 @@ function viewPhoto(recordId, opts){
   // Verrouille le scroll de la page derrière la lightbox
   const _prevBodyOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
+  // FLIP : si on a une source DOM, on anime depuis sa position vers le centre
+  let srcRect = null;
+  if(sourceEl){
+    try{ srcRect = sourceEl.getBoundingClientRect(); }catch(_){}
+  }
 
   const $img = lb.querySelector('#lbImg');
   const $counter = lb.querySelector('#lbCounter');
@@ -5468,6 +5616,7 @@ function viewPhoto(recordId, opts){
   const $download = lb.querySelector('#lbDownload');
   const $delete = lb.querySelector('#lbDelete');
   const $ocr = lb.querySelector('#lbOcr');
+  const $cover = lb.querySelector('#lbCover');
 
   function render(){
     const p = photoCache[idx];
@@ -5482,6 +5631,17 @@ function viewPhoto(recordId, opts){
     $prev.style.visibility = idx > 0 ? '' : 'hidden';
     $next.style.visibility = idx < photoCache.length - 1 ? '' : 'hidden';
     resetZoom();
+    // Met à jour l'état du bouton cover
+    if($cover) $cover.classList.toggle('on', S.coverPhotoId === p.id);
+    // Préchargement silencieux des photos voisines (N-1, N+1) pour swipe instant
+    [-1, 1].forEach(d => {
+      const np = photoCache[idx + d];
+      if(np && np.url){
+        const im = new Image();
+        im.decoding = 'async';
+        im.src = np.url;
+      }
+    });
     // Recreate progress bar pour relancer son anim
     if(slideshow){
       const oldBar = lb.querySelector('.lb-progress');
@@ -5501,6 +5661,30 @@ function viewPhoto(recordId, opts){
   function close(){
     document.removeEventListener('keydown', onKey);
     if(slideshowTimer){ clearTimeout(slideshowTimer); slideshowTimer = null; }
+    // Animation FLIP de fermeture (si source DOM toujours visible)
+    let liveSrc = null;
+    try{
+      const cur = photoCache[idx];
+      liveSrc = cur ? document.querySelector(`.photo-wrap[data-id="${CSS.escape(String(cur.id))}"]`) : null;
+    }catch(_){}
+    if(liveSrc){
+      const r = liveSrc.getBoundingClientRect();
+      const dst = $img.getBoundingClientRect();
+      const sx = r.width / dst.width;
+      const sy = r.height / dst.height;
+      const tx = (r.left + r.width/2) - (dst.left + dst.width/2);
+      const ty = (r.top + r.height/2) - (dst.top + dst.height/2);
+      $img.style.transition = 'transform .28s cubic-bezier(.4,0,.2,1), opacity .25s var(--ease)';
+      $img.style.transform = `translate(${tx}px, ${ty}px) scale(${Math.min(sx, sy)})`;
+      $img.style.opacity = '0';
+      lb.style.transition = 'background .25s var(--ease)';
+      lb.style.background = 'rgba(0,0,0,0)';
+      setTimeout(() => {
+        document.body.style.overflow = _prevBodyOverflow;
+        lb.remove();
+      }, 280);
+      return;
+    }
     document.body.style.overflow = _prevBodyOverflow;
     lb.remove();
   }
@@ -5603,6 +5787,25 @@ function viewPhoto(recordId, opts){
     e.stopPropagation();
     const p = photoCache[idx]; if(!p || !p.url) return;
     showOcrResult(p.url);
+  };
+  $cover.onclick = e => {
+    e.stopPropagation();
+    const p = photoCache[idx]; if(!p) return;
+    if(S.coverPhotoId === p.id){
+      S.coverPhotoId = '';
+      stampField('coverPhotoId');
+      save();
+      $cover.classList.remove('on');
+      toast('Photo de couverture retirée');
+    }else{
+      S.coverPhotoId = p.id;
+      stampField('coverPhotoId');
+      save();
+      $cover.classList.add('on');
+      toast('Définie comme couverture du Dashboard', { success: true });
+      if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){}
+    }
+    if(curSec === 'dashboard') renderDashboardCover();
   };
   $delete.onclick = async e => {
     e.stopPropagation();
@@ -5733,6 +5936,34 @@ function viewPhoto(recordId, opts){
   });
 
   render();
+
+  // Animation FLIP au open : depuis la position de la vignette source
+  if(srcRect){
+    const tryFlip = () => {
+      const dst = $img.getBoundingClientRect();
+      if(!dst.width || !dst.height){
+        // Image pas encore chargée → réessaye après un tick
+        setTimeout(tryFlip, 30);
+        return;
+      }
+      const sx = srcRect.width / dst.width;
+      const sy = srcRect.height / dst.height;
+      const tx = (srcRect.left + srcRect.width/2) - (dst.left + dst.width/2);
+      const ty = (srcRect.top + srcRect.height/2) - (dst.top + dst.height/2);
+      const lbBgPrev = lb.style.background;
+      $img.style.transition = 'none';
+      $img.style.transform = `translate(${tx}px, ${ty}px) scale(${Math.min(sx, sy)})`;
+      lb.style.transition = 'none';
+      lb.style.background = 'rgba(0,0,0,0)';
+      requestAnimationFrame(() => {
+        $img.style.transition = 'transform .35s cubic-bezier(.16,1,.3,1)';
+        lb.style.transition = 'background .3s var(--ease)';
+        $img.style.transform = '';
+        lb.style.background = '';
+      });
+    };
+    if($img.complete) tryFlip(); else $img.addEventListener('load', tryFlip, { once: true });
+  }
 }
 
 /* ══════════════════════════════════════════
