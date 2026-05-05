@@ -4816,15 +4816,78 @@ const WX_LABEL = {
   85:'Averses de neige légères', 86:'Averses de neige fortes',
   95:'Orage', 96:'Orage + grêle', 99:'Orage + forte grêle'
 };
+// Icônes météo style glyph coloré : soleil doré, nuage rempli, gouttes bleues, etc.
+// Originalement dessinées (paths originaux). Multi-couleur via fill direct, lisibles dès 14 px.
 const WX_SVG = {
-  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2.5" x2="12" y2="4.5"/><line x1="12" y1="19.5" x2="12" y2="21.5"/><line x1="4.6" y1="4.6" x2="6" y2="6"/><line x1="18" y1="18" x2="19.4" y2="19.4"/><line x1="2.5" y1="12" x2="4.5" y2="12"/><line x1="19.5" y1="12" x2="21.5" y2="12"/><line x1="4.6" y1="19.4" x2="6" y2="18"/><line x1="18" y1="6" x2="19.4" y2="4.6"/></svg>',
-  cloudSun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="8" r="2.6"/><line x1="7" y1="2.8" x2="7" y2="4"/><line x1="2.4" y1="8" x2="3.6" y2="8"/><line x1="3.6" y1="4.6" x2="4.4" y2="5.4"/><line x1="9.6" y1="4.6" x2="10.4" y2="5.4"/><path d="M18 18a4 4 0 0 0 0-8h-.8a6.5 6.5 0 0 0-12.2 3A4 4 0 0 0 8 18z"/></svg>',
-  cloud:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 18a4 4 0 0 0 0-8h-1.26A8 8 0 1 0 4 16.25"/></svg>',
-  fog:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 8h18M3 12h18M3 16h18M5 20h12"/></svg>',
-  drizzle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13a4 4 0 0 0-4-4h-1.26A8 8 0 1 0 3 12"/><line x1="8" y1="16" x2="8" y2="18"/><line x1="12" y1="17" x2="12" y2="19"/><line x1="16" y1="16" x2="16" y2="18"/></svg>',
-  rain:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13a4 4 0 0 0-4-4h-1.26A8 8 0 1 0 3 12"/><line x1="8" y1="15" x2="8" y2="21"/><line x1="12" y1="16" x2="12" y2="22"/><line x1="16" y1="15" x2="16" y2="21"/></svg>',
-  snow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13a4 4 0 0 0-4-4h-1.26A8 8 0 1 0 3 12"/><circle cx="8" cy="18" r=".8" fill="currentColor"/><circle cx="12" cy="19.5" r=".8" fill="currentColor"/><circle cx="16" cy="18" r=".8" fill="currentColor"/></svg>',
-  thunder:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14a4 4 0 0 0-4-4h-1.26A8 8 0 1 0 4 15"/><polyline points="13 11 9 17 13 17 11 22"/></svg>'
+  sun:`<svg viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="12" r="4.6" fill="#FFC940"/>
+    <g stroke="#FFC940" stroke-width="2" stroke-linecap="round">
+      <line x1="12" y1="2.6" x2="12" y2="4.4"/>
+      <line x1="12" y1="19.6" x2="12" y2="21.4"/>
+      <line x1="2.6" y1="12" x2="4.4" y2="12"/>
+      <line x1="19.6" y1="12" x2="21.4" y2="12"/>
+      <line x1="5.2" y1="5.2" x2="6.5" y2="6.5"/>
+      <line x1="17.5" y1="17.5" x2="18.8" y2="18.8"/>
+      <line x1="5.2" y1="18.8" x2="6.5" y2="17.5"/>
+      <line x1="17.5" y1="6.5" x2="18.8" y2="5.2"/>
+    </g>
+  </svg>`,
+  cloudSun:`<svg viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="17" cy="7.5" r="3.2" fill="#FFC940"/>
+    <g stroke="#FFC940" stroke-width="1.6" stroke-linecap="round">
+      <line x1="17" y1="1.8" x2="17" y2="3"/>
+      <line x1="22.2" y1="7.5" x2="21" y2="7.5"/>
+      <line x1="13.4" y1="3.9" x2="14.3" y2="4.8"/>
+      <line x1="20.6" y1="11.1" x2="19.7" y2="10.2"/>
+    </g>
+    <path fill="#B7C4D2" d="M16 19a4 4 0 100-8h-.4a5.5 5.5 0 00-10.7 1.7A3.5 3.5 0 005.6 19H16z"/>
+    <path fill="#D5DDE5" d="M14 11.4a4 4 0 014 4H5.6a3.5 3.5 0 01-2.7-1 5.5 5.5 0 0110.6-1.6 4 4 0 01.5-1.4z" opacity=".6"/>
+  </svg>`,
+  cloud:`<svg viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="#9EAEBE" d="M17.5 19a4.5 4.5 0 100-9h-.5A7 7 0 003.4 13.6 4 4 0 005.5 19h12z"/>
+    <path fill="#C0CCD8" d="M5.5 19a4 4 0 01-2.1-5.4A7 7 0 0117 10c.2 0 .3 0 .5.05a4.5 4.5 0 00-3 7.95H5.5z" opacity=".7"/>
+  </svg>`,
+  fog:`<svg viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="#C5CCD3" d="M17 13a4 4 0 100-8h-.4A6 6 0 005 8.5 3.5 3.5 0 005.5 13H17z"/>
+    <g stroke="#9EA8B2" stroke-width="1.7" stroke-linecap="round">
+      <line x1="3" y1="16.5" x2="14" y2="16.5"/>
+      <line x1="6" y1="20" x2="21" y2="20"/>
+    </g>
+  </svg>`,
+  drizzle:`<svg viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="#A2B0C0" d="M17.5 14a4.5 4.5 0 100-9h-.5A7 7 0 003.4 8.6 4 4 0 005.5 14h12z"/>
+    <g fill="#5BA8DE">
+      <circle cx="8" cy="18" r="1.1"/>
+      <circle cx="12" cy="19.6" r="1.1"/>
+      <circle cx="16" cy="18" r="1.1"/>
+    </g>
+  </svg>`,
+  rain:`<svg viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="#8FA0B3" d="M17.5 13a4.5 4.5 0 100-9h-.5A7 7 0 003.4 7.6 4 4 0 005.5 13h12z"/>
+    <g fill="#3F8DC9">
+      <path d="M7.5 14.5c0-.4.4-.8.8-.8s.8.4.8.8c0 .3-.6 1.5-.8 2.4-.2-.9-.8-2.1-.8-2.4z"/>
+      <path d="M11.2 16c0-.4.4-.8.8-.8s.8.4.8.8c0 .3-.6 1.5-.8 2.4-.2-.9-.8-2.1-.8-2.4z"/>
+      <path d="M14.9 14.5c0-.4.4-.8.8-.8s.8.4.8.8c0 .3-.6 1.5-.8 2.4-.2-.9-.8-2.1-.8-2.4z"/>
+      <line x1="8.3" y1="17" x2="7.5" y2="20.5" stroke="#3F8DC9" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="12" y1="18.5" x2="11.2" y2="22" stroke="#3F8DC9" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="15.7" y1="17" x2="14.9" y2="20.5" stroke="#3F8DC9" stroke-width="1.6" stroke-linecap="round"/>
+    </g>
+  </svg>`,
+  snow:`<svg viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="#B0BCC9" d="M17.5 13a4.5 4.5 0 100-9h-.5A7 7 0 003.4 7.6 4 4 0 005.5 13h12z"/>
+    <g stroke="#7CADD9" stroke-width="1.4" stroke-linecap="round">
+      <line x1="8" y1="15.5" x2="8" y2="19.5"/>
+      <line x1="6.4" y1="17.5" x2="9.6" y2="17.5"/>
+      <line x1="12" y1="17" x2="12" y2="21"/>
+      <line x1="10.4" y1="19" x2="13.6" y2="19"/>
+      <line x1="16" y1="15.5" x2="16" y2="19.5"/>
+      <line x1="14.4" y1="17.5" x2="17.6" y2="17.5"/>
+    </g>
+  </svg>`,
+  thunder:`<svg viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="#6F7A87" d="M17 12a4 4 0 100-8h-.4A6 6 0 005 7.5 3.5 3.5 0 005.5 12H17z"/>
+    <path fill="#FFC940" d="M11.6 11l-3.6 6h2.6l-1 5.5L14.4 16h-2.6l1.4-5z"/>
+  </svg>`
 };
 function wxIcon(code){
   if(code==null) return 'cloud';
