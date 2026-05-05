@@ -5908,21 +5908,49 @@ function viewPhoto(recordId, opts){
       else { close(); }
     }, 4000);
   }
-  function resetZoom(){
+  // État zoom/pan unifié
+  let zoomScale = 1, zoomTx = 0, zoomTy = 0;
+  function applyZoomT(animate){
+    $img.style.transition = animate ? 'transform .25s var(--ease)' : 'none';
+    $img.style.transform = `translate(${zoomTx}px, ${zoomTy}px) scale(${zoomScale})`;
+  }
+  function clampPan(){
+    if(zoomScale <= 1.001){ zoomTx = 0; zoomTy = 0; return; }
+    const wrap = $img.parentElement.getBoundingClientRect();
+    const baseW = $img.offsetWidth, baseH = $img.offsetHeight;
+    const scaledW = baseW * zoomScale, scaledH = baseH * zoomScale;
+    const maxX = Math.max(0, (scaledW - wrap.width) / 2);
+    const maxY = Math.max(0, (scaledH - wrap.height) / 2);
+    zoomTx = Math.max(-maxX, Math.min(maxX, zoomTx));
+    zoomTy = Math.max(-maxY, Math.min(maxY, zoomTy));
+  }
+  function resetZoom(animate){
+    zoomScale = 1; zoomTx = 0; zoomTy = 0;
     zoomed = false;
     $img.classList.remove('zoomed');
-    $img.style.transform = '';
+    $img.style.transformOrigin = '50% 50%';
+    applyZoomT(!!animate);
   }
   function toggleZoomAt(clientX, clientY){
-    if(zoomed){ resetZoom(); return; }
-    const r = $img.getBoundingClientRect();
-    // Centre du zoom = position du tap relative à l'image
-    const ox = ((clientX - r.left) / r.width) * 100;
-    const oy = ((clientY - r.top) / r.height) * 100;
-    $img.style.transformOrigin = ox + '% ' + oy + '%';
-    $img.style.transform = 'scale(2)';
-    $img.classList.add('zoomed');
+    if(zoomScale > 1.05){
+      resetZoom(true);
+      return;
+    }
+    // Zoom 2.5× centré sur le point cliqué
+    const wrap = $img.parentElement.getBoundingClientRect();
+    const imgRect = $img.getBoundingClientRect();
+    const center = { x: wrap.left + wrap.width/2, y: wrap.top + wrap.height/2 };
+    // Le pixel image (en coords non-transformées) sous le clic
+    const fx = (clientX - center.x - zoomTx) / zoomScale;
+    const fy = (clientY - center.y - zoomTy) / zoomScale;
+    zoomScale = 2.5;
+    // Pour que ce point reste sous le clic : fx * newScale + tx = clientX - center.x
+    zoomTx = clientX - center.x - fx * zoomScale;
+    zoomTy = clientY - center.y - fy * zoomScale;
+    clampPan();
     zoomed = true;
+    $img.classList.add('zoomed');
+    applyZoomT(true);
   }
 
   // Boutons navigation
@@ -6058,97 +6086,188 @@ function viewPhoto(recordId, opts){
   }
   document.addEventListener('keydown', onKey);
 
-  // Swipe horizontal (navigation) + vertical (fermeture style Instagram) + double-tap zoom
-  let startX = 0, startY = 0, dx = 0, dy = 0, isSwipe = false, pointerActive = false, swipeDir = null;
+  /* Touch handling : pinch + pan + swipe + double-tap unifiés
+     - 1 doigt + scale=1 : swipe horizontal (nav) ou vertical (close)
+     - 1 doigt + scale>1 : pan
+     - 2 doigts : pinch (zoom 1×→5×) avec focal point sous les doigts
+     - Tap simple sans mouvement : (rien)
+     - Double-tap : toggle zoom 2.5× centré au point ↔ 1× */
+  let touchMode = null;        // 'swipe' | 'pan' | 'pinch'
+  let swipeStartX = 0, swipeStartY = 0, swipeDx = 0, swipeDy = 0, swipeDir = null;
+  let panBaseTx = 0, panBaseTy = 0, panStartX = 0, panStartY = 0;
+  let pinchStart = null;       // { dist, cx, cy, scale, tx, ty, fx, fy }
+  function getWrapCenter(){
+    const r = $img.parentElement.getBoundingClientRect();
+    return { x: r.left + r.width/2, y: r.top + r.height/2 };
+  }
   function resetImgVisual(){
-    $img.style.transform = '';
     $img.style.opacity = '';
     lb.style.background = '';
+    applyZoomT(false);
   }
-  $img.addEventListener('pointerdown', e => {
-    if(zoomed) return;
-    pointerActive = true;
-    startX = e.clientX; startY = e.clientY; dx = 0; dy = 0;
-    isSwipe = false; swipeDir = null;
-    $img.classList.add('swiping');
+
+  $img.addEventListener('touchstart', e => {
     lb.style.transition = 'none';
-    try{ $img.setPointerCapture(e.pointerId); }catch(_){}
-  });
-  $img.addEventListener('pointermove', e => {
-    if(!pointerActive || zoomed) return;
-    dx = e.clientX - startX;
-    dy = e.clientY - startY;
-    if(Math.abs(dx) > 8 || Math.abs(dy) > 8){
-      isSwipe = true;
-      if(e.cancelable) e.preventDefault();
-    }
-    // Verrouille la direction au premier mouvement franc
-    if(!swipeDir && (Math.abs(dx) > 10 || Math.abs(dy) > 10)){
-      swipeDir = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
-    }
-    if(swipeDir === 'h'){
-      $img.style.transform = 'translateX(' + dx + 'px)';
-    }else if(swipeDir === 'v'){
-      // Suit le doigt avec scale + fade (style Instagram/TikTok)
-      const ady = Math.abs(dy);
-      const scale = Math.max(0.65, 1 - ady / 1500);
-      const fadeRatio = Math.max(0, Math.min(1, ady / 400));
-      $img.style.transform = 'translateY(' + dy + 'px) scale(' + scale.toFixed(3) + ')';
-      $img.style.opacity = (1 - fadeRatio * 0.5).toFixed(2);
-      lb.style.background = 'rgba(0,0,0,' + (0.96 * (1 - fadeRatio * 0.7)).toFixed(2) + ')';
+    if(e.touches.length === 2){
+      // Démarre pinch
+      const t1 = e.touches[0], t2 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      const cx = (t1.clientX + t2.clientX) / 2;
+      const cy = (t1.clientY + t2.clientY) / 2;
+      const center = getWrapCenter();
+      pinchStart = {
+        dist, cx, cy,
+        scale: zoomScale, tx: zoomTx, ty: zoomTy,
+        fx: (cx - center.x - zoomTx) / zoomScale,
+        fy: (cy - center.y - zoomTy) / zoomScale
+      };
+      touchMode = 'pinch';
+      $img.style.transition = 'none';
+      e.preventDefault();
+    }else if(e.touches.length === 1){
+      const t = e.touches[0];
+      if(zoomScale > 1.01){
+        // Pan mode
+        touchMode = 'pan';
+        panBaseTx = zoomTx; panBaseTy = zoomTy;
+        panStartX = t.clientX; panStartY = t.clientY;
+        $img.style.transition = 'none';
+      }else{
+        // Swipe mode (nav horizontal ou close vertical)
+        touchMode = 'swipe';
+        swipeStartX = t.clientX; swipeStartY = t.clientY;
+        swipeDx = 0; swipeDy = 0; swipeDir = null;
+        $img.classList.add('swiping');
+        $img.style.transition = 'none';
+      }
     }
   }, { passive: false });
-  $img.addEventListener('pointerup', e => {
-    if(!pointerActive) return;
-    pointerActive = false;
-    $img.classList.remove('swiping');
-    if(zoomed) return;
-    if(isSwipe && swipeDir === 'v' && Math.abs(dy) > 110){
-      // Dismiss : termine l'animation hors écran puis ferme
-      $img.style.transition = 'transform .25s var(--ease), opacity .25s var(--ease)';
-      lb.style.transition = 'background .25s var(--ease)';
-      const sign = dy > 0 ? 1 : -1;
-      $img.style.transform = 'translateY(' + (sign * window.innerHeight) + 'px) scale(.6)';
-      $img.style.opacity = '0';
-      lb.style.background = 'rgba(0,0,0,0)';
-      setTimeout(close, 240);
+
+  $img.addEventListener('touchmove', e => {
+    if(touchMode === 'pinch' && e.touches.length === 2 && pinchStart){
+      e.preventDefault();
+      const t1 = e.touches[0], t2 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      const cx = (t1.clientX + t2.clientX) / 2;
+      const cy = (t1.clientY + t2.clientY) / 2;
+      const center = getWrapCenter();
+      const newScale = Math.max(0.7, Math.min(5, pinchStart.scale * dist / pinchStart.dist));
+      // Garde le focal point sous les doigts
+      zoomScale = newScale;
+      zoomTx = cx - center.x - pinchStart.fx * newScale;
+      zoomTy = cy - center.y - pinchStart.fy * newScale;
+      applyZoomT(false);
+    }else if(touchMode === 'pan' && e.touches.length === 1){
+      e.preventDefault();
+      const t = e.touches[0];
+      zoomTx = panBaseTx + (t.clientX - panStartX);
+      zoomTy = panBaseTy + (t.clientY - panStartY);
+      clampPan();
+      applyZoomT(false);
+    }else if(touchMode === 'swipe' && e.touches.length === 1){
+      const t = e.touches[0];
+      swipeDx = t.clientX - swipeStartX;
+      swipeDy = t.clientY - swipeStartY;
+      if(Math.abs(swipeDx) > 8 || Math.abs(swipeDy) > 8){
+        if(e.cancelable) e.preventDefault();
+      }
+      if(!swipeDir && (Math.abs(swipeDx) > 10 || Math.abs(swipeDy) > 10)){
+        swipeDir = Math.abs(swipeDx) > Math.abs(swipeDy) ? 'h' : 'v';
+      }
+      if(swipeDir === 'h'){
+        $img.style.transform = 'translateX(' + swipeDx + 'px)';
+      }else if(swipeDir === 'v'){
+        const ady = Math.abs(swipeDy);
+        const scl = Math.max(0.65, 1 - ady / 1500);
+        const fadeRatio = Math.max(0, Math.min(1, ady / 400));
+        $img.style.transform = 'translateY(' + swipeDy + 'px) scale(' + scl.toFixed(3) + ')';
+        $img.style.opacity = (1 - fadeRatio * 0.5).toFixed(2);
+        lb.style.background = 'rgba(0,0,0,' + (0.96 * (1 - fadeRatio * 0.7)).toFixed(2) + ')';
+      }
+    }
+  }, { passive: false });
+
+  $img.addEventListener('touchend', e => {
+    if(touchMode === 'pinch'){
+      // Si on revient sous 1× → snap back
+      if(zoomScale < 1.05){
+        resetZoom(true);
+      }else{
+        clampPan();
+        applyZoomT(true);
+        zoomed = true;
+        $img.classList.add('zoomed');
+      }
+      pinchStart = null;
+      // Si un doigt reste sur l'écran, passe en mode pan (pas en swipe)
+      if(e.touches.length === 1){
+        const t = e.touches[0];
+        touchMode = 'pan';
+        panBaseTx = zoomTx; panBaseTy = zoomTy;
+        panStartX = t.clientX; panStartY = t.clientY;
+      }else{
+        touchMode = null;
+      }
       return;
     }
-    if(isSwipe && swipeDir === 'h'){
-      const threshold = 60;
-      if(dx < -threshold && idx < photoCache.length - 1){
-        $img.style.transition = ''; lb.style.transition = '';
-        go(+1); return;
-      }
-      if(dx > threshold && idx > 0){
-        $img.style.transition = ''; lb.style.transition = '';
-        go(-1); return;
-      }
+    if(touchMode === 'pan'){
+      clampPan();
+      applyZoomT(true);
+      touchMode = null;
+      return;
     }
-    // Snap back
-    $img.style.transition = 'transform .22s var(--ease), opacity .22s var(--ease)';
-    lb.style.transition = 'background .22s var(--ease)';
-    resetImgVisual();
-    // Double-tap zoom (uniquement si pas de mouvement)
-    if(!isSwipe){
-      const now = Date.now();
-      if(now - lastTap < 320){
-        toggleZoomAt(e.clientX, e.clientY);
-        lastTap = 0;
-      }else{
-        lastTap = now;
+    if(touchMode === 'swipe'){
+      $img.classList.remove('swiping');
+      if(swipeDir === 'v' && Math.abs(swipeDy) > 110){
+        // Dismiss
+        $img.style.transition = 'transform .25s var(--ease), opacity .25s var(--ease)';
+        lb.style.transition = 'background .25s var(--ease)';
+        const sign = swipeDy > 0 ? 1 : -1;
+        $img.style.transform = 'translateY(' + (sign * window.innerHeight) + 'px) scale(.6)';
+        $img.style.opacity = '0';
+        lb.style.background = 'rgba(0,0,0,0)';
+        setTimeout(close, 240);
+        touchMode = null;
+        return;
       }
+      if(swipeDir === 'h'){
+        const threshold = 60;
+        if(swipeDx < -threshold && idx < photoCache.length - 1){ go(+1); touchMode = null; return; }
+        if(swipeDx > threshold && idx > 0){ go(-1); touchMode = null; return; }
+      }
+      // Snap back ou double-tap
+      $img.style.transition = 'transform .22s var(--ease), opacity .22s var(--ease)';
+      lb.style.transition = 'background .22s var(--ease)';
+      resetImgVisual();
+      if(!swipeDir){
+        // Pas de mouvement notable → potential double-tap
+        const t = e.changedTouches[0];
+        const now = Date.now();
+        if(now - lastTap < 320 && t){
+          toggleZoomAt(t.clientX, t.clientY);
+          lastTap = 0;
+        }else{
+          lastTap = now;
+        }
+      }
+      touchMode = null;
     }
-    swipeDir = null;
   });
-  $img.addEventListener('pointercancel', () => {
-    pointerActive = false;
-    $img.classList.remove('swiping');
-    if(!zoomed){
+
+  $img.addEventListener('touchcancel', () => {
+    if(touchMode === 'swipe' && !zoomed){
+      $img.classList.remove('swiping');
       $img.style.transition = 'transform .22s var(--ease), opacity .22s var(--ease)';
       resetImgVisual();
     }
-    swipeDir = null;
+    if(touchMode === 'pinch') pinchStart = null;
+    touchMode = null;
+  });
+
+  // Sur desktop : double-clic pour toggle zoom
+  $img.addEventListener('dblclick', e => {
+    e.preventDefault();
+    toggleZoomAt(e.clientX, e.clientY);
   });
 
   render();
