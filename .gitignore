@@ -6,3 +6,6 @@ Thumbs.db
 .idea/
 node_modules/
 worker/.wrangler/
+
+# Backups locaux (snapshots avant refonte) — pas versionnés
+backup_*/

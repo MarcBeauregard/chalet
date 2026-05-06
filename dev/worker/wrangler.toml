@@ -1,0 +1,11 @@
+name = "chalet-sync"
+main = "worker.js"
+compatibility_date = "2024-09-01"
+
+# IDs Airtable (pas sensibles — ce sont juste des identifiants de base/table/field).
+# Le secret AIRTABLE_PAT reste configuré dans le dashboard Cloudflare.
+[vars]
+AIRTABLE_BASE_ID = "appxAyyhoMMiSpngJ"
+AIRTABLE_TABLE_ID = "tbljjDJptz704QTz7"
+AIRTABLE_PHOTOS_TABLE_ID = "tblYiEIWs228rckR6"
+AIRTABLE_PHOTOS_FIELD_ID = "fldb809mPXXwKztgo"
