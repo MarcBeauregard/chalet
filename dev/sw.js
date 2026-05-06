@@ -2,7 +2,7 @@
 // Stratégie: cache-first pour les ressources statiques, bypass réseau pour le reste.
 // Bumper CACHE_VERSION à chaque déploiement pour invalider l'ancien cache.
 
-const CACHE_VERSION = 'chalet-v37-ember';
+const CACHE_VERSION = 'chalet-v38-ember-cinema';
 const ASSETS = [
   './',
   './index.html',

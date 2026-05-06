@@ -2952,6 +2952,631 @@ svg{color:inherit}
 .sync-dot.ok{background:var(--ok);box-shadow:0 0 8px var(--ok)}
 .sync-dot.err{background:var(--err);box-shadow:0 0 8px var(--err);animation:el-flicker 1s infinite}
 
+/* ════════════════════════════════════════════════════════════════
+   ════════════════════════════════════════════════════════════════
+   EMBER LODGE · COUCHE STRUCTURELLE
+   Refonte radicale : dashboard cinématographique, bottom sheets,
+   compose wheel, page transitions, empty states illustrés.
+   ════════════════════════════════════════════════════════════════
+   ════════════════════════════════════════════════════════════════ */
+
+/* ─── DASHBOARD CINÉMATOGRAPHIQUE ──────────────────────────── */
+.dash-v2{padding:0!important;background:transparent}
+
+.dash-hero{
+  position:relative;
+  /* hero plein viewport, étendu jusqu'aux bords (déborde du padding parent) */
+  margin:0;
+  padding:calc(env(safe-area-inset-top, 0px) + 96px) 24px 36px;
+  min-height:62vh;
+  border-radius:0 0 var(--r-3xl) var(--r-3xl);
+  background:
+    radial-gradient(ellipse 120% 60% at 30% 0%, rgba(244,161,85,.12) 0%, transparent 55%),
+    radial-gradient(ellipse 100% 80% at 70% 100%, rgba(124,46,26,.30) 0%, transparent 60%),
+    linear-gradient(170deg, #1C1610 0%, #07050A 100%);
+  border:1px solid rgba(244,161,85,.10);
+  border-top:none;
+  box-shadow:0 28px 72px -28px rgba(0,0,0,.85), 0 1px 0 rgba(244,161,85,.10) inset;
+  overflow:hidden;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  isolation:isolate;
+}
+.dash-hero-cover{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  filter:saturate(.92) contrast(1.08) brightness(.7);
+  z-index:0;
+  display:block;
+}
+.dash-hero-fall{
+  /* dégradé bas → opaque pour lisibilité du texte sur la cover */
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(7,5,10,.92) 0%, transparent 70%),
+    linear-gradient(to bottom, transparent 30%, rgba(7,5,10,.65) 80%, rgba(7,5,10,.95) 100%);
+  pointer-events:none;
+  z-index:1;
+}
+.dash-hero-grain{
+  position:absolute;inset:0;
+  background-image:var(--grain);
+  background-size:160px 160px;
+  opacity:.4;mix-blend-mode:overlay;
+  pointer-events:none;z-index:2;
+}
+.dash-hero-meta{
+  position:absolute;top:calc(env(safe-area-inset-top, 0px) + 18px);left:24px;right:24px;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  z-index:3;pointer-events:none;
+}
+.dash-hero-meta > *{pointer-events:auto}
+.dash-hero-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(20,12,7,.55);
+  backdrop-filter:blur(14px) saturate(1.4);
+  -webkit-backdrop-filter:blur(14px) saturate(1.4);
+  border:1px solid rgba(244,236,223,.12);
+  border-radius:9999px;
+  padding:7px 14px;
+  font-size:13px;font-weight:500;
+  color:var(--bone);
+  box-shadow:0 4px 16px -4px rgba(0,0,0,.5);
+}
+.dash-wx-temp{font-feature-settings:'tnum';color:var(--ivory)}
+
+.dash-hero-content{
+  position:relative;z-index:3;
+  text-align:left;
+  animation:el-rise .9s var(--ease-out) .1s both;
+}
+.dash-hero-eyebrow{
+  font-family:var(--ff-body);
+  font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  font-weight:600;color:var(--ember-hi);
+  opacity:.85;
+  margin-bottom:14px;
+}
+.dash-hero-eyebrow::before{
+  content:'';display:inline-block;
+  width:24px;height:1px;
+  background:var(--ember-hi);
+  vertical-align:middle;
+  margin-right:10px;
+  box-shadow:0 0 6px var(--ember);
+}
+.dash-hero-count{
+  font-family:var(--ff-display);
+  font-variation-settings:'opsz' 144, 'SOFT' 100, 'wght' 380;
+  font-weight:380;
+  font-size:clamp(72px, 22vw, 132px);
+  line-height:.86;
+  letter-spacing:-.045em;
+  color:var(--ivory);
+  text-shadow:0 4px 32px rgba(0,0,0,.6);
+  margin-bottom:14px;
+  font-feature-settings:'tnum','ss02';
+}
+.dash-hero-sub{
+  font-family:var(--ff-display);
+  font-variation-settings:'opsz' 18, 'SOFT' 80;
+  font-style:italic;
+  font-weight:300;
+  font-size:18px;
+  color:var(--linen);
+  letter-spacing:-.005em;
+  margin-bottom:22px;
+  max-width:24ch;
+  line-height:1.3;
+  text-shadow:0 2px 12px rgba(0,0,0,.5);
+}
+.dash-hero-cta-row{display:flex;gap:10px;flex-wrap:wrap}
+.dash-hero-cta{
+  display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(180deg, #F08648 0%, var(--ember) 50%, var(--ember-lo) 100%);
+  color:#1a0d04;
+  border:1px solid rgba(244,161,85,.35);
+  border-radius:9999px;
+  padding:11px 18px 11px 20px;
+  font-family:var(--ff-body);
+  font-weight:600;
+  font-size:13.5px;letter-spacing:.005em;
+  box-shadow:
+    0 1px 0 rgba(255,210,170,.4) inset,
+    0 -1px 0 rgba(0,0,0,.25) inset,
+    0 8px 24px -6px rgba(224,114,53,.6),
+    0 2px 4px rgba(0,0,0,.4);
+  transition:transform var(--t-fast) var(--ease-spring), filter var(--t-fast);
+}
+.dash-hero-cta:active{transform:scale(.96);filter:brightness(.95)}
+.dash-hero-cta-ghost{
+  background:rgba(244,236,223,.06);
+  color:var(--ivory);
+  border:1px solid rgba(244,236,223,.18);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 4px 16px -6px rgba(0,0,0,.5);
+}
+
+/* ─── BENTO HORIZONTAL SWIPABLE ──────────────────────────────── */
+.dash-bento-row{
+  margin-top:28px;
+  position:relative;
+  /* permettre au scroll de sortir du padding pour effet edge-to-edge */
+}
+.dash-bento-track{
+  display:flex;gap:12px;
+  overflow-x:auto;overflow-y:hidden;
+  padding:4px 24px 18px;
+  scroll-snap-type:x mandatory;
+  scroll-padding-left:24px;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.dash-bento-track::-webkit-scrollbar{display:none}
+.dash-bento{
+  flex:0 0 auto;
+  width:148px;
+  scroll-snap-align:start;
+  background:
+    linear-gradient(180deg, rgba(244,161,85,.05) 0%, transparent 60%),
+    linear-gradient(135deg, var(--ink-3) 0%, var(--ink-2) 100%);
+  border:1px solid var(--ink-5);
+  border-radius:var(--r-xl);
+  padding:18px 16px 16px;
+  display:flex;flex-direction:column;
+  text-align:left;
+  position:relative;overflow:hidden;
+  box-shadow:var(--sh-m);
+  transition:transform var(--t-med) var(--ease-spring), border-color var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease-out);
+  cursor:pointer;
+  min-height:152px;
+  isolation:isolate;
+}
+.dash-bento::before{
+  content:'';position:absolute;left:8%;right:8%;top:0;height:1px;
+  background:linear-gradient(90deg, transparent, rgba(244,236,223,.18), transparent);
+}
+.dash-bento-glow{
+  position:absolute;
+  width:140px;height:140px;border-radius:50%;
+  bottom:-70px;right:-50px;
+  background:radial-gradient(circle, rgba(244,161,85,.18), transparent 70%);
+  pointer-events:none;
+  z-index:0;
+  transition:opacity var(--t-med) var(--ease);
+}
+.dash-bento > *{position:relative;z-index:1}
+.dash-bento:active{transform:scale(.97)}
+.dash-bento:hover{
+  transform:translateY(-3px);
+  border-color:rgba(244,161,85,.35);
+  box-shadow:var(--sh-l), 0 0 30px -8px rgba(224,114,53,.35);
+}
+.dash-bento:hover .dash-bento-glow{opacity:1.4}
+.dash-bento-eyebrow{
+  font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:600;color:var(--ash);
+  margin-bottom:auto;
+}
+.dash-bento-num{
+  font-family:var(--ff-display);
+  font-variation-settings:'opsz' 96, 'SOFT' 60, 'wght' 460;
+  font-weight:460;
+  font-size:48px;
+  letter-spacing:-.025em;line-height:1;
+  color:var(--ivory);
+  margin:14px 0 6px;
+  font-feature-settings:'tnum','ss02';
+}
+.dash-bento-prep .dash-bento-num{color:var(--ember-hi)}
+.dash-bento-tasks .dash-bento-num{color:var(--gold)}
+.dash-bento-courses .dash-bento-num{color:var(--frost)}
+.dash-bento-photos .dash-bento-num{color:var(--copper)}
+
+.dash-bento-prog{
+  height:4px;background:var(--ink-2);
+  border-radius:9999px;overflow:hidden;
+  margin:6px 0 8px;
+  border:1px solid var(--ink-5);
+}
+.dash-bento-prog-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg, var(--ember-lo), var(--ember-hi));
+  box-shadow:0 0 8px rgba(244,161,85,.5);
+  transition:width var(--t-slow) var(--ease-out);
+}
+.dash-bento-spark{height:8px;margin:6px 0 8px}
+.dash-bento-foot{
+  display:flex;align-items:center;gap:6px;
+  font-size:11.5px;color:var(--ash);
+  letter-spacing:.02em;font-weight:500;
+}
+.dash-bento-foot svg{opacity:.7;flex-shrink:0}
+
+/* ─── DASH SECTIONS ÉDITORIALES ────────────────────────────── */
+.dash-section{padding:32px 24px 0}
+.dash-section-hd{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:12px;margin-bottom:18px;
+}
+.dash-section-titles{flex:1;min-width:0}
+.dash-section-eyebrow{
+  font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  font-weight:600;color:var(--ember-hi);
+  opacity:.9;
+  margin-bottom:6px;
+  display:flex;align-items:center;gap:8px;
+}
+.dash-section-eyebrow::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:var(--ember);
+  box-shadow:0 0 8px var(--ember);
+  flex-shrink:0;
+}
+.dash-section-title{
+  font-family:var(--ff-display);
+  font-variation-settings:'opsz' 96, 'SOFT' 50, 'wght' 480;
+  font-weight:480;
+  font-size:32px;
+  letter-spacing:-.025em;line-height:1;
+  color:var(--ivory);
+}
+.dash-section-link{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(244,236,223,.045);
+  border:1px solid rgba(244,236,223,.10);
+  border-radius:9999px;
+  padding:8px 14px;
+  font-size:12.5px;font-weight:500;
+  color:var(--bone);
+  transition:all var(--t-med) var(--ease);
+  flex-shrink:0;
+}
+.dash-section-link:hover{
+  background:rgba(244,161,85,.12);
+  border-color:rgba(244,161,85,.35);
+  color:var(--ember-hi);
+}
+.dash-section-link svg{opacity:.7;transition:transform var(--t-med) var(--ease-out)}
+.dash-section-link:hover svg{transform:translateX(2px);opacity:1}
+.dash-section-body{display:flex;flex-direction:column;gap:8px}
+.dash-section-body .empty{padding:24px 0;text-align:center;color:var(--ash)}
+
+/* ─── ITEMS dans les sections dashboard ─────────────────────── */
+.dash-v2 .t-item, .dash-v2 .ev-item{
+  background:linear-gradient(180deg, rgba(244,161,85,.025), transparent 60%), var(--ink-3);
+  border:1px solid var(--ink-5);
+  border-radius:var(--r-l);
+  padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+  transition:all var(--t-med) var(--ease);
+  box-shadow:var(--sh-s);
+}
+.dash-v2 .t-item:hover, .dash-v2 .ev-item:hover{
+  transform:translateX(2px);
+  border-color:rgba(244,161,85,.2);
+  box-shadow:var(--sh-m);
+}
+.dash-v2 .t-circle{
+  width:24px;height:24px;border-radius:50%;
+  border:1.5px solid rgba(244,236,223,.25);
+  background:var(--ink-2);
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  transition:all var(--t-fast) var(--ease-spring);
+}
+.dash-v2 .t-circle.done{
+  background:linear-gradient(180deg, var(--ember-hi), var(--ember));
+  border-color:var(--ember-hi);
+  box-shadow:0 0 12px rgba(244,161,85,.5);
+}
+.dash-v2 .t-circle .ck{
+  width:14px;height:14px;
+  fill:none;stroke:#1a0d04;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;
+  opacity:0;transition:opacity var(--t-fast);
+}
+.dash-v2 .t-circle.done .ck{opacity:1}
+.dash-v2 .t-body{flex:1;min-width:0}
+.dash-v2 .t-name{
+  font-size:14.5px;font-weight:500;color:var(--bone);
+  letter-spacing:-.005em;
+  margin-bottom:4px;
+}
+.dash-v2 .t-chips{display:flex;gap:6px;flex-wrap:wrap}
+.dash-v2 .chip{
+  font-size:10.5px;letter-spacing:.04em;font-weight:600;
+  padding:2px 9px;border-radius:9999px;
+  background:rgba(244,161,85,.10);color:var(--ember-hi);
+  border:1px solid rgba(244,161,85,.22);
+}
+.dash-v2 .chip.ch-high{background:rgba(225,91,79,.12);color:#F08070;border-color:rgba(225,91,79,.3)}
+.dash-v2 .chip.ch-medium{background:rgba(224,146,47,.12);color:var(--warn);border-color:rgba(224,146,47,.3)}
+.dash-v2 .chip.ch-low{background:rgba(125,167,106,.12);color:var(--ok);border-color:rgba(125,167,106,.3)}
+.dash-v2 .chip.ch-late{background:rgba(225,91,79,.18);color:#F08070;border-color:rgba(225,91,79,.4);font-weight:700}
+.dash-v2 .chip.ch-cat{background:rgba(244,236,223,.06);color:var(--linen);border-color:rgba(244,236,223,.12)}
+.dash-v2 .chip.ch-date{background:rgba(244,236,223,.05);color:var(--ash);border-color:rgba(244,236,223,.10)}
+.dash-v2 .ev-dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;
+  box-shadow:0 0 10px currentColor;
+}
+.dash-v2 .ev-body{flex:1}
+.dash-v2 .ev-title{font-size:14.5px;font-weight:500;color:var(--bone);margin-bottom:3px}
+.dash-v2 .ev-date{font-size:12px;color:var(--ash)}
+
+/* ─── PAGE TRANSITIONS — slide horizontal entre sections ───── */
+.sec{
+  opacity:0;
+  transform:translateX(20px) translateY(8px);
+  transition:opacity .35s var(--ease-out), transform .45s var(--ease-out);
+  pointer-events:none;
+}
+.sec.on{
+  opacity:1;
+  transform:none;
+  pointer-events:auto;
+}
+.sec:not(.on){display:none}
+
+/* ─── BOTTOM SHEETS NATIVES (override .modal/.m-overlay) ───── */
+.m-overlay{
+  background:radial-gradient(ellipse at center, rgba(20,12,7,.45), rgba(5,3,2,.85));
+  backdrop-filter:blur(16px) saturate(1.3);
+  -webkit-backdrop-filter:blur(16px) saturate(1.3);
+  align-items:flex-end!important;
+  padding:0!important;
+}
+.m-overlay.on .modal, .m-overlay.show .modal,
+.m-overlay.on > div[class*="modal"], .m-overlay.show > div[class*="modal"]{
+  animation:el-sheet-in .45s var(--ease-out) both;
+}
+@keyframes el-sheet-in{
+  from{transform:translateY(100%)}
+  to{transform:translateY(0)}
+}
+.modal, .m-overlay > div:not(.lb-stage):not(.lb-meta):not(.lb-nav):not(.lb-action){
+  background:
+    linear-gradient(180deg, rgba(244,161,85,.025), transparent 30%),
+    var(--ink-2)!important;
+  border:1px solid var(--ink-5)!important;
+  border-bottom:none!important;
+  border-radius:var(--r-3xl) var(--r-3xl) 0 0!important;
+  box-shadow:0 -24px 64px -16px rgba(0,0,0,.85), 0 -1px 0 rgba(244,236,223,.10) inset!important;
+  width:100%!important;
+  max-width:560px!important;
+  margin:0 auto!important;
+  max-height:92vh!important;
+  overflow-y:auto;
+  position:relative!important;
+  padding-top:32px!important;
+  padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))!important;
+}
+/* Drag handle universel */
+.modal::before, .m-overlay > div:not(.lb-stage):not(.lb-meta):not(.lb-nav):not(.lb-action)::before{
+  content:'';
+  position:absolute;
+  top:10px;left:50%;
+  transform:translateX(-50%);
+  width:44px;height:5px;
+  background:rgba(244,236,223,.25);
+  border-radius:9999px;
+  pointer-events:none;
+}
+/* Lightbox — exception (mode plein écran) */
+.lb-overlay, [class*="lightbox"]{align-items:center!important;padding:0!important}
+
+/* ─── COMPOSE WHEEL — radial menu signature ──────────────── */
+.compose-overlay{
+  position:fixed;inset:0;
+  z-index:1100;
+  background:radial-gradient(ellipse at calc(100% - 50px) calc(100% - 110px), rgba(20,12,7,.55), rgba(5,3,2,.92));
+  backdrop-filter:blur(20px) saturate(1.4);
+  -webkit-backdrop-filter:blur(20px) saturate(1.4);
+  opacity:0;pointer-events:none;
+  transition:opacity .35s var(--ease-out);
+}
+/* FAB élevé au-dessus de l'overlay quand wheel ouverte (pivot visible) */
+body.compose-on .fab, body.compose-on #fab{
+  z-index:1200!important;
+  animation:none!important;
+}
+.compose-overlay.on{opacity:1;pointer-events:auto}
+.compose-grain{
+  position:absolute;inset:0;
+  background-image:var(--grain);
+  background-size:160px 160px;
+  opacity:.35;mix-blend-mode:overlay;
+  pointer-events:none;
+}
+.compose-cancel{
+  position:absolute;top:calc(env(safe-area-inset-top, 0px) + 24px);left:50%;
+  transform:translateX(-50%);
+  background:rgba(244,236,223,.06);
+  border:1px solid rgba(244,236,223,.12);
+  color:var(--bone);
+  border-radius:9999px;
+  padding:8px 18px;
+  font-size:13px;font-weight:500;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  opacity:0;transform:translate(-50%,-12px);
+  transition:all .4s var(--ease-out) .1s;
+}
+.compose-overlay.on .compose-cancel{opacity:1;transform:translate(-50%,0)}
+
+.compose-wheel{
+  position:absolute;
+  bottom:calc(var(--nav-h) + 14px);
+  right:18px;
+  width:60px;height:60px;
+  pointer-events:none;
+}
+.compose-actions{
+  position:absolute;inset:0;
+  pointer-events:none;
+}
+.compose-action{
+  position:absolute;
+  bottom:0;right:0;
+  width:54px;height:54px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg, var(--ink-3), var(--ink-2));
+  border:1px solid rgba(244,161,85,.25);
+  color:var(--ember-hi);
+  box-shadow:var(--sh-l), 0 0 16px -4px rgba(224,114,53,.5);
+  opacity:0;transform:scale(.5);
+  transition:all .4s var(--ease-spring);
+  pointer-events:none;
+  cursor:pointer;
+}
+.compose-action svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px rgba(244,161,85,.4))}
+.compose-action::after{
+  content:attr(data-label);
+  position:absolute;
+  right:64px;top:50%;
+  transform:translateY(-50%);
+  font-size:13px;font-weight:500;
+  color:var(--ivory);
+  white-space:nowrap;
+  background:rgba(20,12,7,.7);
+  border:1px solid rgba(244,236,223,.10);
+  border-radius:9999px;
+  padding:6px 12px;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  opacity:0;
+  transition:opacity .25s var(--ease-out) .15s;
+  pointer-events:none;
+}
+.compose-overlay.on .compose-action{
+  opacity:1;
+  pointer-events:auto;
+}
+.compose-overlay.on .compose-action::after{opacity:1}
+/* Positions des actions (arc montant à gauche / haut) */
+.compose-overlay.on .compose-action[data-i="0"]{transform:translate(0px, -84px)}
+.compose-overlay.on .compose-action[data-i="1"]{transform:translate(-58px, -64px)}
+.compose-overlay.on .compose-action[data-i="2"]{transform:translate(-90px, -16px)}
+.compose-overlay.on .compose-action[data-i="3"]{transform:translate(-58px,  44px) scale(0)}
+.compose-overlay.on .compose-action[data-i="4"]{transform:translate(0px,   80px) scale(0)}
+
+/* Le FAB original sert de centre/trigger — quand wheel ouverte, il tourne */
+.compose-overlay.on ~ .fab .fab-plus,
+body.compose-on .fab .fab-plus{transform:rotate(45deg)}
+.fab-plus{
+  width:24px;height:24px;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .4s var(--ease-spring);
+  position:relative;
+}
+.fab-plus::before, .fab-plus::after{
+  content:'';position:absolute;
+  background:#1a0d04;border-radius:2px;
+}
+.fab-plus::before{width:18px;height:2.5px}
+.fab-plus::after{width:2.5px;height:18px}
+
+/* ─── EMPTY STATES ILLUSTRÉS ──────────────────────────────── */
+.empty-illus{
+  text-align:center;
+  padding:48px 24px;
+}
+.empty-illus svg{
+  width:120px;height:120px;
+  opacity:.85;
+  margin:0 auto 18px;
+  filter:drop-shadow(0 4px 12px rgba(224,114,53,.25));
+}
+.empty-illus-title{
+  font-family:var(--ff-display);
+  font-variation-settings:'opsz' 48, 'SOFT' 80;
+  font-style:italic;font-weight:300;
+  font-size:22px;
+  color:var(--linen);
+  letter-spacing:-.015em;
+  margin-bottom:6px;
+}
+.empty-illus-sub{
+  font-size:13.5px;color:var(--ash);
+  max-width:34ch;margin:0 auto;line-height:1.5;
+}
+
+/* ─── SKELETON LOADERS ─────────────────────────────────────── */
+.skel{
+  background:linear-gradient(90deg,
+    var(--ink-2) 0%,
+    var(--ink-3) 25%,
+    rgba(224,114,53,.07) 50%,
+    var(--ink-3) 75%,
+    var(--ink-2) 100%);
+  background-size:300% 100%;
+  animation:el-shimmer 1.8s linear infinite;
+  border-radius:var(--r-s);
+  border:1px solid var(--ink-5);
+}
+.skel-line{height:14px;border-radius:9999px}
+.skel-block{height:100px;border-radius:var(--r-l)}
+.skel-card{
+  border-radius:var(--r-xl);height:152px;
+  background:linear-gradient(135deg, var(--ink-3), var(--ink-2));
+  border:1px solid var(--ink-5);
+  position:relative;overflow:hidden;
+}
+.skel-card::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg, transparent 0%, rgba(224,114,53,.08) 50%, transparent 100%);
+  background-size:200% 100%;
+  animation:el-shimmer 1.8s linear infinite;
+}
+
+/* Le dash-section devient transparent (le hero tient l'identité) */
+.dash-v2 .dash-section .empty-title{
+  font-family:var(--ff-display);
+  font-style:italic;font-weight:300;
+  font-size:18px;color:var(--linen);
+}
+
+/* ─── EMPTY STATES via .empty (générés par JS dans rDash) ─── */
+.dash-v2 .empty{
+  position:relative;
+  text-align:center;
+  padding:36px 16px 28px!important;
+  background:linear-gradient(180deg, rgba(244,161,85,.025), transparent 60%), var(--ink-2);
+  border:1px solid var(--ink-5);
+  border-radius:var(--r-l);
+  color:var(--ash);
+}
+.dash-v2 .empty::before{
+  content:'';
+  display:block;
+  width:64px;height:64px;
+  margin:0 auto 14px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none'><defs><radialGradient id='g' cx='50%25' cy='60%25'><stop offset='0%25' stop-color='%23F4A155' stop-opacity='.9'/><stop offset='60%25' stop-color='%23E07235' stop-opacity='.4'/><stop offset='100%25' stop-color='%23A24A1A' stop-opacity='0'/></radialGradient></defs><circle cx='32' cy='42' r='22' fill='url(%23g)'/><path d='M32 14c-1 6-5 10-5 16a5 5 0 0010 0c0-3-1-5-2-7 4 2 6 6 6 11a9 9 0 01-18 0c0-7 4-12 9-20z' fill='%23F4A155' opacity='.85'/></svg>");
+  background-size:contain;background-repeat:no-repeat;background-position:center;
+  filter:drop-shadow(0 6px 18px rgba(224,114,53,.4));
+}
+.dash-v2 .empty-title{
+  font-family:var(--ff-display);
+  font-variation-settings:'opsz' 24, 'SOFT' 80;
+  font-style:italic;font-weight:300;
+  font-size:18px;color:var(--linen);
+  letter-spacing:-.005em;
+  margin-bottom:4px;
+}
+.dash-v2 .empty p, .dash-v2 .empty .empty-sub{
+  font-size:13px;color:var(--ash);
+  max-width:32ch;margin:0 auto;line-height:1.5;
+}
+
+/* Mobile-first : ajustements </480px */
+@media (max-width:420px){
+  .dash-hero{padding-left:20px;padding-right:20px;min-height:58vh}
+  .dash-section{padding-left:20px;padding-right:20px}
+  .dash-bento-track{padding-left:20px;padding-right:20px}
+  .dash-bento{width:140px}
+  .dash-section-title{font-size:28px}
+  .dash-hero-count{font-size:clamp(64px, 21vw, 112px)}
+}
+
 </style>
 </head>
 <body>
@@ -2981,37 +3606,149 @@ svg{color:inherit}
 <!-- ══ SECTIONS ══ -->
 
 <!-- Dashboard -->
-<main id="sec-dashboard" class="sec on">
-  <div class="cd-card" id="cdCard">
-    <img class="cd-cover-img" id="cdCoverImg" alt="" style="display:none">
-    <div class="cd-inner">
-      <div class="cd-lbl">Prochaine visite au chalet</div>
-      <div class="cd-days" id="cdDays">—</div>
-      <div class="cd-sub" id="cdSub">Aucun séjour planifié</div>
+<main id="sec-dashboard" class="sec on dash-v2">
+
+  <!-- ══ HERO CINÉMATOGRAPHIQUE ══ -->
+  <div class="dash-hero cd-card" id="cdCard">
+    <img class="dash-hero-cover cd-cover-img" id="cdCoverImg" alt="" style="display:none">
+    <div class="dash-hero-fall"></div>
+    <div class="dash-hero-grain"></div>
+
+    <!-- Étiquette flottante haut-gauche : météo + lieu -->
+    <div class="dash-hero-meta">
+      <div class="dash-hero-pill" id="dashWeatherPill" style="display:none">
+        <span class="dash-wx-ico" id="dashWxIco"></span>
+        <span class="dash-wx-temp" id="dashWxTemp">—</span>
+      </div>
+    </div>
+
+    <!-- Contenu central — typographie monumentale -->
+    <div class="dash-hero-content cd-inner">
+      <div class="dash-hero-eyebrow cd-lbl">Prochain séjour</div>
+      <div class="dash-hero-count cd-days" id="cdDays">—</div>
+      <div class="dash-hero-sub cd-sub" id="cdSub">Aucun séjour planifié</div>
+      <div class="dash-hero-cta-row">
+        <button class="dash-hero-cta" onclick="go('calendar')">
+          <span>Voir l'agenda</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+        <button class="dash-hero-cta dash-hero-cta-ghost" onclick="openQuickAdd && openQuickAdd()">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Ajouter</span>
+        </button>
+      </div>
     </div>
   </div>
-  <div class="stats-row">
-    <div class="stat-card"><div class="stat-num" id="stTasks">0</div><div class="stat-lbl">Tâches en cours</div></div>
-    <div class="stat-card"><div class="stat-num" id="stPacked">—</div><div class="stat-lbl">Bagages prêts</div></div>
-    <div class="stat-card"><div class="stat-num" id="stCourses">0</div><div class="stat-lbl">À acheter</div></div>
+
+  <!-- ══ BENTO HORIZONTAL SWIPABLE ══ -->
+  <div class="dash-bento-row">
+    <div class="dash-bento-track">
+
+      <button class="dash-bento dash-bento-prep" onclick="go('packing')" type="button">
+        <div class="dash-bento-glow"></div>
+        <div class="dash-bento-eyebrow">Préparatifs</div>
+        <div class="dash-bento-num"><span id="stPacked">—</span></div>
+        <div class="dash-bento-prog"><div class="dash-bento-prog-fill" id="stPackedBar" style="width:0%"></div></div>
+        <div class="dash-bento-foot">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 011 1v1H8V5a1 1 0 011-1z"/><rect x="4" y="6" width="16" height="15" rx="3"/><path d="M9 13h6M12 10v6"/></svg>
+          Bagages prêts
+        </div>
+      </button>
+
+      <button class="dash-bento dash-bento-tasks" onclick="go('tasks')" type="button">
+        <div class="dash-bento-glow"></div>
+        <div class="dash-bento-eyebrow">À faire</div>
+        <div class="dash-bento-num"><span id="stTasks">0</span></div>
+        <div class="dash-bento-spark" id="stTasksSpark"></div>
+        <div class="dash-bento-foot">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          Tâches actives
+        </div>
+      </button>
+
+      <button class="dash-bento dash-bento-courses" onclick="go('courses')" type="button">
+        <div class="dash-bento-glow"></div>
+        <div class="dash-bento-eyebrow">Marché</div>
+        <div class="dash-bento-num"><span id="stCourses">0</span></div>
+        <div class="dash-bento-spark"></div>
+        <div class="dash-bento-foot">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.57L23 6H6"/></svg>
+          À acheter
+        </div>
+      </button>
+
+      <button class="dash-bento dash-bento-photos" onclick="go('photos')" type="button">
+        <div class="dash-bento-glow"></div>
+        <div class="dash-bento-eyebrow">Mémoire</div>
+        <div class="dash-bento-num"><span id="stPhotos">—</span></div>
+        <div class="dash-bento-foot">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Photos
+        </div>
+      </button>
+
+    </div>
   </div>
+
+  <!-- Anniversaire(s) du jour -->
   <div id="dbBirthday" style="display:none"></div>
-  <div class="card">
-    <div class="card-lbl">Tâches urgentes</div>
-    <div id="dbUrgent"></div>
-  </div>
-  <div class="card">
-    <div class="card-lbl">Liste de courses</div>
-    <div id="dbCourses"></div>
-  </div>
-  <div class="card">
-    <div class="card-lbl">Prochains séjours</div>
-    <div id="dbEvents"></div>
-  </div>
-  <div class="card" id="dbMemoriesCard" style="display:none">
-    <div class="card-lbl" id="dbMemoriesLbl">Souvenir du jour</div>
-    <div id="dbMemoriesBody"></div>
-  </div>
+
+  <!-- ══ SECTION : Tâches urgentes ══ -->
+  <section class="dash-section">
+    <div class="dash-section-hd">
+      <div class="dash-section-titles">
+        <div class="dash-section-eyebrow">Aujourd'hui</div>
+        <h2 class="dash-section-title">À ne pas oublier</h2>
+      </div>
+      <button class="dash-section-link" onclick="go('tasks')" type="button">
+        <span>Tout voir</span>
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+    <div class="dash-section-body" id="dbUrgent"></div>
+  </section>
+
+  <!-- ══ SECTION : Courses ══ -->
+  <section class="dash-section">
+    <div class="dash-section-hd">
+      <div class="dash-section-titles">
+        <div class="dash-section-eyebrow">Marché</div>
+        <h2 class="dash-section-title">Liste de courses</h2>
+      </div>
+      <button class="dash-section-link" onclick="go('courses')" type="button">
+        <span>Tout voir</span>
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+    <div class="dash-section-body" id="dbCourses"></div>
+  </section>
+
+  <!-- ══ SECTION : Prochains séjours ══ -->
+  <section class="dash-section">
+    <div class="dash-section-hd">
+      <div class="dash-section-titles">
+        <div class="dash-section-eyebrow">Calendrier</div>
+        <h2 class="dash-section-title">Prochains séjours</h2>
+      </div>
+      <button class="dash-section-link" onclick="go('calendar')" type="button">
+        <span>Tout voir</span>
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+    <div class="dash-section-body" id="dbEvents"></div>
+  </section>
+
+  <!-- ══ SECTION : Souvenirs (éditoriale) ══ -->
+  <section class="dash-section dash-section-memories" id="dbMemoriesCard" style="display:none">
+    <div class="dash-section-hd">
+      <div class="dash-section-titles">
+        <div class="dash-section-eyebrow" id="dbMemoriesLbl">Souvenir</div>
+        <h2 class="dash-section-title">Mémoire vive</h2>
+      </div>
+    </div>
+    <div class="dash-section-body" id="dbMemoriesBody"></div>
+  </section>
+
 </main>
 
 <!-- Tâches -->
@@ -3385,10 +4122,29 @@ svg{color:inherit}
   </button>
 </nav>
 
-<!-- FAB -->
-<button class="fab" id="fab" onclick="fabAct()" aria-label="Ajouter">
-  <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+<!-- FAB · ouvre la compose wheel (radial menu signature) -->
+<button class="fab" id="fab" onclick="toggleComposeWheel(event)" aria-label="Ajouter">
+  <span class="fab-plus" aria-hidden="true"></span>
 </button>
+
+<!-- ══ COMPOSE WHEEL · radial menu pour quick-add ══ -->
+<div class="compose-overlay" id="composeOverlay" onclick="closeComposeWheel()" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="compose-grain"></div>
+  <button class="compose-cancel" type="button">Annuler</button>
+  <div class="compose-wheel" aria-hidden="true">
+    <div class="compose-actions">
+      <button class="compose-action" data-i="0" data-label="Tâche" type="button" onclick="composeOpen(event, 'task')">
+        <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      </button>
+      <button class="compose-action" data-i="1" data-label="Course" type="button" onclick="composeOpen(event, 'course')">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.57L23 6H6"/></svg>
+      </button>
+      <button class="compose-action" data-i="2" data-label="Bagage" type="button" onclick="composeOpen(event, 'pack')">
+        <svg viewBox="0 0 24 24"><path d="M9 4h6a1 1 0 011 1v1H8V5a1 1 0 011-1z"/><rect x="4" y="6" width="16" height="15" rx="3"/><path d="M9 13h6M12 10v6"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ MODALS ══ -->
 
@@ -8762,6 +9518,203 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+/* ════════════════════════════════════════════════════════════════
+   EMBER LODGE · COUCHE COMPORTEMENTALE
+   - Compose wheel (radial menu)
+   - Drag-to-dismiss bottom sheets
+   - Hooks rDash : bento progress + photo count
+   - Météo pill dans le hero du dashboard
+   ════════════════════════════════════════════════════════════════ */
+(function elBehavior(){
+
+  /* ─── COMPOSE WHEEL ─── */
+  const overlay = () => document.getElementById('composeOverlay');
+  // Sections où le FAB garde un comportement contextuel direct (action évidente)
+  const CONTEXTUAL_SECS = new Set(['tasks','packing','courses','contacts','calendar']);
+  window.toggleComposeWheel = function(ev){
+    if(ev) ev.stopPropagation();
+    const ov = overlay();
+    if(!ov) return;
+    // Si déjà ouverte → fermer
+    if(ov.classList.contains('on')){ closeComposeWheel(); return; }
+    // Sur dashboard et sections atypiques → ouvrir la wheel (quick-add universel)
+    if(!window.curSec || !CONTEXTUAL_SECS.has(window.curSec)){
+      openComposeWheel(); return;
+    }
+    // Sur sections primaires → action contextuelle directe
+    if(typeof fabAct === 'function'){ fabAct(); return; }
+    openComposeWheel();
+  };
+  // Long-press sur le FAB → toujours ouvrir la wheel (geste alternatif)
+  let pressTimer = null;
+  document.addEventListener('touchstart', (e) => {
+    if(!e.target.closest('#fab')) return;
+    pressTimer = setTimeout(() => { openComposeWheel(); pressTimer = null; }, 400);
+  }, {passive:true});
+  document.addEventListener('touchend', () => { if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; } });
+  document.addEventListener('touchmove', () => { if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; } }, {passive:true});
+  window.openComposeWheel = function(){
+    const ov = overlay();
+    if(!ov) return;
+    ov.classList.add('on');
+    ov.setAttribute('aria-hidden','false');
+    document.body.classList.add('compose-on');
+    if(navigator.vibrate) try{ navigator.vibrate(8); }catch(_){}
+  };
+  window.closeComposeWheel = function(){
+    const ov = overlay();
+    if(!ov) return;
+    ov.classList.remove('on');
+    ov.setAttribute('aria-hidden','true');
+    document.body.classList.remove('compose-on');
+  };
+  window.composeOpen = function(ev, kind){
+    if(ev){ ev.stopPropagation(); ev.preventDefault(); }
+    closeComposeWheel();
+    setTimeout(() => {
+      try{
+        if(kind === 'task' && typeof openTaskModal === 'function') openTaskModal();
+        else if(kind === 'course' && typeof openCrsModal === 'function') openCrsModal();
+        else if(kind === 'pack' && typeof openPackModal === 'function') openPackModal();
+        else if(kind === 'event' && typeof openM === 'function') openM('evModal');
+        else if(kind === 'contact' && typeof openContactModal === 'function') openContactModal();
+        else if(typeof openQuickAdd === 'function') openQuickAdd();
+      }catch(e){ console.warn('compose open failed', e); }
+    }, 200);
+  };
+  // Bloquer les clics sur les enfants (sauf overlay lui-même)
+  document.addEventListener('click', (e) => {
+    const ov = overlay();
+    if(!ov || !ov.classList.contains('on')) return;
+    if(e.target.closest('.compose-action, .compose-cancel')) return;
+    if(e.target === ov || e.target.classList.contains('compose-grain')){
+      closeComposeWheel();
+    }
+  });
+
+  /* ─── DRAG-TO-DISMISS POUR BOTTOM SHEETS ─── */
+  function setupSheetDrag(){
+    document.addEventListener('touchstart', (e) => {
+      const sheet = e.target.closest('.modal, .m-overlay > div');
+      if(!sheet) return;
+      const overlay = sheet.closest('.m-overlay, [class*="modal-overlay"]');
+      if(!overlay) return;
+      // Drag uniquement sur la partie haute (handle) ou si scrollTop = 0
+      const rect = sheet.getBoundingClientRect();
+      const startY = e.touches[0].clientY;
+      const fromHandle = startY - rect.top < 36;
+      if(!fromHandle && sheet.scrollTop > 4) return;
+      let dragging = false, currentY = startY, lastY = startY, dy = 0;
+      const baseTransform = sheet.style.transform || '';
+      sheet.style.transition = 'none';
+      function onMove(ev){
+        const y = ev.touches[0].clientY;
+        dy = y - startY;
+        if(dy < 0) dy = dy * 0.2; // résistance vers le haut
+        if(dy > 6) dragging = true;
+        sheet.style.transform = `translateY(${dy}px)`;
+        currentY = y;
+      }
+      function onEnd(){
+        sheet.removeEventListener('touchmove', onMove);
+        sheet.removeEventListener('touchend', onEnd);
+        sheet.removeEventListener('touchcancel', onEnd);
+        sheet.style.transition = 'transform .35s cubic-bezier(.16,1,.3,1)';
+        const velocity = currentY - lastY;
+        if(dy > rect.height * 0.32 || velocity > 12){
+          // dismiss
+          sheet.style.transform = `translateY(100%)`;
+          setTimeout(() => {
+            sheet.style.transform = baseTransform;
+            sheet.style.transition = '';
+            const id = overlay.id || (overlay.querySelector('[id]') && overlay.querySelector('[id]').id);
+            if(id && typeof closeM === 'function') closeM(id);
+            else overlay.classList.remove('on','show');
+          }, 280);
+        }else{
+          sheet.style.transform = baseTransform;
+          setTimeout(() => { sheet.style.transition = ''; }, 350);
+        }
+      }
+      sheet.addEventListener('touchmove', onMove, {passive:true});
+      sheet.addEventListener('touchend', onEnd);
+      sheet.addEventListener('touchcancel', onEnd);
+      // Tracker la velocité
+      const trackVel = () => { lastY = currentY; };
+      const velIv = setInterval(trackVel, 60);
+      sheet.addEventListener('touchend', () => clearInterval(velIv), {once:true});
+    }, {passive:true});
+  }
+  setupSheetDrag();
+
+  /* ─── HOOK rDash : alimente le bento bagages + photos ─── */
+  function patchDash(){
+    if(typeof window.rDash !== 'function') return;
+    const orig = window.rDash;
+    window.rDash = function(){
+      orig.apply(this, arguments);
+      try{
+        // Mise à jour de la barre de progression bagages
+        const bar = document.getElementById('stPackedBar');
+        if(bar){
+          const tot = (window.S && S.packing) ? S.packing.length : 0;
+          const pk = (window.S && S.packing) ? S.packing.filter(i=>i.packed).length : 0;
+          const pct = tot ? Math.round(pk/tot*100) : 0;
+          bar.style.width = pct + '%';
+        }
+        // Compteur photos
+        const ph = document.getElementById('stPhotos');
+        if(ph){
+          const count = (window.photoCache && photoCache.length) || (window.S && S.photos && S.photos.length) || 0;
+          ph.textContent = count > 999 ? Math.floor(count/100)/10 + 'k' : count;
+        }
+        // Mise à jour de la pill météo dans le hero
+        renderHeroWeather();
+      }catch(e){ /* silencieux */ }
+    };
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', patchDash);
+  }else{
+    patchDash();
+  }
+  // Re-patch au cas où rDash est défini après
+  setTimeout(patchDash, 600);
+  setTimeout(patchDash, 1500);
+
+  /* ─── MÉTÉO HERO PILL ─── */
+  function renderHeroWeather(){
+    const pill = document.getElementById('dashWeatherPill');
+    if(!pill) return;
+    const wxData = (window.lastWeather || (window.S && S.weather) || null);
+    if(!wxData || typeof wxData.temp !== 'number'){ pill.style.display='none'; return; }
+    pill.style.display = 'inline-flex';
+    const ico = document.getElementById('dashWxIco');
+    const tmp = document.getElementById('dashWxTemp');
+    if(tmp) tmp.textContent = Math.round(wxData.temp) + '°';
+    if(ico){
+      const code = wxData.code || 0;
+      let glyph = '☀';
+      if(code >= 1 && code <= 3) glyph = '⛅';
+      else if(code >= 45 && code <= 48) glyph = '☁';
+      else if(code >= 51 && code <= 67) glyph = '☂';
+      else if(code >= 71 && code <= 86) glyph = '❄';
+      else if(code >= 95) glyph = '⛈';
+      ico.textContent = glyph;
+    }
+  }
+  window.renderHeroWeather = renderHeroWeather;
+
+  /* ─── ESC ferme la compose wheel ─── */
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape'){
+      const ov = overlay();
+      if(ov && ov.classList.contains('on')) closeComposeWheel();
+    }
+  });
+
+})();
 </script>
 </body>
 </html>
