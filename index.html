@@ -1392,6 +1392,76 @@ body.drag-active *{cursor:grabbing !important}
 .add-photo svg{width:20px;height:20px;stroke:var(--p);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .add-photo span{font-size:13px;font-weight:700;color:var(--p)}
 
+/* ══════════════════════════════════════════
+   PHOTOS — toolbar haut compact (3 boutons 1 ligne)
+══════════════════════════════════════════ */
+.sec-photos-tight{padding-top:14px}
+.photos-toolbar{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+  margin-bottom:14px;position:relative;
+}
+.ph-tool{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  height:44px;padding:0 10px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  color:var(--t);
+  font-size:13.5px;font-weight:700;letter-spacing:-.1px;
+  cursor:pointer;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+  -webkit-tap-highlight-color:transparent;
+  min-width:0;
+}
+.ph-tool:active{transform:scale(.96);background:var(--p-tint-2);border-color:var(--p-tint)}
+.ph-tool svg{
+  width:18px;height:18px;flex-shrink:0;
+  stroke:var(--t);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;
+}
+.ph-tool span{
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  min-width:0;
+}
+.ph-tool-caret{width:12px !important;height:12px !important;opacity:.55;stroke-width:2.2 !important}
+.ph-tool.on,
+.ph-tool[aria-expanded="true"]{
+  background:var(--p-tint-2);border-color:var(--p);color:var(--p);
+}
+.ph-tool.on svg,
+.ph-tool[aria-expanded="true"] svg{stroke:var(--p)}
+
+/* Menu déroulant des filtres */
+.photo-filter-menu{
+  position:absolute;
+  top:54px;right:0;
+  z-index:30;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:0 12px 32px rgba(0,0,0,.18);
+  padding:6px;
+  min-width:200px;
+  animation:menuPop .18s var(--ease-out);
+  transform-origin:top right;
+}
+.photo-filter-menu[hidden]{display:none}
+.pfm-item{
+  display:block;width:100%;text-align:left;
+  background:transparent;border:none;color:var(--t);
+  padding:10px 12px;
+  border-radius:10px;
+  font-size:14px;font-weight:600;letter-spacing:-.1px;
+  cursor:pointer;
+  transition:background var(--t-fast) var(--ease);
+}
+.pfm-item:hover,.pfm-item:active{background:var(--p-tint-2)}
+.pfm-item.on{background:var(--p-tint-2);color:var(--p);font-weight:800}
+@keyframes menuPop{
+  from{opacity:0;transform:scale(.94) translateY(-4px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+
 .upload-bar{
   margin-top:var(--s3);
   display:flex;align-items:center;gap:10px;
@@ -2483,37 +2553,48 @@ body.drag-active *{cursor:grabbing !important}
 </main>
 
 <!-- Photos -->
-<main id="sec-photos" class="sec">
-  <div class="sec-hdr"><div class="sec-title">Photos</div></div>
-  <div class="card" style="position:relative">
-    <div class="card-lbl">Photos partagées</div>
-    <button class="photo-slideshow-btn" id="slideshowBtn" onclick="startSlideshow()" style="display:none">
-      <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg> Diaporama
+<main id="sec-photos" class="sec sec-photos-tight">
+  <div class="photos-toolbar">
+    <label class="ph-tool" aria-label="Prendre une photo">
+      <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <span>Prendre</span>
+      <input type="file" accept="image/*" capture="environment" onchange="addPhotos(this)" style="display:none">
+    </label>
+    <label class="ph-tool" aria-label="Importer des photos">
+      <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span>Importer</span>
+      <input type="file" accept="image/*" multiple onchange="addPhotos(this)" style="display:none">
+    </label>
+    <button class="ph-tool" id="filterBtn" aria-label="Filtrer" onclick="togglePhotoFilterMenu(event)">
+      <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.5 10 19 14 21 14 12.5 22 3"/></svg>
+      <span id="filterBtnLbl">Toutes</span>
+      <svg class="ph-tool-caret" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
-    <div class="photo-pills" id="photoPills">
-      <button class="pill on" onclick="setPhotoFilter('all', this)">Toutes</button>
-      <button class="pill" onclick="setPhotoFilter('moments', this)">✨ Moments</button>
-      <button class="pill" onclick="setPhotoFilter('hearts', this)">❤️ Coups de cœur</button>
-      <button class="pill" onclick="setPhotoFilter('sejours', this)">📅 Par séjour</button>
-      <button class="pill" onclick="setPhotoFilter('months', this)">🗓 Par mois</button>
-      <button class="pill" id="pillByMarc" onclick="setPhotoFilter('byMarc', this)">👤 Marc</button>
-      <button class="pill" id="pillByCopine" onclick="setPhotoFilter('byCopine', this)">👤 Mélanie</button>
-    </div>
-    <div class="pull-refresh-indic" id="pullRefresh"></div>
-    <div class="photo-grid" id="photoGrid"></div>
-    <div id="uploadBar" style="display:none"></div>
-    <div class="add-photo-row">
-      <label class="add-photo">
-        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        <span>Prendre</span>
-        <input type="file" accept="image/*" capture="environment" onchange="addPhotos(this)" style="display:none">
-      </label>
-      <label class="add-photo">
-        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        <span>Galerie</span>
-        <input type="file" accept="image/*" multiple onchange="addPhotos(this)" style="display:none">
-      </label>
-    </div>
+  </div>
+  <div class="photo-filter-menu" id="photoFilterMenu" hidden>
+    <button class="pfm-item on" data-filter="all" onclick="pickPhotoFilter('all', 'Toutes', this)">Toutes les photos</button>
+    <button class="pfm-item" data-filter="moments" onclick="pickPhotoFilter('moments', '✨ Moments', this)">✨ Moments</button>
+    <button class="pfm-item" data-filter="hearts" onclick="pickPhotoFilter('hearts', '❤️ Coups de cœur', this)">❤️ Coups de cœur</button>
+    <button class="pfm-item" data-filter="sejours" onclick="pickPhotoFilter('sejours', '📅 Par séjour', this)">📅 Par séjour</button>
+    <button class="pfm-item" data-filter="months" onclick="pickPhotoFilter('months', '🗓 Par mois', this)">🗓 Par mois</button>
+    <button class="pfm-item" data-filter="byMarc" id="pfmByMarc" onclick="pickPhotoFilter('byMarc', '👤 Marc', this)">👤 Marc</button>
+    <button class="pfm-item" data-filter="byCopine" id="pfmByCopine" onclick="pickPhotoFilter('byCopine', '👤 Mélanie', this)">👤 Mélanie</button>
+  </div>
+  <button class="photo-slideshow-btn" id="slideshowBtn" onclick="startSlideshow()" style="display:none">
+    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg> Diaporama
+  </button>
+  <div class="pull-refresh-indic" id="pullRefresh"></div>
+  <div class="photo-grid" id="photoGrid"></div>
+  <div id="uploadBar" style="display:none"></div>
+  <!-- Vieux conteneur conservé pour rétrocompat des appels JS qui ciblent #photoPills -->
+  <div id="photoPills" style="display:none">
+    <button class="pill on" data-filter="all"></button>
+    <button class="pill" data-filter="moments"></button>
+    <button class="pill" data-filter="hearts"></button>
+    <button class="pill" data-filter="sejours"></button>
+    <button class="pill" data-filter="months"></button>
+    <button class="pill" id="pillByMarc" data-filter="byMarc"></button>
+    <button class="pill" id="pillByCopine" data-filter="byCopine"></button>
   </div>
 </main>
 
@@ -6173,20 +6254,75 @@ function rPhotos(){
 let photoFilter = 'all';
 function setPhotoFilter(f, btn){
   photoFilter = f;
-  if(btn){
-    document.querySelectorAll('#photoPills .pill').forEach(p => p.classList.remove('on'));
-    btn.classList.add('on');
+  // Synchronise l'état pour les anciens appelants qui pointent encore vers #photoPills
+  document.querySelectorAll('#photoPills .pill').forEach(p => {
+    p.classList.toggle('on', p.dataset && p.dataset.filter === f);
+  });
+  // Synchronise aussi le menu déroulant et le libellé du bouton Filtrer
+  document.querySelectorAll('#photoFilterMenu .pfm-item').forEach(it => {
+    it.classList.toggle('on', it.dataset.filter === f);
+  });
+  const labelMap = {
+    all: 'Toutes', moments: '✨ Moments', hearts: '❤️ Coups de cœur',
+    sejours: '📅 Par séjour', months: '🗓 Par mois',
+    byMarc: '👤 ' + (S.marcName || 'Marc'),
+    byCopine: '👤 ' + (S.copineName || 'Mélanie')
+  };
+  const fb = document.getElementById('filterBtnLbl');
+  if(fb){
+    if(typeof f === 'string' && f.indexOf('event-') === 0){
+      fb.textContent = '📁 Séjour';
+    }else{
+      fb.textContent = labelMap[f] || 'Filtrer';
+    }
   }
   // Reset pagination quand on change de filtre
   photoRenderLimit = PHOTO_PAGE_SIZE;
   renderPhotoGrid();
 }
-// Met à jour les libellés des pills "par auteur" avec les vrais noms
+
+// Sélection depuis le menu déroulant : applique + ferme
+function pickPhotoFilter(f, label, itemEl){
+  setPhotoFilter(f);
+  closePhotoFilterMenu();
+  if(navigator.vibrate) try{ navigator.vibrate(8); }catch(_){}
+}
+
+// Ouvre/ferme le menu de filtre
+function togglePhotoFilterMenu(ev){
+  if(ev) ev.stopPropagation();
+  const menu = document.getElementById('photoFilterMenu');
+  const btn = document.getElementById('filterBtn');
+  if(!menu) return;
+  const open = !menu.hasAttribute('hidden');
+  if(open){
+    closePhotoFilterMenu();
+  }else{
+    menu.removeAttribute('hidden');
+    if(btn) btn.setAttribute('aria-expanded', 'true');
+    setTimeout(() => document.addEventListener('click', _onDocClickClosePhotoMenu, { once:true }), 0);
+  }
+}
+function closePhotoFilterMenu(){
+  const menu = document.getElementById('photoFilterMenu');
+  const btn = document.getElementById('filterBtn');
+  if(menu) menu.setAttribute('hidden', '');
+  if(btn) btn.removeAttribute('aria-expanded');
+}
+function _onDocClickClosePhotoMenu(e){
+  const menu = document.getElementById('photoFilterMenu');
+  if(!menu || menu.hasAttribute('hidden')) return;
+  if(!menu.contains(e.target)) closePhotoFilterMenu();
+}
+
+// Met à jour les libellés des filtres "par auteur" avec les vrais noms
 function refreshPhotoPillLabels(){
-  const pm = document.getElementById('pillByMarc');
-  const pc = document.getElementById('pillByCopine');
+  const pm = document.getElementById('pfmByMarc');
+  const pc = document.getElementById('pfmByCopine');
   if(pm) pm.textContent = '👤 ' + (S.marcName || 'Marc');
-  if(pc) pc.textContent = '👤 ' + (S.copineName || 'Copine');
+  if(pc) pc.textContent = '👤 ' + (S.copineName || 'Mélanie');
+  // Resynchronise le libellé du bouton si on est sur byMarc/byCopine
+  if(photoFilter === 'byMarc' || photoFilter === 'byCopine') setPhotoFilter(photoFilter);
 }
 function viewEventGallery(eventId){
   photoFilter = 'event-' + eventId;
