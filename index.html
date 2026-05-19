@@ -5405,6 +5405,12 @@ function openProcWizard(){
   el.classList.add('on');
   el.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
+  // Masque le FAB pendant le wizard (sinon il chevauche les boutons Suivant/Terminer)
+  const fab = document.getElementById('fab');
+  if(fab) fab.style.display = 'none';
+  // Masque aussi la nav bas pour vraie expérience plein-écran
+  const nav = document.querySelector('.btm-nav');
+  if(nav) nav.style.display = 'none';
   renderProcWizard();
 }
 
@@ -5414,9 +5420,18 @@ function closeProcWizard(silent){
   el.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
   runState = null;
+  // Restaure la nav bas
+  const nav = document.querySelector('.btm-nav');
+  if(nav) nav.style.display = '';
+  // Restaure le FAB selon où on revient : visible sur la LISTE des procédures uniquement
+  const fab = document.getElementById('fab');
+  if(fab){
+    const onListRoot = (curSec === 'procedures') && !editingProcedureId;
+    fab.style.display = onListRoot ? 'flex' : 'none';
+  }
   // Refresh la vue détail si on revient dessus
   if(editingProcedureId) renderProcedureDetail();
-  if(curSec === 'procedures') rProcedures();
+  if(curSec === 'procedures' && !editingProcedureId) rProcedures();
   if(!silent && navigator.vibrate) try{ navigator.vibrate(10); }catch(_){}
 }
 
