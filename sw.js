@@ -2,7 +2,7 @@
 // Stratégie: cache-first pour les ressources statiques, bypass réseau pour le reste.
 // Bumper CACHE_VERSION à chaque déploiement pour invalider l'ancien cache.
 
-const CACHE_VERSION = 'chalet-v36';
+const CACHE_VERSION = 'chalet-v38';
 const ASSETS = [
   './',
   './index.html',
@@ -25,7 +25,25 @@ self.addEventListener('activate', event => {
     caches.keys()
       .then(keys => Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
+      .then(() => {
+        // Notifie tous les onglets de l'activation pour qu'ils rechargent
+        return self.clients.matchAll({ type: 'window' }).then(clients => {
+          clients.forEach(c => c.postMessage({ type: 'SW_ACTIVATED', version: CACHE_VERSION }));
+        });
+      })
   );
+});
+
+// Permet au client de demander la version actuelle ou de forcer skipWaiting
+self.addEventListener('message', event => {
+  if(!event.data) return;
+  if(event.data.type === 'GET_VERSION'){
+    if(event.source && event.source.postMessage){
+      event.source.postMessage({ type: 'VERSION', version: CACHE_VERSION });
+    }
+  }else if(event.data.type === 'SKIP_WAITING'){
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', event => {

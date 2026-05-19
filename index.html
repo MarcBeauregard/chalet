@@ -1542,6 +1542,326 @@ body.drag-active *{cursor:grabbing !important}
 .photo-meta .pm-when{opacity:.8;font-weight:600}
 
 /* ══════════════════════════════════════════
+   BANNER MISE À JOUR — affiché quand un nouveau SW est prêt
+══════════════════════════════════════════ */
+#update-banner{
+  position:fixed;
+  top:calc(env(safe-area-inset-top, 0px) + 8px);
+  left:50%;transform:translateX(-50%);
+  z-index:1000;
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px 10px 16px;
+  background:var(--p);color:white;
+  border-radius:9999px;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+  font-size:13.5px;font-weight:600;
+  animation:bannerIn .42s var(--ease-spring);
+  max-width:calc(100vw - 24px);
+}
+#update-banner span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.update-banner-btn{
+  background:white;color:var(--p);
+  padding:6px 14px;border-radius:9999px;
+  font-size:12.5px;font-weight:800;border:none;cursor:pointer;
+  flex-shrink:0;
+  transition:transform var(--t-fast) var(--ease-spring);
+}
+.update-banner-btn:active{transform:scale(.92)}
+.update-banner-dismiss{
+  background:rgba(255,255,255,.18);color:white;
+  width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;border:none;cursor:pointer;flex-shrink:0;
+  transition:transform var(--t-fast) var(--ease-spring);
+}
+.update-banner-dismiss:active{transform:scale(.85)}
+@keyframes bannerIn{
+  from{opacity:0;transform:translateX(-50%) translateY(-20px)}
+  to{opacity:1;transform:translateX(-50%) translateY(0)}
+}
+
+/* ══════════════════════════════════════════
+   PROCÉDURES — liste, édition, wizard d'exécution
+══════════════════════════════════════════ */
+.sec-sub{font-size:13.5px;color:var(--t3);line-height:1.45;margin:-6px 0 18px;max-width:600px}
+.back-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:34px;height:34px;border-radius:50%;
+  background:var(--surface-2);border:none;color:var(--t);
+  margin-right:10px;cursor:pointer;flex-shrink:0;
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease);
+}
+.back-btn:active{transform:scale(.88);background:var(--p-tint-2)}
+.back-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.sec-hdr.with-back{align-items:center}
+
+/* Carte d'une procédure (liste) */
+.proc-card{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 16px;background:var(--surface);
+  border-radius:var(--r-l);margin-bottom:10px;
+  box-shadow:var(--sh-s);
+  transition:transform var(--t-fast) var(--ease-spring), box-shadow var(--t-fast) var(--ease);
+  cursor:pointer;
+  animation:fadeInUp .45s var(--ease-out) backwards;
+}
+.proc-card:active{transform:scale(.98)}
+.proc-card-icon{
+  width:48px;height:48px;border-radius:14px;flex-shrink:0;
+  background:linear-gradient(135deg, var(--p-tint), var(--p-tint-2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;line-height:1;
+}
+.proc-card-body{flex:1;min-width:0}
+.proc-card-title{font-size:16px;font-weight:700;letter-spacing:-.2px;line-height:1.25}
+.proc-card-sub{font-size:12.5px;color:var(--t3);margin-top:3px;font-weight:500}
+.proc-card-action{
+  display:flex;align-items:center;justify-content:center;
+  width:42px;height:42px;border-radius:50%;
+  background:var(--p);color:white;border:none;flex-shrink:0;cursor:pointer;
+  transition:transform var(--t-fast) var(--ease-spring);
+}
+.proc-card-action:active{transform:scale(.88)}
+.proc-card-action svg{width:18px;height:18px;fill:currentColor;stroke:none}
+
+.proc-empty{
+  text-align:center;padding:50px 22px;color:var(--t3);
+}
+.proc-empty-ico{font-size:48px;margin-bottom:10px}
+.proc-empty-title{font-size:17px;font-weight:700;color:var(--t);margin-bottom:6px}
+.proc-empty-sub{font-size:13.5px;line-height:1.5;max-width:340px;margin:0 auto}
+
+/* Détail / édition procédure */
+.proc-detail-hdr{
+  display:flex;align-items:center;gap:14px;
+  padding:6px 0 18px;border-bottom:1px solid var(--border);margin-bottom:18px;
+}
+.proc-detail-icon{
+  width:64px;height:64px;border-radius:18px;flex-shrink:0;
+  background:linear-gradient(135deg, var(--p-tint), var(--p-tint-2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:34px;line-height:1;cursor:pointer;
+  transition:transform var(--t-fast) var(--ease-spring);
+}
+.proc-detail-icon:active{transform:scale(.95)}
+.proc-detail-name{flex:1;min-width:0}
+.proc-detail-name-input{
+  font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1.1;
+  width:100%;border:none;background:transparent;color:var(--t);
+  padding:2px 0;
+}
+.proc-detail-name-input:focus{outline:none;border-bottom:2px solid var(--p)}
+.proc-detail-desc{
+  font-size:13px;color:var(--t3);margin-top:4px;line-height:1.4;
+  width:100%;border:none;background:transparent;resize:none;
+  font-family:inherit;
+}
+.proc-detail-desc:focus{outline:none;color:var(--t)}
+
+.proc-actions-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  margin-bottom:18px;
+}
+.proc-actions-row .btn-p{margin:0}
+.proc-actions-row .btn-g{margin:0}
+
+.proc-section-title{
+  font-size:13px;font-weight:700;color:var(--t3);
+  text-transform:uppercase;letter-spacing:.6px;
+  margin:18px 4px 10px;
+}
+
+/* Step item dans l'éditeur */
+.proc-step{
+  display:flex;gap:12px;
+  padding:12px;background:var(--surface);
+  border-radius:var(--r-m);margin-bottom:8px;
+  box-shadow:var(--sh-s);
+  animation:fadeInUp .35s var(--ease-out) backwards;
+}
+.proc-step-num{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--p-tint-2);color:var(--p);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;flex-shrink:0;
+}
+.proc-step-content{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.proc-step-title-input{
+  font-size:15px;font-weight:600;color:var(--t);
+  border:none;background:transparent;padding:0;width:100%;
+}
+.proc-step-title-input:focus{outline:none}
+.proc-step-note-input{
+  font-size:13px;color:var(--t3);line-height:1.4;
+  border:none;background:transparent;padding:0;width:100%;resize:none;
+  font-family:inherit;min-height:18px;
+}
+.proc-step-note-input:focus{outline:none;color:var(--t2)}
+.proc-step-photo{
+  position:relative;
+  width:64px;height:64px;border-radius:12px;
+  background:var(--surface-2);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;overflow:hidden;cursor:pointer;
+  transition:transform var(--t-fast) var(--ease-spring);
+}
+.proc-step-photo:active{transform:scale(.92)}
+.proc-step-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.proc-step-photo .ph-add{
+  width:20px;height:20px;color:var(--t3);
+  stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+}
+.proc-step-del{
+  display:flex;align-items:center;justify-content:center;
+  width:30px;height:30px;border-radius:50%;
+  background:var(--err-tint);color:var(--err);border:none;
+  flex-shrink:0;cursor:pointer;align-self:flex-start;
+  transition:transform var(--t-fast) var(--ease-spring);
+}
+.proc-step-del:active{transform:scale(.85)}
+.proc-step-del svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+
+.proc-add-step{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:14px;
+  background:var(--surface-2);border:1.5px dashed var(--border);
+  border-radius:var(--r-m);color:var(--p);font-weight:700;font-size:14px;
+  cursor:pointer;
+  transition:background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.proc-add-step:active{background:var(--p-tint-2);border-color:var(--p-tint)}
+.proc-add-step svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+
+/* Historique des runs (dans détail proc) */
+.proc-run-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 12px;background:var(--surface);
+  border-radius:var(--r-m);margin-bottom:6px;
+  box-shadow:var(--sh-s);
+}
+.proc-run-status{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+  background:var(--p-tint-2);color:var(--p);
+}
+.proc-run-status.done{background:rgba(52,199,89,.15);color:var(--ok)}
+.proc-run-body{flex:1;min-width:0}
+.proc-run-title{font-size:14px;font-weight:600;line-height:1.25}
+.proc-run-sub{font-size:11.5px;color:var(--t3);margin-top:2px}
+.proc-run-resume{
+  background:none;border:1.5px solid var(--p);color:var(--p);
+  padding:6px 12px;border-radius:9999px;font-size:12.5px;font-weight:700;
+  cursor:pointer;flex-shrink:0;
+  transition:transform var(--t-fast) var(--ease-spring), background-color var(--t-fast) var(--ease);
+}
+.proc-run-resume:active{transform:scale(.94);background:var(--p-tint-2)}
+
+/* Wizard d'exécution — plein écran */
+.proc-wizard{
+  position:fixed;inset:0;
+  background:var(--bg);
+  z-index:50;
+  display:none;
+  flex-direction:column;
+  padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);
+}
+.proc-wizard.on{display:flex;animation:fadeInUp .42s var(--ease-out)}
+.proc-wizard-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;flex-shrink:0;
+}
+.proc-wizard-title{
+  font-size:14px;font-weight:700;color:var(--t2);
+  letter-spacing:.3px;
+}
+.proc-wizard-close{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--surface-2);color:var(--t);
+  display:flex;align-items:center;justify-content:center;
+  border:none;cursor:pointer;
+  transition:transform var(--t-fast) var(--ease-spring);
+}
+.proc-wizard-close:active{transform:scale(.88)}
+.proc-wizard-close svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.proc-wizard-progress{
+  height:5px;background:var(--surface-2);
+  margin:0 16px;border-radius:9999px;overflow:hidden;flex-shrink:0;
+}
+.proc-wizard-progress-bar{
+  height:100%;background:linear-gradient(90deg, var(--p), var(--p-light, var(--p)));
+  width:0%;
+  transition:width .45s var(--ease-out);
+}
+.proc-wizard-body{
+  flex:1;min-height:0;overflow-y:auto;
+  padding:20px 22px 12px;
+  -webkit-overflow-scrolling:touch;
+}
+.proc-step-card{
+  animation:fadeInUp .42s var(--ease-out);
+}
+.proc-step-photo-hero{
+  width:100%;aspect-ratio:4/3;
+  border-radius:22px;background:var(--surface-2);
+  overflow:hidden;margin-bottom:18px;
+  box-shadow:var(--sh-m);
+}
+.proc-step-photo-hero img{width:100%;height:100%;object-fit:cover;display:block}
+.proc-step-photo-hero.empty{
+  display:flex;align-items:center;justify-content:center;
+  color:var(--t3);font-size:48px;
+}
+.proc-step-bignum{
+  display:inline-block;
+  font-size:13px;font-weight:800;color:var(--p);
+  background:var(--p-tint-2);
+  padding:4px 10px;border-radius:9999px;
+  letter-spacing:.4px;
+  margin-bottom:10px;
+}
+.proc-step-bigtitle{
+  font-size:24px;font-weight:800;letter-spacing:-.4px;
+  line-height:1.2;color:var(--t);
+  margin-bottom:10px;
+}
+.proc-step-bignote{
+  font-size:15.5px;color:var(--t2);line-height:1.5;
+  white-space:pre-wrap;
+}
+.proc-wizard-foot{
+  display:flex;gap:10px;
+  padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));
+  flex-shrink:0;
+  border-top:1px solid var(--border);
+  background:var(--bg);
+}
+.proc-wizard-foot .btn-p, .proc-wizard-foot .btn-g{
+  flex:1;margin:0;
+}
+.proc-wizard-skip{
+  background:transparent;color:var(--t3);border:none;
+  font-size:13px;font-weight:600;padding:10px 14px;cursor:pointer;
+}
+.proc-wizard-skip:active{color:var(--t)}
+
+/* Vue "terminé" */
+.proc-done{
+  text-align:center;padding:60px 22px 30px;
+  animation:fadeInUp .55s var(--ease-spring);
+}
+.proc-done-emoji{font-size:72px;margin-bottom:18px;animation:scalePop .7s var(--ease-spring)}
+.proc-done-title{font-size:24px;font-weight:800;letter-spacing:-.4px;margin-bottom:8px}
+.proc-done-sub{font-size:14px;color:var(--t3);line-height:1.5;max-width:320px;margin:0 auto 26px}
+
+@keyframes scalePop{
+  0%{transform:scale(.3);opacity:0}
+  50%{transform:scale(1.15);opacity:1}
+  75%{transform:scale(.95)}
+  100%{transform:scale(1)}
+}
+
+/* ══════════════════════════════════════════
    RÉACTIONS — cœur, emoji, particules
 ══════════════════════════════════════════ */
 .photo-heart{
@@ -2215,6 +2535,43 @@ body.drag-active *{cursor:grabbing !important}
 <input type="file" id="ctPhotoInput" accept="image/*" capture="environment" style="display:none">
 <input type="file" id="ctPhotoInputGallery" accept="image/*" style="display:none">
 
+<!-- Procédures -->
+<main id="sec-procedures" class="sec">
+  <div class="sec-hdr"><div class="sec-title">Procédures</div></div>
+  <p class="sec-sub">Liste à suivre pas-à-pas (ouverture, fermeture, démarrages…). Chaque étape peut avoir une photo. L'historique des exécutions est conservé.</p>
+  <div id="procList"></div>
+</main>
+
+<!-- Détail / Édition procédure -->
+<main id="sec-procedure-detail" class="sec">
+  <div class="sec-hdr">
+    <button class="back-btn" onclick="closeProcedureDetail()" aria-label="Retour">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="sec-title" id="procDetailTitle">Procédure</div>
+  </div>
+  <div id="procDetailBody"></div>
+</main>
+
+<!-- Wizard d'exécution -->
+<div class="proc-wizard" id="procWizard" aria-hidden="true">
+  <div class="proc-wizard-hdr">
+    <button class="proc-wizard-close" onclick="closeProcWizard(false)" aria-label="Fermer">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="proc-wizard-title" id="procWizardTitle">Étape 1 / 5</div>
+    <button class="proc-wizard-close" onclick="confirmAbortProcRun()" aria-label="Abandonner">
+      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>
+    </button>
+  </div>
+  <div class="proc-wizard-progress"><div class="proc-wizard-progress-bar" id="procWizardBar"></div></div>
+  <div class="proc-wizard-body" id="procWizardBody"></div>
+  <div class="proc-wizard-foot" id="procWizardFoot"></div>
+</div>
+
+<!-- Hidden file input pour photo de step -->
+<input type="file" id="stepPhotoInput" accept="image/*" capture="environment" style="display:none">
+
 <!-- Paramètres -->
 <main id="sec-settings" class="sec">
   <div class="sec-title" style="margin-bottom:14px">Paramètres</div>
@@ -2407,7 +2764,18 @@ body.drag-active *{cursor:grabbing !important}
   <div class="card settings-card" style="padding:14px">
     <textarea class="notes-ta" id="notesArea" placeholder="Code WiFi, contacts d'urgence, infos pratiques…&#10;&#10;Ex: WiFi: ChaletNord / motdepasse123" oninput="saveNotes()"></textarea>
   </div>
-  <div class="settings-group-foot" style="margin-bottom:30px">Synchronisé entre les deux appareils. Pour des notes individuelles datées, utilise le journal d'un contact.</div>
+  <div class="settings-group-foot">Synchronisé entre les deux appareils. Pour des notes individuelles datées, utilise le journal d'un contact.</div>
+
+  <!-- ───── À PROPOS / MISES À JOUR ───── -->
+  <div class="settings-group-title">Application</div>
+  <div class="card settings-card">
+    <div class="set-row">
+      <div class="set-lbl">Version installée</div>
+      <div class="set-val" id="appVersionLabel">…</div>
+    </div>
+    <button class="btn-p" style="margin-top:10px" onclick="checkForUpdatesNow()">Vérifier les mises à jour</button>
+  </div>
+  <div class="settings-group-foot" style="margin-bottom:30px">L'application se met normalement à jour automatiquement. Si tu ne vois pas un changement récent, touche le bouton ci-dessus.</div>
 </main>
 
 <!-- ══ NAV BAS ══ -->
@@ -2453,6 +2821,12 @@ body.drag-active *{cursor:grabbing !important}
       <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     </div>
     <span class="nav-lbl">Contacts</span>
+  </button>
+  <button class="nav-btn" id="nav-procedures" onclick="go('procedures')">
+    <div class="nav-pill">
+      <svg viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 3v2h6V3"/><polyline points="9 12 11 14 15 10"/></svg>
+    </div>
+    <span class="nav-lbl">Procédures</span>
   </button>
 </nav>
 
@@ -2977,11 +3351,13 @@ function readFileTakenDate(file){
   return lm;
 }
 
-const SCHEMA_VERSION = 16;
+const SCHEMA_VERSION = 17;
 const DEFAULT_STATE = {
   schemaVersion: SCHEMA_VERSION,
   chaletName:'Notre Chalet', marcName:'Marc', copineName:'Ma copine',
   tasks:[], packing:[], events:[], albumUrl:'', photos:[], notes:'', courses:[], contacts:[],
+  // v17 — procédures réutilisables avec étapes + photos + historique d'exécutions
+  procedures:[], procedureRuns:[],
   // Météo — défaut: Parent, QC (Haute-Mauricie)
   chaletLat: 47.9228, chaletLon: -74.6228, chaletLocationName: 'Parent, QC',
   weatherCache: null,
@@ -2989,7 +3365,7 @@ const DEFAULT_STATE = {
   syncUrl: 'https://chalet-sync.marc-beauregard.workers.dev', syncKeyHash: '', lastSyncedAt: 0,
   // Timestamps de modif pour le merge 3-way
   fieldMtimes: {},
-  deletedIds: { tasks:[], packing:[], events:[], courses:[], contacts:[] },
+  deletedIds: { tasks:[], packing:[], events:[], courses:[], contacts:[], procedures:[], procedureRuns:[] },
   // v9 — réactions photos, lien séjour, couvertures albums, milestones
   reactions: {},        // { [photoId]: { marc: 'heart'|emoji|null, copine: ... } }
   eventPhotos: {},      // { [photoId]: eventId }  — lien manuel ou auto
@@ -3021,7 +3397,7 @@ function normalizeState(raw){
   if(!raw || typeof raw !== 'object') return base;
   const out = Object.assign(base, raw);
   // Forcer les types attendus
-  ['tasks','packing','events','photos','courses','contacts'].forEach(k => { if(!Array.isArray(out[k])) out[k] = []; });
+  ['tasks','packing','events','photos','courses','contacts','procedures','procedureRuns'].forEach(k => { if(!Array.isArray(out[k])) out[k] = []; });
   ['chaletName','marcName','copineName','albumUrl','notes','chaletLocationName'].forEach(k => {
     if(typeof out[k] !== 'string') out[k] = base[k];
   });
@@ -3049,6 +3425,39 @@ function normalizeState(raw){
   out.courses = out.courses.filter(c => c && typeof c === 'object').map(c => ensureId(c, {name:'', qty:'1', unit:'', category:'autre', note:'', bought:false, addedBy:'ensemble', mtime:0}));
   out.photos  = out.photos.filter(p => p && typeof p === 'object' && typeof p.data === 'string');
   out.contacts = out.contacts.filter(c => c && typeof c === 'object').map(c => ensureId(c, {name:'', role:'', phone:'', email:'', address:'', notes:'', tags:[], favorite:false, journal:[], birthday:'', partnerId:'', photoId:'', mtime:0}));
+  // v16→v17 : procédures (modèles permanents) + runs (historique d'exécutions)
+  out.procedures = out.procedures.filter(p => p && typeof p === 'object').map(p => ensureId(p, {
+    title:'', icon:'📋', description:'', steps:[], createdAt: Date.now(), addedBy:'', mtime:0
+  }));
+  out.procedures.forEach(p => {
+    if(!Array.isArray(p.steps)) p.steps = [];
+    p.steps = p.steps
+      .filter(s => s && typeof s === 'object')
+      .map(s => ({
+        id: String(s.id || (Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,6))),
+        title: typeof s.title === 'string' ? s.title : '',
+        note: typeof s.note === 'string' ? s.note : '',
+        photoUrl: typeof s.photoUrl === 'string' ? s.photoUrl : '',
+        photoThumbUrl: typeof s.photoThumbUrl === 'string' ? s.photoThumbUrl : '',
+        photoRecordId: typeof s.photoRecordId === 'string' ? s.photoRecordId : ''
+      }));
+    if(typeof p.icon !== 'string' || !p.icon) p.icon = '📋';
+    if(typeof p.title !== 'string') p.title = '';
+    if(typeof p.description !== 'string') p.description = '';
+    if(typeof p.addedBy !== 'string') p.addedBy = '';
+    if(typeof p.createdAt !== 'number' || !isFinite(p.createdAt)) p.createdAt = Date.now();
+  });
+  out.procedureRuns = out.procedureRuns.filter(r => r && typeof r === 'object').map(r => ensureId(r, {
+    procedureId:'', startedAt: Date.now(), startedBy:'', completedAt:null, stepsDone:{}, notes:'', mtime:0
+  }));
+  out.procedureRuns.forEach(r => {
+    if(!r.stepsDone || typeof r.stepsDone !== 'object') r.stepsDone = {};
+    if(typeof r.procedureId !== 'string') r.procedureId = String(r.procedureId || '');
+    if(typeof r.startedBy !== 'string') r.startedBy = '';
+    if(typeof r.notes !== 'string') r.notes = '';
+    if(typeof r.startedAt !== 'number' || !isFinite(r.startedAt)) r.startedAt = Date.now();
+    if(r.completedAt != null && (typeof r.completedAt !== 'number' || !isFinite(r.completedAt))) r.completedAt = null;
+  });
   out.contacts.forEach(c => {
     if(!Array.isArray(c.tags)) c.tags = [];
     if(typeof c.favorite !== 'boolean') c.favorite = false;
@@ -3067,7 +3476,7 @@ function normalizeState(raw){
     if(typeof c.photoId !== 'string') c.photoId = '';
   });
   // Normalise mtime pour chaque item (number ≥ 0)
-  ['tasks','packing','events','courses','contacts'].forEach(k => {
+  ['tasks','packing','events','courses','contacts','procedures','procedureRuns'].forEach(k => {
     out[k].forEach(it => { if(typeof it.mtime !== 'number' || !isFinite(it.mtime) || it.mtime < 0) it.mtime = 0; });
   });
   // Migration v7→v8 : ajout d'un champ `order` pour le drag-and-drop user-defined.
@@ -3114,7 +3523,7 @@ function normalizeState(raw){
   // deletedIds: tombstones par liste, nettoyés au-delà de 30 jours
   if(!out.deletedIds || typeof out.deletedIds !== 'object') out.deletedIds = {};
   const tombCutoff = Date.now() - 30 * 24 * 3600 * 1000;
-  ['tasks','packing','events','courses','contacts'].forEach(listName => {
+  ['tasks','packing','events','courses','contacts','procedures','procedureRuns'].forEach(listName => {
     const arr = Array.isArray(out.deletedIds[listName]) ? out.deletedIds[listName] : [];
     out.deletedIds[listName] = arr
       .filter(t => t && typeof t === 'object' && t.id != null && typeof t.ts === 'number' && t.ts > tombCutoff)
@@ -3160,7 +3569,7 @@ function go(name){
   if(nav)nav.classList.add('active');
   curSec=name;
   const fab=document.getElementById('fab');
-  fab.style.display=['tasks','packing','courses','calendar','contacts','dashboard'].includes(name)?'flex':'none';
+  fab.style.display=['tasks','packing','courses','calendar','contacts','dashboard','procedures'].includes(name)?'flex':'none';
   if(name==='dashboard')rDash();
   if(name==='tasks')rTasks();
   if(name==='packing')rPacking();
@@ -3168,6 +3577,7 @@ function go(name){
   if(name==='calendar'){rCal();refreshWeather().catch(()=>{})}
   if(name==='photos')rPhotos();
   if(name==='contacts')rContacts();
+  if(name==='procedures')rProcedures();
   if(name==='settings')rSettings();
 }
 
@@ -3176,6 +3586,7 @@ function fabAct(){
   else if(curSec==='packing')openPackModal();
   else if(curSec==='courses')openCrsModal();
   else if(curSec==='contacts')openContactModal();
+  else if(curSec==='procedures')openProcedureCreate();
   else if(curSec==='dashboard')openQuickAdd();
   else if(curSec==='calendar'){
     const t=fmtDate(new Date());
@@ -4580,6 +4991,541 @@ function delContactNote(contactId, noteId){
 }
 
 /* ══════════════════════════════════════════
+   PROCÉDURES — modèles réutilisables avec étapes + photos + runs
+══════════════════════════════════════════ */
+let editingProcedureId = null;   // procédure ouverte en édition
+let runState = null;             // { runId, procId, stepIdx, steps:[{id,title,note,photoUrl,...}] }
+
+function genId(prefix){
+  return (prefix || 'id') + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,6);
+}
+
+function getProcedures(){
+  return Array.isArray(S.procedures) ? S.procedures : (S.procedures = []);
+}
+function getProcedureRuns(){
+  return Array.isArray(S.procedureRuns) ? S.procedureRuns : (S.procedureRuns = []);
+}
+function getProcedure(id){
+  return getProcedures().find(p => p.id === id);
+}
+function getRunsFor(procId){
+  return getProcedureRuns()
+    .filter(r => r.procedureId === procId)
+    .sort((a,b) => (b.startedAt || 0) - (a.startedAt || 0));
+}
+function getActiveRun(procId){
+  return getProcedureRuns()
+    .filter(r => r.procedureId === procId && !r.completedAt)
+    .sort((a,b) => (b.startedAt || 0) - (a.startedAt || 0))[0] || null;
+}
+function getLastCompletedRun(procId){
+  return getProcedureRuns()
+    .filter(r => r.procedureId === procId && r.completedAt)
+    .sort((a,b) => (b.completedAt || 0) - (a.completedAt || 0))[0] || null;
+}
+
+/* ── Liste principale des procédures ── */
+function rProcedures(){
+  const el = document.getElementById('procList');
+  if(!el) return;
+  const procs = getProcedures().slice().sort((a,b) => (a.title||'').localeCompare(b.title||'', 'fr'));
+  if(!procs.length){
+    el.innerHTML = `
+      <div class="proc-empty">
+        <div class="proc-empty-ico">📋</div>
+        <div class="proc-empty-title">Aucune procédure</div>
+        <div class="proc-empty-sub">Crée ta première procédure (ex. <em>Ouverture du chalet</em>) avec le bouton +. Chaque étape peut avoir une photo qui s'affichera pendant l'exécution.</div>
+      </div>`;
+    return;
+  }
+  el.innerHTML = procs.map(p => {
+    const stepCount = (p.steps || []).length;
+    const last = getLastCompletedRun(p.id);
+    const active = getActiveRun(p.id);
+    let sub;
+    if(active){
+      const doneN = Object.keys(active.stepsDone || {}).length;
+      sub = `En cours · ${doneN}/${stepCount} étapes`;
+    }else if(last){
+      sub = `${stepCount} étape${stepCount>1?'s':''} · dernière exécution ${relativeTime(last.completedAt)}`;
+    }else{
+      sub = `${stepCount} étape${stepCount>1?'s':''} · jamais exécutée`;
+    }
+    return `
+    <div class="proc-card" onclick="openProcedureDetail('${esc(p.id)}')">
+      <div class="proc-card-icon">${esc(p.icon || '📋')}</div>
+      <div class="proc-card-body">
+        <div class="proc-card-title">${esc(p.title || 'Sans titre')}</div>
+        <div class="proc-card-sub">${esc(sub)}</div>
+      </div>
+      <button class="proc-card-action" aria-label="Lancer"
+              onclick="event.stopPropagation();startOrResumeProcedureRun('${esc(p.id)}')">
+        <svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+/* ── Création d'une procédure (depuis FAB) ── */
+function openProcedureCreate(){
+  const title = prompt('Nom de la procédure (ex. « Ouverture du chalet ») :', '');
+  if(title == null) return;
+  const clean = title.trim();
+  if(!clean){ toast('Titre requis', { error:true }); return; }
+  const proc = {
+    id: genId('proc'),
+    title: clean,
+    icon: '📋',
+    description: '',
+    steps: [],
+    createdAt: Date.now(),
+    addedBy: ownerName(getOwner()),
+    mtime: now()
+  };
+  getProcedures().push(proc);
+  save();
+  if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){}
+  toast('Procédure créée', { success:true });
+  openProcedureDetail(proc.id);
+}
+
+/* ── Vue détail / édition ── */
+function openProcedureDetail(id){
+  const p = getProcedure(id);
+  if(!p){ toast('Procédure introuvable', { error:true }); return; }
+  editingProcedureId = id;
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
+  const sec = document.getElementById('sec-procedure-detail');
+  sec.classList.add('on');
+  document.getElementById('fab').style.display = 'none';
+  renderProcedureDetail();
+}
+function closeProcedureDetail(){
+  editingProcedureId = null;
+  go('procedures');
+}
+function renderProcedureDetail(){
+  const p = getProcedure(editingProcedureId);
+  if(!p){ closeProcedureDetail(); return; }
+  document.getElementById('procDetailTitle').textContent = p.title || 'Procédure';
+  const body = document.getElementById('procDetailBody');
+  const steps = p.steps || [];
+  const runs = getRunsFor(p.id);
+  const active = runs.find(r => !r.completedAt);
+
+  const stepsHtml = steps.map((s, i) => `
+    <div class="proc-step" data-step-id="${esc(s.id)}">
+      <div class="proc-step-num">${i+1}</div>
+      <div class="proc-step-content">
+        <input class="proc-step-title-input" value="${esc(s.title || '')}"
+               placeholder="Titre de l'étape (ex. Remplir le tuyau d'eau)"
+               oninput="updateStep('${esc(s.id)}','title',this.value)">
+        <textarea class="proc-step-note-input" rows="2"
+                  placeholder="Détails / notes (optionnel)"
+                  oninput="updateStep('${esc(s.id)}','note',this.value)">${esc(s.note || '')}</textarea>
+      </div>
+      <div class="proc-step-photo" onclick="pickStepPhoto('${esc(s.id)}')">
+        ${s.photoUrl
+          ? `<img src="${esc(s.photoThumbUrl || s.photoUrl)}" alt="Photo de l'étape">`
+          : `<svg class="ph-add" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="8.5" cy="11" r="1.5"/><polyline points="21 16 16 11 5 21"/><line x1="12" y1="3" x2="12" y2="9"/><line x1="9" y1="6" x2="15" y2="6"/></svg>`}
+      </div>
+      <button class="proc-step-del" aria-label="Supprimer l'étape" onclick="deleteStep('${esc(s.id)}')">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`).join('');
+
+  const runsHtml = runs.length ? runs.slice(0, 10).map(r => {
+    const status = r.completedAt ? '✓' : '⋯';
+    const statusCls = r.completedAt ? ' done' : '';
+    const totalSteps = (p.steps || []).length;
+    const doneN = Object.keys(r.stepsDone || {}).length;
+    const when = r.completedAt
+      ? `Terminée ${relativeTime(r.completedAt)}`
+      : `Commencée ${relativeTime(r.startedAt)}`;
+    const action = r.completedAt
+      ? ''
+      : `<button class="proc-run-resume" onclick="resumeRun('${esc(r.id)}')">Reprendre</button>`;
+    return `
+      <div class="proc-run-item">
+        <div class="proc-run-status${statusCls}">${status}</div>
+        <div class="proc-run-body">
+          <div class="proc-run-title">${esc(when)} · ${esc(r.startedBy || '')}</div>
+          <div class="proc-run-sub">${doneN}/${totalSteps} étape${totalSteps>1?'s':''} cochée${doneN>1?'s':''}</div>
+        </div>
+        ${action}
+      </div>`;
+  }).join('') : '<div style="font-size:13px;color:var(--t3);padding:8px 4px">Aucune exécution enregistrée.</div>';
+
+  body.innerHTML = `
+    <div class="proc-detail-hdr">
+      <div class="proc-detail-icon" onclick="changeProcedureIcon()" title="Changer l'icône">${esc(p.icon || '📋')}</div>
+      <div class="proc-detail-name">
+        <input class="proc-detail-name-input" value="${esc(p.title || '')}"
+               placeholder="Nom de la procédure"
+               oninput="updateProcedureField('title', this.value)">
+        <textarea class="proc-detail-desc" rows="2"
+                  placeholder="Description (optionnel — quand l'utiliser, prérequis…)"
+                  oninput="updateProcedureField('description', this.value)">${esc(p.description || '')}</textarea>
+      </div>
+    </div>
+
+    <div class="proc-actions-row">
+      <button class="btn-p" onclick="startOrResumeProcedureRun('${esc(p.id)}')">${active ? 'Reprendre' : 'Lancer'} la procédure</button>
+      <button class="btn-g" onclick="deleteProcedure('${esc(p.id)}')">Supprimer</button>
+    </div>
+
+    <div class="proc-section-title">Étapes (${steps.length})</div>
+    ${stepsHtml}
+    <button class="proc-add-step" onclick="addStep()">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Ajouter une étape
+    </button>
+
+    <div class="proc-section-title">Historique</div>
+    ${runsHtml}
+  `;
+}
+
+/* ── Mutations procédure ── */
+function stampProcedure(p){ if(p){ p.mtime = now(); } }
+
+function updateProcedureField(field, value){
+  const p = getProcedure(editingProcedureId);
+  if(!p) return;
+  p[field] = String(value || '');
+  stampProcedure(p);
+  // Update title in nav header live
+  if(field === 'title'){
+    document.getElementById('procDetailTitle').textContent = p.title || 'Procédure';
+  }
+  scheduleSave();
+}
+
+function changeProcedureIcon(){
+  const p = getProcedure(editingProcedureId);
+  if(!p) return;
+  const next = prompt('Emoji à utiliser (1 caractère) :', p.icon || '📋');
+  if(next == null) return;
+  const t = String(next).trim();
+  if(!t){ p.icon = '📋'; } else { p.icon = t; }
+  stampProcedure(p);
+  save();
+  renderProcedureDetail();
+}
+
+function deleteProcedure(id){
+  const p = getProcedure(id);
+  if(!p) return;
+  if(!confirm(`Supprimer « ${p.title || 'cette procédure'} » ? L'historique des exécutions sera aussi effacé.`)) return;
+  // Cleanup step photos côté Worker
+  (p.steps || []).forEach(s => { if(s.photoRecordId) deleteStepPhotoRecord(s.photoRecordId); });
+  // Tombstone procédure
+  addTomb('procedures', id);
+  S.procedures = getProcedures().filter(x => x.id !== id);
+  // Tombstone + suppression des runs
+  getRunsFor(id).forEach(r => addTomb('procedureRuns', r.id));
+  S.procedureRuns = getProcedureRuns().filter(r => r.procedureId !== id);
+  save();
+  toast('Procédure supprimée');
+  closeProcedureDetail();
+}
+
+/* ── Mutations steps ── */
+function addStep(){
+  const p = getProcedure(editingProcedureId);
+  if(!p) return;
+  p.steps = p.steps || [];
+  p.steps.push({
+    id: genId('step'),
+    title: '',
+    note: '',
+    photoUrl: '',
+    photoThumbUrl: '',
+    photoRecordId: ''
+  });
+  stampProcedure(p);
+  save();
+  renderProcedureDetail();
+  // Focus le nouveau champ
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('#procDetailBody .proc-step-title-input');
+    const last = inputs[inputs.length - 1];
+    if(last) last.focus();
+  }, 80);
+}
+
+function updateStep(stepId, field, value){
+  const p = getProcedure(editingProcedureId);
+  if(!p) return;
+  const s = (p.steps || []).find(x => x.id === stepId);
+  if(!s) return;
+  s[field] = String(value || '');
+  stampProcedure(p);
+  scheduleSave();
+}
+
+function deleteStep(stepId){
+  const p = getProcedure(editingProcedureId);
+  if(!p) return;
+  const s = (p.steps || []).find(x => x.id === stepId);
+  if(!s) return;
+  if(!confirm('Supprimer cette étape ?')) return;
+  if(s.photoRecordId) deleteStepPhotoRecord(s.photoRecordId);
+  p.steps = (p.steps || []).filter(x => x.id !== stepId);
+  stampProcedure(p);
+  save();
+  renderProcedureDetail();
+}
+
+/* ── Save debounced pour l'édition textuelle ── */
+let _procSaveTimer = null;
+function scheduleSave(){
+  clearTimeout(_procSaveTimer);
+  _procSaveTimer = setTimeout(() => { save(); }, 400);
+}
+
+/* ── Photo de step : upload via Worker /photos (préfixe __STEP__ pour exclusion galerie) ── */
+let _stepPhotoTargetStepId = null;
+function pickStepPhoto(stepId){
+  if(!syncConfigured()){
+    toast('Configure la synchro cloud pour ajouter des photos', { error:true });
+    return;
+  }
+  _stepPhotoTargetStepId = stepId;
+  const input = document.getElementById('stepPhotoInput');
+  input.value = '';
+  input.onchange = onStepPhotoSelected;
+  input.click();
+}
+
+async function onStepPhotoSelected(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const stepId = _stepPhotoTargetStepId;
+  if(!stepId) return;
+  try{
+    toast('Upload de la photo…');
+    const blob = await compressImage(file, PHOTO_MAX_SIDE, PHOTO_JPEG_QUALITY);
+    const base64 = await blobToBase64(blob);
+    const res = await fetch(S.syncUrl.replace(/\/+$/,'') + '/photos', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + S.syncKeyHash, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: '__STEP__' + (file.name || 'step.jpg'),
+        addedBy: 'Procédure',
+        contentType: 'image/jpeg',
+        base64
+      })
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const photo = await res.json();
+    const p = getProcedure(editingProcedureId);
+    const s = p && (p.steps || []).find(x => x.id === stepId);
+    if(s){
+      // Cleanup ancienne photo
+      if(s.photoRecordId && s.photoRecordId !== photo.id){
+        deleteStepPhotoRecord(s.photoRecordId);
+      }
+      s.photoUrl = photo.url || '';
+      s.photoThumbUrl = photo.thumbUrl || photo.url || '';
+      s.photoRecordId = photo.id || '';
+      stampProcedure(p);
+      save();
+      renderProcedureDetail();
+      toast('Photo ajoutée', { success:true });
+    }
+  }catch(err){
+    console.error(err);
+    toast('Échec de l\'upload : ' + (err.message || 'erreur'), { error:true });
+  }
+}
+
+async function deleteStepPhotoRecord(recordId){
+  if(!recordId || !syncConfigured()) return;
+  try{
+    await fetch(S.syncUrl.replace(/\/+$/,'') + '/photos/' + encodeURIComponent(recordId), {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + S.syncKeyHash }
+    });
+  }catch(_){ /* silencieux */ }
+}
+
+/* ── Filtre galerie : exclure les photos de step ── */
+function isStepPhoto(p){
+  return p && typeof p.name === 'string' && p.name.indexOf('__STEP__') === 0;
+}
+
+/* ══════════════════════════════════════════
+   WIZARD D'EXÉCUTION — 1 étape par écran, photo grande, ✓ → suivant
+══════════════════════════════════════════ */
+function startOrResumeProcedureRun(procId){
+  const p = getProcedure(procId);
+  if(!p){ toast('Procédure introuvable', { error:true }); return; }
+  if(!(p.steps || []).length){
+    toast('Ajoute au moins une étape pour lancer', { error:true });
+    return;
+  }
+  const active = getActiveRun(procId);
+  let run;
+  if(active){
+    run = active;
+  }else{
+    run = {
+      id: genId('run'),
+      procedureId: procId,
+      startedAt: Date.now(),
+      startedBy: ownerName(getOwner()),
+      completedAt: null,
+      stepsDone: {},
+      notes: '',
+      mtime: now()
+    };
+    getProcedureRuns().push(run);
+    save();
+  }
+  // Position : première étape non cochée
+  const firstUndone = (p.steps || []).findIndex(s => !run.stepsDone[s.id]);
+  runState = {
+    runId: run.id,
+    procId,
+    stepIdx: firstUndone >= 0 ? firstUndone : 0
+  };
+  openProcWizard();
+}
+
+function resumeRun(runId){
+  const run = getProcedureRuns().find(r => r.id === runId);
+  if(!run) return;
+  startOrResumeProcedureRun(run.procedureId);
+}
+
+function openProcWizard(){
+  const el = document.getElementById('procWizard');
+  el.classList.add('on');
+  el.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  renderProcWizard();
+}
+
+function closeProcWizard(silent){
+  const el = document.getElementById('procWizard');
+  el.classList.remove('on');
+  el.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  runState = null;
+  // Refresh la vue détail si on revient dessus
+  if(editingProcedureId) renderProcedureDetail();
+  if(curSec === 'procedures') rProcedures();
+  if(!silent && navigator.vibrate) try{ navigator.vibrate(10); }catch(_){}
+}
+
+function confirmAbortProcRun(){
+  if(!runState) { closeProcWizard(true); return; }
+  if(confirm('Abandonner cette exécution ? Tu pourras la reprendre plus tard.')){
+    closeProcWizard(false);
+  }
+}
+
+function renderProcWizard(){
+  if(!runState){ closeProcWizard(true); return; }
+  const p = getProcedure(runState.procId);
+  const run = getProcedureRuns().find(r => r.id === runState.runId);
+  if(!p || !run){ closeProcWizard(true); return; }
+  const steps = p.steps || [];
+  const total = steps.length;
+
+  // Cas fin : toutes les étapes cochées
+  const doneCount = Object.keys(run.stepsDone || {}).length;
+  if(doneCount >= total){
+    renderProcWizardDone(p, run);
+    return;
+  }
+
+  const idx = Math.min(Math.max(0, runState.stepIdx), total - 1);
+  const step = steps[idx];
+  const titleEl = document.getElementById('procWizardTitle');
+  titleEl.textContent = `${p.icon || '📋'} ${p.title || 'Procédure'} · Étape ${idx + 1} / ${total}`;
+
+  const bar = document.getElementById('procWizardBar');
+  const pct = Math.round((doneCount / total) * 100);
+  bar.style.width = pct + '%';
+
+  const body = document.getElementById('procWizardBody');
+  const photoBlock = step.photoUrl
+    ? `<div class="proc-step-photo-hero"><img src="${esc(step.photoUrl)}" alt=""></div>`
+    : `<div class="proc-step-photo-hero empty">📷</div>`;
+  body.innerHTML = `
+    <div class="proc-step-card">
+      ${photoBlock}
+      <div class="proc-step-bignum">Étape ${idx + 1} / ${total}</div>
+      <div class="proc-step-bigtitle">${esc(step.title || 'Étape sans titre')}</div>
+      ${step.note ? `<div class="proc-step-bignote">${esc(step.note)}</div>` : ''}
+    </div>
+  `;
+
+  const foot = document.getElementById('procWizardFoot');
+  foot.innerHTML = `
+    ${idx > 0 ? `<button class="btn-g" onclick="procWizardPrev()">Précédent</button>` : `<button class="proc-wizard-skip" onclick="procWizardPrev()">&nbsp;</button>`}
+    <button class="btn-p" onclick="procWizardMarkDone()">${idx === total - 1 ? '✓ Terminer' : '✓ Suivant'}</button>
+  `;
+}
+
+function renderProcWizardDone(p, run){
+  document.getElementById('procWizardTitle').textContent = `${p.icon || '📋'} ${p.title || 'Procédure'}`;
+  document.getElementById('procWizardBar').style.width = '100%';
+  const body = document.getElementById('procWizardBody');
+  const total = (p.steps || []).length;
+  const dur = Math.max(0, (run.completedAt || Date.now()) - (run.startedAt || Date.now()));
+  const mins = Math.round(dur / 60000);
+  body.innerHTML = `
+    <div class="proc-done">
+      <div class="proc-done-emoji">🎉</div>
+      <div class="proc-done-title">Procédure terminée !</div>
+      <div class="proc-done-sub">${total} étape${total>1?'s':''} cochée${total>1?'s':''} en ${mins < 1 ? 'moins d\'une minute' : (mins + ' minute' + (mins>1?'s':''))}.</div>
+    </div>`;
+  const foot = document.getElementById('procWizardFoot');
+  foot.innerHTML = `<button class="btn-p" onclick="closeProcWizard(false)">Fermer</button>`;
+}
+
+function procWizardPrev(){
+  if(!runState) return;
+  runState.stepIdx = Math.max(0, runState.stepIdx - 1);
+  renderProcWizard();
+}
+
+function procWizardMarkDone(){
+  if(!runState) return;
+  const p = getProcedure(runState.procId);
+  const run = getProcedureRuns().find(r => r.id === runState.runId);
+  if(!p || !run) return;
+  const steps = p.steps || [];
+  const idx = runState.stepIdx;
+  const step = steps[idx];
+  if(!step) return;
+  run.stepsDone = run.stepsDone || {};
+  run.stepsDone[step.id] = { at: Date.now(), by: ownerName(getOwner()) };
+  run.mtime = now();
+  if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){}
+  // Détecter complétion
+  const doneCount = Object.keys(run.stepsDone).length;
+  if(doneCount >= steps.length){
+    run.completedAt = Date.now();
+    run.mtime = now();
+    save();
+    if(typeof fireConfetti === 'function') fireConfetti();
+    renderProcWizardDone(p, run);
+    return;
+  }
+  // Avance à la prochaine étape non cochée
+  let next = idx + 1;
+  while(next < steps.length && run.stepsDone[steps[next].id]) next++;
+  runState.stepIdx = Math.min(next, steps.length - 1);
+  save();
+  renderProcWizard();
+}
+
+/* ══════════════════════════════════════════
    SYNCHRONISATION CLOUD (Cloudflare Worker + KV)
 ══════════════════════════════════════════ */
 const SYNC_SALT = 'chalet-sync-2026-v1';
@@ -4633,7 +5579,7 @@ function mergeStates(local, remote){
   });
 
   // 2) Listes: merge par ID + tombstones
-  ['tasks','packing','events','courses','contacts'].forEach(listName => {
+  ['tasks','packing','events','courses','contacts','procedures','procedureRuns'].forEach(listName => {
     const localList = localN[listName] || [];
     const remoteList = remoteN[listName] || [];
     const localTomb = (localN.deletedIds && localN.deletedIds[listName]) || [];
@@ -5944,7 +6890,9 @@ async function loadPhotosFromWorker(){
       });
       if(!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
-      photoCache = Array.isArray(data.photos) ? data.photos : [];
+      const allPhotos = Array.isArray(data.photos) ? data.photos : [];
+      // Exclure les photos de step de procédure (nommées __STEP__…)
+      photoCache = allPhotos.filter(p => !isStepPhoto(p));
       sortPhotoCache();
       photoCacheFetchedAt = Date.now();
       if(curSec === 'photos') renderPhotoGrid();
@@ -6939,6 +7887,14 @@ function rSettings(){
   updateSyncSettingsLabels();
   syncNames();
   renderPhotoStats();
+  refreshAppVersionLabel();
+}
+
+async function refreshAppVersionLabel(){
+  const el = document.getElementById('appVersionLabel');
+  if(!el) return;
+  const v = await getCurrentSWVersion();
+  el.textContent = v || 'inconnue';
 }
 function toggleOwner(){
   const next = getOwner() === 'marc' ? 'copine' : 'marc';
@@ -7824,12 +8780,138 @@ document.addEventListener('visibilitychange', () => {
 init();
 
 /* ══════════════════════════════════════════
-   PWA — service worker
+   PWA — service worker + détection de mise à jour
+   - updateViaCache:'none' force le navigateur à toujours re-télécharger sw.js
+   - Au load: on register, puis registration.update() force la vérif
+   - Si nouveau SW trouvé → banner "Nouvelle version" + bouton recharger
+   - Le bouton Paramètres permet de forcer une vérification à la demande
 ══════════════════════════════════════════ */
+let _swRegistration = null;
+let _waitingWorker = null;       // nouveau SW prêt mais bloqué
+let _swReloadInFlight = false;   // évite double-reload
+
+function showUpdateBanner(versionLabel){
+  let bar = document.getElementById('update-banner');
+  if(bar) return; // déjà affiché
+  bar = document.createElement('div');
+  bar.id = 'update-banner';
+  bar.innerHTML = `
+    <span>🔄 Nouvelle version disponible${versionLabel ? ' ('+esc(versionLabel)+')' : ''}</span>
+    <button class="update-banner-btn" onclick="applyAppUpdate()">Mettre à jour</button>
+    <button class="update-banner-dismiss" onclick="dismissUpdateBanner()" aria-label="Fermer">✕</button>
+  `;
+  document.body.appendChild(bar);
+  if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){}
+}
+function dismissUpdateBanner(){
+  const bar = document.getElementById('update-banner');
+  if(bar) bar.remove();
+}
+function applyAppUpdate(){
+  if(_swReloadInFlight) return;
+  _swReloadInFlight = true;
+  // Dit au SW en attente de prendre le relais
+  if(_waitingWorker){
+    _waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    // Le 'controllerchange' déclenchera le reload
+    setTimeout(() => { location.reload(); }, 800); // fallback si l'event ne tire pas
+  }else{
+    location.reload();
+  }
+}
+
+// Bouton manuel depuis Paramètres
+async function checkForUpdatesNow(){
+  if(!('serviceWorker' in navigator)){
+    toast('Service Worker non disponible', { error:true });
+    return;
+  }
+  toast('Recherche de mise à jour…');
+  try{
+    const reg = _swRegistration || await navigator.serviceWorker.getRegistration();
+    if(!reg){ toast('Aucun Service Worker enregistré', { error:true }); return; }
+    await reg.update();
+    // Petite attente pour laisser le navigateur comparer sw.js
+    await new Promise(r => setTimeout(r, 800));
+    if(reg.waiting){
+      _waitingWorker = reg.waiting;
+      const v = await getCurrentSWVersion();
+      showUpdateBanner(v);
+    }else{
+      toast('Tu as déjà la dernière version ✓', { success:true });
+    }
+  }catch(e){
+    console.warn('Update check failed', e);
+    toast('Échec de la vérification', { error:true });
+  }
+}
+
+async function getCurrentSWVersion(){
+  if(!navigator.serviceWorker || !navigator.serviceWorker.controller) return null;
+  return new Promise(resolve => {
+    const channel = new MessageChannel();
+    channel.port1.onmessage = (event) => {
+      if(event.data && event.data.type === 'VERSION') resolve(event.data.version);
+      else resolve(null);
+    };
+    try{
+      navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' }, [channel.port2]);
+    }catch(_){ resolve(null); }
+    setTimeout(() => resolve(null), 1500);
+  });
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(err => {
+    // updateViaCache:'none' = le navigateur ne cache jamais sw.js (essentiel pour iOS)
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+      _swRegistration = reg;
+
+      // Si un SW est déjà en attente au moment du chargement
+      if(reg.waiting){
+        _waitingWorker = reg.waiting;
+        getCurrentSWVersion().then(showUpdateBanner);
+      }
+
+      // Détecte les nouveaux SW qui s'installent
+      reg.addEventListener('updatefound', () => {
+        const sw = reg.installing;
+        if(!sw) return;
+        sw.addEventListener('statechange', () => {
+          if(sw.state === 'installed' && navigator.serviceWorker.controller){
+            // Nouveau SW prêt → afficher le banner
+            _waitingWorker = sw;
+            getCurrentSWVersion().then(showUpdateBanner);
+          }
+        });
+      });
+
+      // Force une vérification au démarrage (utile pour iOS PWA depuis l'écran d'accueil)
+      reg.update().catch(()=>{});
+
+      // Re-vérifie chaque fois que l'app reprend le focus (changement d'onglet, retour)
+      document.addEventListener('visibilitychange', () => {
+        if(document.visibilityState === 'visible' && _swRegistration){
+          _swRegistration.update().catch(()=>{});
+        }
+      });
+    }).catch(err => {
       console.warn('SW registration failed:', err);
+    });
+
+    // Quand le nouveau SW prend le contrôle, on reload pour charger les nouveaux assets
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if(_swReloadInFlight) return;
+      _swReloadInFlight = true;
+      location.reload();
+    });
+
+    // Notification d'activation envoyée par le SW (broadcast après skipWaiting)
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      if(e.data && e.data.type === 'SW_ACTIVATED'){
+        // Le SW vient d'activer une nouvelle version — controllerchange va déclencher reload
+        console.log('Nouvelle version activée:', e.data.version);
+      }
     });
   });
 }

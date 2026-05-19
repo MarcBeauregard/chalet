@@ -9,3 +9,6 @@ worker/.wrangler/
 
 # Backups locaux (snapshots avant refonte) — pas versionnés
 backup_*/
+**/.wrangler/
+**/.wrangler/
+chalet-ultimate/
