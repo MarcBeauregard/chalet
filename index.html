@@ -592,7 +592,7 @@ input,select,textarea{font-family:inherit}
 .t-body{flex:1;min-width:0;cursor:pointer;border-radius:8px;transition:background-color var(--t-fast) var(--ease)}
 .t-body:active{background:var(--p-tint-2)}
 .t-name{font-size:15px;font-weight:500;line-height:1.35;transition:color var(--t-med) var(--ease)}
-.t-name.done{text-decoration:line-through;color:var(--t3)}
+.t-name.done{text-decoration:line-through;color:var(--t2)} /* --t2 plutôt que --t3 : contraste WCAG AA */
 .t-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
 .t-note{font-size:12px;color:var(--t3);margin-top:5px;line-height:1.45}
 
@@ -2761,6 +2761,15 @@ body.drag-active *{cursor:grabbing !important}
       </div>
       <button class="set-btn" onclick="testSyncConnection()">Tester</button>
     </div>
+    <div class="set-item">
+      <div class="set-left">
+        <div class="set-icon-wrap" style="background:rgba(74,222,128,.10);color:#0E8C50">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><polyline points="12 7 12 12 15 15"/></svg>
+        </div>
+        <span class="set-lbl">Sauvegardes quotidiennes</span>
+      </div>
+      <button class="set-btn" onclick="showSyncBackups()">Restaurer</button>
+    </div>
     <div class="set-item" style="border-bottom:none">
       <div class="set-left">
         <div class="set-icon-wrap" style="background:rgba(74,222,128,.10);color:#0E8C50">
@@ -3539,6 +3548,12 @@ function normalizeState(raw){
     if(typeof r.startedAt !== 'number' || !isFinite(r.startedAt)) r.startedAt = Date.now();
     if(r.completedAt != null && (typeof r.completedAt !== 'number' || !isFinite(r.completedAt))) r.completedAt = null;
   });
+  // Plafonne l'historique d'exécutions : l'état complet est limité à ~95k chars
+  // côté Worker (1 record Airtable), il ne doit pas croître indéfiniment.
+  if(out.procedureRuns.length > 100){
+    out.procedureRuns.sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
+    out.procedureRuns = out.procedureRuns.slice(0, 100);
+  }
   out.contacts.forEach(c => {
     if(!Array.isArray(c.tags)) c.tags = [];
     if(typeof c.favorite !== 'boolean') c.favorite = false;
@@ -3579,6 +3594,14 @@ function normalizeState(raw){
   // Migration v13→v14 : historique items + templates bagages + hashes photos
   if(!out.itemsHistory || typeof out.itemsHistory !== 'object') out.itemsHistory = { courses:{}, packing:{}, tasks:{} };
   ['courses','packing','tasks'].forEach(k => { if(!out.itemsHistory[k] || typeof out.itemsHistory[k] !== 'object') out.itemsHistory[k] = {}; });
+  // Plafonne l'historique de suggestions : garde les 200 noms les plus utilisés
+  ['courses','packing','tasks'].forEach(k => {
+    const entries = Object.entries(out.itemsHistory[k]);
+    if(entries.length > 200){
+      entries.sort((a, b) => (b[1] || 0) - (a[1] || 0));
+      out.itemsHistory[k] = Object.fromEntries(entries.slice(0, 200));
+    }
+  });
   if(!out.packingTemplates || typeof out.packingTemplates !== 'object') out.packingTemplates = {};
   if(!out.photoHashes || typeof out.photoHashes !== 'object') out.photoHashes = {};
   // Migration v14→v15
@@ -3688,6 +3711,8 @@ function toast(msg, opts){
   if(!container){
     container = document.createElement('div');
     container.id = 'toast-container';
+    container.setAttribute('role', 'status');
+    container.setAttribute('aria-live', 'polite');
     document.body.appendChild(container);
   }
   const el = document.createElement('div');
@@ -3996,7 +4021,7 @@ function renderDashboardMemories(){
     html += `<div style="margin-top:${heartsCount?'12px':'0'};border-top:${heartsCount?'1px solid var(--border)':'none'};padding-top:${heartsCount?'12px':'0'}">
       <div style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">Il y a un an</div>
       <div onclick="viewPhoto('${esc(memory.id)}')" style="position:relative;border-radius:14px;overflow:hidden;aspect-ratio:16/9;cursor:pointer;background:var(--surface-2)">
-        <img src="${esc(memory.thumbUrl||memory.url)}" style="width:100%;height:100%;object-fit:cover;display:block" alt="" loading="lazy">
+        <img src="${esc(memory.thumbUrl||memory.url)}" style="width:100%;height:100%;object-fit:cover;display:block" alt="" loading="lazy" onerror="photoImgError()">
         <div style="position:absolute;left:0;right:0;bottom:0;padding:18px 12px 10px;background:linear-gradient(to top,rgba(0,0,0,.7),rgba(0,0,0,0));color:white;font-size:12px;font-weight:600">${esc(dateStr)}</div>
       </div>
     </div>`;
@@ -5739,6 +5764,11 @@ function syncConfigured(){ return !!(S.syncUrl && S.syncKeyHash); }
 let pushTimer = null;
 let pushInFlight = false;
 let pushPending = false;
+// LastModified du Worker vu au dernier pull/push réussi. Envoyé au PUT /state
+// (header X-Base-Last-Modified) : si un autre appareil a poussé entre-temps,
+// le Worker répond 409 et on re-pull/merge avant de re-pousser — évite
+// d'écraser silencieusement les modifications de l'autre.
+let lastRemoteModified = 0;
 function pushSync(){
   if(!syncConfigured()) return;
   if(pushTimer) clearTimeout(pushTimer);
@@ -5750,15 +5780,27 @@ async function doPush(){
   pushInFlight = true;
   updateSyncIndicator('syncing');
   try{
-    const r = await fetch(S.syncUrl + '/state', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + S.syncKeyHash
-      },
-      body: JSON.stringify(syncPayload())
-    });
-    if(!r.ok) throw new Error('HTTP '+r.status);
+    let attempts = 0;
+    while(true){
+      const r = await fetch(S.syncUrl + '/state', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + S.syncKeyHash,
+          'X-Base-Last-Modified': String(lastRemoteModified)
+        },
+        body: JSON.stringify(syncPayload())
+      });
+      if(r.status === 409 && attempts < 3){
+        attempts++;
+        await pullRemoteAndMerge();
+        continue;
+      }
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const data = await r.json().catch(() => null);
+      if(data && typeof data.lastModified === 'number') lastRemoteModified = data.lastModified;
+      break;
+    }
     S.lastSyncedAt = now();
     saveLocal();
     updateSyncIndicator('ok');
@@ -5771,24 +5813,29 @@ async function doPush(){
   }
 }
 
+// Récupère l'état distant et le merge dans S. Retourne true si S a changé.
+async function pullRemoteAndMerge(){
+  const r = await fetch(S.syncUrl + '/state', {
+    method: 'GET',
+    headers: { 'Authorization': 'Bearer ' + S.syncKeyHash }
+  });
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const data = await r.json();
+  if(data && typeof data.lastModified === 'number') lastRemoteModified = data.lastModified;
+  if(!data || !data.state) return false;
+  const before = JSON.stringify(syncPayload());
+  S = mergeStates(S, data.state);
+  const after = JSON.stringify(syncPayload());
+  saveLocal();
+  if(before !== after) rerenderCurrent();
+  return before !== after;
+}
+
 async function pullSync(silent){
   if(!syncConfigured()) return;
   if(!silent) updateSyncIndicator('syncing');
   try{
-    const r = await fetch(S.syncUrl + '/state', {
-      method: 'GET',
-      headers: { 'Authorization': 'Bearer ' + S.syncKeyHash }
-    });
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const data = await r.json();
-    if(data && data.state){
-      const before = JSON.stringify(syncPayload());
-      const merged = mergeStates(S, data.state);
-      S = merged;
-      const after = JSON.stringify(syncPayload());
-      saveLocal();
-      if(before !== after) rerenderCurrent();
-    }
+    await pullRemoteAndMerge();
     updateSyncIndicator('ok');
   }catch(e){
     console.warn('Pull sync failed:', e);
@@ -5824,6 +5871,7 @@ function rerenderCurrent(){
   else if(curSec === 'settings') rSettings();
 }
 
+let lastSyncStatus = '';
 function updateSyncIndicator(status){
   const el = document.getElementById('syncDot');
   if(!el) return;
@@ -5834,6 +5882,25 @@ function updateSyncIndicator(status){
            : syncConfigured() ? 'Synchro activée' : '';
   el.setAttribute('title', lbl);
   el.setAttribute('aria-label', lbl);
+  // Annonce les passages en erreur aux lecteurs d'écran (le point coloré est
+  // purement visuel). Une seule annonce par transition pour éviter le spam.
+  if(status === 'error' && lastSyncStatus !== 'error') announce('Erreur de synchronisation');
+  lastSyncStatus = status;
+}
+
+// Région live invisible pour annonces aux technologies d'assistance
+function announce(msg){
+  let el = document.getElementById('a11y-live');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'a11y-live';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap';
+    document.body.appendChild(el);
+  }
+  el.textContent = '';
+  setTimeout(() => { el.textContent = String(msg || ''); }, 50);
 }
 
 /* ══════════════════════════════════════════
@@ -6499,7 +6566,7 @@ function carouselCardHtml(p){
   const when = dateRef ? esc(relativeTime(dateRef)) : '';
   return `
     <div class="ef-card${hasReact ? ' has-react' : ''}" onclick="viewPhoto('${esc(p.id)}', { sourceEl: this })">
-      <img src="${esc(p.thumbUrl || p.url)}" alt="${esc(p.name || '')}" loading="lazy" decoding="async">
+      <img src="${esc(p.thumbUrl || p.url)}" alt="${esc(p.name || '')}" loading="lazy" decoding="async" onerror="photoImgError()">
       ${when ? `<div class="ef-card-meta">${when}</div>` : ''}
     </div>`;
 }
@@ -6524,7 +6591,7 @@ function bentoCellHtml(placement){
   const style = `--bc:${placement.col + 1};--br:${placement.row + 1};--bw:${placement.w};--bh:${placement.h}`;
   return `
     <div class="bento-cell${hasReact ? ' has-react' : ''}" data-id="${esc(p.id)}" style="${style}">
-      <img src="${esc(p.thumbUrl || p.url)}" onclick="onPhotoTileTap(event,'${esc(p.id)}')" alt="${esc(p.name || '')}" loading="lazy" decoding="async">
+      <img src="${esc(p.thumbUrl || p.url)}" onclick="onPhotoTileTap(event,'${esc(p.id)}')" alt="${esc(p.name || '')}" loading="lazy" decoding="async" onerror="photoImgError()">
       ${otherOverlay}
       <button class="${heartClass}" aria-label="Coup de cœur" data-photo-id="${esc(p.id)}" onclick="event.stopPropagation();onHeartTap(event,'${esc(p.id)}')" oncontextmenu="event.preventDefault();showReactionMenu(event,'${esc(p.id)}');return false">${heartContent}</button>
     </div>`;
@@ -6552,7 +6619,7 @@ function renderEditorialFeed(){
     const when = dateRef ? esc(relativeTime(dateRef)) : '';
     const tag = S.coverPhotoId === hero.id ? 'À la une' : 'Photo du moment';
     html += `<div class="ef-hero" onclick="viewPhoto('${esc(hero.id)}', { sourceEl: this })">
-      <img src="${esc(hero.url)}" alt="${esc(hero.name || '')}">
+      <img src="${esc(hero.url)}" alt="${esc(hero.name || '')}" onerror="photoImgError()">
       <div class="ef-hero-overlay">
         <span class="ef-hero-tag">${esc(tag)}</span>
         <div class="ef-hero-title">${esc(hero.addedBy || 'Photo partagée')}</div>
@@ -6670,7 +6737,7 @@ function photoCellHtml(p, me, other){
   const hasReact = !!(myReact || otherReact);
   return `
   <div class="photo-wrap${hasReact ? ' has-react' : ''}" data-id="${esc(p.id)}">
-    <img src="${esc(p.thumbUrl||p.url)}" class="photo-thumb" onclick="onPhotoTileTap(event,'${esc(p.id)}')" alt="${esc(p.name||'')}" loading="lazy" decoding="async">
+    <img src="${esc(p.thumbUrl||p.url)}" class="photo-thumb" onclick="onPhotoTileTap(event,'${esc(p.id)}')" alt="${esc(p.name||'')}" loading="lazy" decoding="async" onerror="photoImgError()">
   </div>`;
 }
 
@@ -7029,6 +7096,18 @@ function relativeTime(epochMs){
   if(d < 30) return 'il y a ' + Math.floor(d/7) + ' sem';
   if(d < 365) return 'il y a ' + Math.floor(d/30) + ' mois';
   return 'il y a ' + Math.floor(d/365) + ' an' + (d>=730?'s':'');
+}
+
+// Les URLs d'attachments Airtable expirent (~2 h). Quand une image du cache
+// échoue à charger, on re-liste les photos pour obtenir des URLs fraîches
+// (throttlé à 1 fois / 30 s pour éviter les boucles).
+let photoUrlRefreshAt = 0;
+function photoImgError(){
+  if(!syncConfigured()) return;
+  if(Date.now() - photoUrlRefreshAt < 30000) return;
+  photoUrlRefreshAt = Date.now();
+  photoCacheFetchedAt = 0;
+  loadPhotosFromWorker().catch(()=>{});
 }
 
 async function loadPhotosFromWorker(){
@@ -8173,6 +8252,70 @@ async function configureSyncPassword(){
     alert('Synchro configurée mais le test a échoué. Vérifie l\'URL, puis réessaie avec "Tester".');
   }
 }
+/* ── Sauvegardes — le Worker snapshote l'état une fois par jour avant
+   écrasement (conservées 14 jours). Permet de revenir en arrière après
+   une mauvaise manip ou un merge raté. ── */
+async function showSyncBackups(){
+  if(!syncConfigured()){ alert('Configure d\'abord la synchronisation.'); return; }
+  let backups;
+  try{
+    const r = await fetch(S.syncUrl + '/state/backups', {
+      headers: { 'Authorization': 'Bearer ' + S.syncKeyHash }
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    backups = Array.isArray(data.backups) ? data.backups : [];
+  }catch(e){
+    alert('Impossible de lister les sauvegardes : ' + (e.message || 'réseau'));
+    return;
+  }
+  if(!backups.length){
+    alert("Aucune sauvegarde disponible encore.\nUn snapshot est créé automatiquement chaque jour, au premier changement synchronisé.");
+    return;
+  }
+  const lines = backups.map((b, i) => `${i+1}. ${b.date}`).join('\n');
+  const pick = prompt('Restaurer les données telles qu\'elles étaient au début d\'une journée.\nTape le numéro choisi :\n\n' + lines, '');
+  if(pick === null) return;
+  const idx = parseInt(pick, 10) - 1;
+  if(isNaN(idx) || idx < 0 || idx >= backups.length){ alert('Numéro invalide.'); return; }
+  const date = backups[idx].date;
+  if(!confirm(`Restaurer les données du ${date} ?\n\nLes modifications faites depuis seront remplacées, sur les deux appareils. (Les photos ne sont pas touchées.)`)) return;
+  try{
+    const r = await fetch(S.syncUrl + '/state/backups/' + date, {
+      headers: { 'Authorization': 'Bearer ' + S.syncKeyHash }
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    if(!data || !data.state) throw new Error('Sauvegarde vide');
+    restoreFromBackup(data.state);
+    toast('Sauvegarde du ' + date + ' restaurée', { success: true });
+  }catch(e){
+    alert('Restauration échouée : ' + (e.message || 'réseau'));
+  }
+}
+
+function restoreFromBackup(backupState){
+  const restored = normalizeState(backupState);
+  const t = now();
+  // Le restore doit gagner le merge sur les deux appareils : on rajeunit tous
+  // les mtimes et on efface les tombstones (un item supprimé depuis la
+  // sauvegarde doit ressusciter).
+  ['tasks','packing','events','courses','contacts','procedures','procedureRuns'].forEach(l => {
+    (restored[l] || []).forEach(it => { it.mtime = t; });
+    restored.deletedIds[l] = [];
+  });
+  SYNC_SYNCABLE_FIELDS.forEach(f => { restored.fieldMtimes[f] = t; });
+  // Champs local-only : on garde ceux de l'appareil
+  restored.photos = S.photos;
+  restored.weatherCache = S.weatherCache;
+  restored.syncUrl = S.syncUrl;
+  restored.syncKeyHash = S.syncKeyHash;
+  S = restored;
+  saveLocal();
+  rerenderCurrent();
+  doPush();
+}
+
 async function testSyncConnection(){
   const status = document.getElementById('syncStatus');
   if(!syncConfigured()){

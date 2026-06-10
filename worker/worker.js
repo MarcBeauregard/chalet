@@ -7,6 +7,11 @@
  * Endpoints:
  *   GET    /state              → { state, lastModified } (ChaletSync)
  *   PUT    /state              → upsert state (ChaletSync)
+ *                                 Header optionnel X-Base-Last-Modified: <ms> —
+ *                                 si présent et ≠ du LastModified stocké → 409
+ *                                 (le client doit re-pull/merger avant de re-pousser)
+ *   GET    /state/backups      → { backups: [{date, lastModified}] } (snapshots quotidiens)
+ *   GET    /state/backups/:date → { state, lastModified } d'un snapshot (date = YYYY-MM-DD)
  *   GET    /photos             → { photos: [...] } (ChaletPhotos, liste pour RoomKey)
  *   POST   /photos             → upload photo → { id, url, name, addedBy, addedAt }
  *   DELETE /photos/:id         → supprime la photo (vérifie le RoomKey)
@@ -25,6 +30,30 @@
 
 const MAX_STATE_BYTES = 500 * 1024;       // body /state : 500 kB
 const MAX_PHOTO_BYTES = 6 * 1024 * 1024;  // body /photos : 6 MB (après base64 ≈ 4.5 MB binaire)
+const BACKUP_RETENTION_DAYS = 14;         // snapshots quotidiens conservés
+
+// ── Rate limiting (en mémoire, par isolate — best effort) ──
+// Deux compteurs par IP : requêtes globales + échecs d'auth (anti brute-force).
+const RATE_WINDOW_MS = 60 * 1000;
+const RATE_MAX_REQUESTS = 120;   // req/min/IP (2 clients en sync = ~10/min)
+const RATE_MAX_AUTH_FAILS = 10;  // 401/min/IP
+const rateBuckets = new Map();   // ip → { winStart, count, failCount }
+
+function rateBucket(ip) {
+  const nowMs = Date.now();
+  let b = rateBuckets.get(ip);
+  if (!b || nowMs - b.winStart > RATE_WINDOW_MS) {
+    b = { winStart: nowMs, count: 0, failCount: 0 };
+    rateBuckets.set(ip, b);
+  }
+  // Évite une croissance illimitée de la map dans un isolate longue durée
+  if (rateBuckets.size > 5000) {
+    for (const [k, v] of rateBuckets) {
+      if (nowMs - v.winStart > RATE_WINDOW_MS) rateBuckets.delete(k);
+    }
+  }
+  return b;
+}
 
 export default {
   async fetch(request, env) {
@@ -36,6 +65,13 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const bucket = rateBucket(ip);
+    bucket.count++;
+    if (bucket.count > RATE_MAX_REQUESTS || bucket.failCount > RATE_MAX_AUTH_FAILS) {
+      return cors(json({ error: 'Too many requests' }, 429));
+    }
+
     // Vérifie secrets essentiels
     if (!env.AIRTABLE_PAT || !env.AIRTABLE_BASE_ID || !env.AIRTABLE_TABLE_ID) {
       return cors(json({ error: 'Airtable non configuré (secrets manquants)' }, 500));
@@ -45,6 +81,7 @@ export default {
     const auth = request.headers.get('Authorization') || '';
     const m = /^Bearer\s+([a-f0-9]{64})$/.exec(auth);
     if (!m) {
+      bucket.failCount++;
       return cors(json({ error: 'Invalid or missing key' }, 401));
     }
     const roomKey = m[1];
@@ -54,6 +91,19 @@ export default {
       if (path === '/state') {
         if (request.method === 'GET')  return cors(await handleGetState(env, roomKey));
         if (request.method === 'PUT')  return cors(await handlePutState(env, roomKey, request));
+        return cors(json({ error: 'Method not allowed' }, 405));
+      }
+
+      // === /state/backups (liste des snapshots quotidiens) ===
+      if (path === '/state/backups') {
+        if (request.method === 'GET') return cors(await handleListBackups(env, roomKey));
+        return cors(json({ error: 'Method not allowed' }, 405));
+      }
+
+      // === /state/backups/:date (contenu d'un snapshot) ===
+      const backupMatch = /^\/state\/backups\/(\d{4}-\d{2}-\d{2})$/.exec(path);
+      if (backupMatch) {
+        if (request.method === 'GET') return cors(await handleGetBackup(env, roomKey, backupMatch[1]));
         return cors(json({ error: 'Method not allowed' }, 405));
       }
 
@@ -110,6 +160,26 @@ async function handlePutState(env, roomKey, request) {
   const stateStr = JSON.stringify(parsed);
   if (stateStr.length > 95000) return json({ error: 'State trop volumineux pour Airtable (>95k chars)' }, 413);
 
+  // État actuellement stocké : sert au contrôle de concurrence ET au backup
+  const current = await findRecord(env, env.AIRTABLE_TABLE_ID, roomKey, ['StateJson', 'LastModified']);
+  const currentLM = current ? (Number(current.fields && current.fields.LastModified) || 0) : 0;
+
+  // Contrôle de concurrence optimiste : le client annonce le LastModified
+  // qu'il a vu au dernier pull. S'il a changé entre-temps, un autre appareil
+  // a poussé → 409, le client doit re-pull/merger avant de re-pousser.
+  // (Header absent = ancien client, on garde le comportement last-write-wins.)
+  const baseLM = request.headers.get('X-Base-Last-Modified');
+  if (baseLM !== null && Number(baseLM) !== currentLM) {
+    return json({ error: 'Conflict: state changed since last pull', lastModified: currentLM }, 409);
+  }
+
+  // Snapshot quotidien AVANT écrasement : conserve l'état tel qu'au début de
+  // chaque jour, pour pouvoir restaurer après un merge raté ou une corruption.
+  if (current && current.fields && current.fields.StateJson) {
+    try { await ensureDailyBackup(env, roomKey, current.fields.StateJson, currentLM); }
+    catch (e) { /* le backup ne doit jamais bloquer la sync */ }
+  }
+
   const endpoint = `https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/${env.AIRTABLE_TABLE_ID}`;
   const payload = {
     performUpsert: { fieldsToMergeOn: ['RoomKey'] },
@@ -125,6 +195,84 @@ async function handlePutState(env, roomKey, request) {
     return json({ error: 'Airtable upsert failed', status: res.status, detail }, 502);
   }
   return json({ ok: true, lastModified });
+}
+
+// ═════════════════════════════════════════════════════════════════
+//  Backups — snapshots quotidiens dans la même table ChaletSync,
+//  sous RoomKey = "<roomKey>:bak:<YYYY-MM-DD>". Les lectures /state
+//  filtrent sur l'égalité exacte du RoomKey, donc aucune collision.
+// ═════════════════════════════════════════════════════════════════
+const backupDoneToday = new Map(); // roomKey → 'YYYY-MM-DD' (memo par isolate)
+
+function backupKey(roomKey, date) { return `${roomKey}:bak:${date}`; }
+function todayUTC() { return new Date().toISOString().slice(0, 10); }
+
+async function ensureDailyBackup(env, roomKey, stateJson, lastModified) {
+  const date = todayUTC();
+  if (backupDoneToday.get(roomKey) === date) return;
+
+  const key = backupKey(roomKey, date);
+  const existing = await findRecord(env, env.AIRTABLE_TABLE_ID, key, ['RoomKey']);
+  if (!existing) {
+    const endpoint = `https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/${env.AIRTABLE_TABLE_ID}`;
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${env.AIRTABLE_PAT}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: { RoomKey: key, StateJson: stateJson, LastModified: lastModified } })
+    });
+    if (!res.ok) throw new Error(`backup create ${res.status}`);
+    await pruneOldBackups(env, roomKey);
+  }
+  backupDoneToday.set(roomKey, date);
+}
+
+async function listBackupRecords(env, roomKey) {
+  const safe = roomKey.replace(/'/g, "\\'");
+  const params = new URLSearchParams({
+    filterByFormula: `FIND('${safe}:bak:', {RoomKey}) = 1`,
+    pageSize: '100'
+  });
+  ['RoomKey', 'LastModified'].forEach(f => params.append('fields[]', f));
+  const endpoint = `https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/${env.AIRTABLE_TABLE_ID}?${params.toString()}`;
+  const res = await fetch(endpoint, { headers: { 'Authorization': `Bearer ${env.AIRTABLE_PAT}` } });
+  if (!res.ok) {
+    const detail = await safeText(res);
+    throw new Error(`Airtable list backups ${res.status}: ${detail}`);
+  }
+  const data = await res.json();
+  return (data.records || []).map(r => ({
+    recordId: r.id,
+    date: String((r.fields && r.fields.RoomKey) || '').split(':bak:')[1] || '',
+    lastModified: Number(r.fields && r.fields.LastModified) || 0
+  })).filter(b => b.date);
+}
+
+async function pruneOldBackups(env, roomKey) {
+  const cutoff = new Date(Date.now() - BACKUP_RETENTION_DAYS * 24 * 3600 * 1000).toISOString().slice(0, 10);
+  const backups = await listBackupRecords(env, roomKey);
+  for (const b of backups) {
+    if (b.date < cutoff) {
+      await fetch(`https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/${env.AIRTABLE_TABLE_ID}/${b.recordId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${env.AIRTABLE_PAT}` }
+      });
+    }
+  }
+}
+
+async function handleListBackups(env, roomKey) {
+  const backups = await listBackupRecords(env, roomKey);
+  backups.sort((a, b) => (a.date < b.date ? 1 : -1));
+  return json({ backups: backups.map(b => ({ date: b.date, lastModified: b.lastModified })) });
+}
+
+async function handleGetBackup(env, roomKey, date) {
+  const rec = await findRecord(env, env.AIRTABLE_TABLE_ID, backupKey(roomKey, date), ['StateJson', 'LastModified']);
+  if (!rec || !rec.fields || !rec.fields.StateJson) return json({ error: 'Backup not found' }, 404);
+  let parsed = null;
+  try { parsed = JSON.parse(rec.fields.StateJson); }
+  catch { return json({ error: 'Backup corrupt' }, 500); }
+  return json({ state: parsed, lastModified: Number(rec.fields.LastModified) || 0 });
 }
 
 // ═════════════════════════════════════════════════════════════════
@@ -299,7 +447,7 @@ function cors(res) {
   const h = new Headers(res.headers);
   h.set('Access-Control-Allow-Origin', '*');
   h.set('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS');
-  h.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+  h.set('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Base-Last-Modified');
   h.set('Access-Control-Max-Age', '86400');
   h.set('Cache-Control', 'no-store');
   return new Response(res.body, { status: res.status, headers: h });
