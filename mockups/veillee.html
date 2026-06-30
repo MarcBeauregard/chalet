@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Veillée — Notre Chalet</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0E1A1F">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#0E1A1F; --night2:#13262B; --night3:#193238;
+  --lamp:#F2B65A; --lamp-dk:#D9912F;
+  --ember:#E8765A;
+  --moss:#7FB295;
+  --birch:#EFE7D7; --birch2:#C7BBA6; --birch3:#8C9590;
+  --line:rgba(239,231,215,.10); --line2:rgba(239,231,215,.16);
+  --glass:rgba(25,50,56,.62);
+  --r:18px; --r-s:13px; --r-l:26px;
+  --ease:cubic-bezier(.4,0,.2,1); --spring:cubic-bezier(.34,1.4,.5,1); --out:cubic-bezier(.16,1,.3,1);
+  --safe-t:env(safe-area-inset-top); --safe-b:env(safe-area-inset-bottom);
+  --ff:'Inter',-apple-system,system-ui,sans-serif;
+  --fd:'Fraunces',Georgia,serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--ff); background:var(--night); color:var(--birch);
+  overscroll-behavior:none; -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+button{font-family:inherit;color:inherit;border:none;background:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--lamp);outline-offset:2px;border-radius:6px}
+input{font-family:inherit}
+
+/* ── App shell ── */
+.app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
+
+/* Aurora ambiance behind everything */
+.aurora{position:absolute;inset:-20% -10% auto -10%;height:62%;z-index:0;pointer-events:none;opacity:.85}
+.aurora b{position:absolute;border-radius:50%;filter:blur(58px);mix-blend-mode:screen;animation:drift 26s var(--ease) infinite alternate}
+.aurora b:nth-child(1){width:340px;height:340px;left:-60px;top:-90px;background:radial-gradient(circle,#1d6b5e,transparent 68%);animation-duration:30s}
+.aurora b:nth-child(2){width:300px;height:300px;right:-70px;top:-40px;background:radial-gradient(circle,#3a5a8c,transparent 68%);animation-duration:34s;animation-delay:-6s}
+.aurora b:nth-child(3){width:240px;height:240px;left:40%;top:-120px;background:radial-gradient(circle,#7a4f8c,transparent 70%);animation-duration:40s;animation-delay:-12s;opacity:.7}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(26px,30px) scale(1.12)}100%{transform:translate(-22px,14px) scale(1.04)}}
+
+/* ── Header ── */
+.hdr{position:relative;z-index:2;padding:calc(var(--safe-t) + 16px) 22px 14px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:13px;min-width:0}
+.lantern{position:relative;width:42px;height:46px;flex:none}
+.lantern svg{width:100%;height:100%;display:block}
+.lantern .glow{position:absolute;inset:-40% -55%;background:radial-gradient(circle,rgba(242,182,90,.55),transparent 62%);filter:blur(6px);animation:flicker 4.5s ease-in-out infinite;z-index:-1}
+@keyframes flicker{0%,100%{opacity:.85;transform:scale(1)}45%{opacity:1;transform:scale(1.06)}70%{opacity:.78;transform:scale(.98)}}
+.brand-txt{min-width:0}
+.brand-txt .eyebrow{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--lamp);font-weight:600;opacity:.92}
+.brand-txt h1{font-family:var(--fd);font-weight:600;font-size:23px;line-height:1.04;letter-spacing:-.01em;color:var(--birch);margin-top:1px}
+.hdr-act{width:42px;height:42px;border-radius:50%;background:var(--glass);border:1px solid var(--line2);display:grid;place-items:center;flex:none;transition:transform .2s var(--spring),background .2s}
+.hdr-act:active{transform:scale(.9);background:var(--night3)}
+.hdr-act svg{width:20px;height:20px;stroke:var(--birch);stroke-width:1.7;fill:none}
+
+/* ── Scroll region ── */
+.scroll{position:relative;z-index:1;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 18px calc(var(--safe-b) + 104px)}
+.view{display:none;animation:viewIn .5s var(--out)}
+.view.on{display:block}
+@keyframes viewIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* greeting line */
+.greet{font-family:var(--fd);font-size:15px;color:var(--birch2);font-weight:400;font-style:italic;margin:4px 2px 16px}
+.greet b{color:var(--lamp);font-style:normal;font-weight:600}
+
+/* ── Cards / lit windows ── */
+.card{background:linear-gradient(168deg,var(--night2),rgba(14,26,31,.7));border:1px solid var(--line);border-radius:var(--r);padding:18px;position:relative;overflow:hidden}
+.card+.card{margin-top:14px}
+.card-lit{box-shadow:0 0 0 1px var(--line2),0 18px 40px -22px rgba(242,182,90,.4);}
+.card-lit::before{content:"";position:absolute;left:0;top:0;width:100%;height:3px;background:linear-gradient(90deg,transparent,var(--lamp),var(--ember),transparent);opacity:.85}
+
+/* Hero — prochain séjour */
+.hero{padding:22px 20px 20px;background:linear-gradient(160deg,#16302f,#0f2024 70%);border:1px solid var(--line2);border-radius:var(--r-l);position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-30px;bottom:-30px;width:170px;height:170px;background:radial-gradient(circle,rgba(242,182,90,.16),transparent 65%);pointer-events:none}
+.hero .kick{display:inline-flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--lamp);font-weight:600}
+.hero .kick .dot{width:7px;height:7px;border-radius:50%;background:var(--lamp);box-shadow:0 0 10px var(--lamp);animation:flicker 3s ease-in-out infinite}
+.hero h2{font-family:var(--fd);font-size:30px;line-height:1.05;font-weight:600;letter-spacing:-.02em;margin:11px 0 6px}
+.hero .when{color:var(--birch2);font-size:14.5px}
+.hero .count{margin-top:16px;display:flex;align-items:baseline;gap:9px}
+.hero .count .n{font-family:var(--fd);font-size:46px;font-weight:600;color:var(--lamp);line-height:.9;letter-spacing:-.02em}
+.hero .count .u{font-size:13px;color:var(--birch3);max-width:130px;line-height:1.25}
+.hero-row{display:flex;gap:10px;margin-top:18px}
+.hero-row .btn{flex:1}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 18px;border-radius:14px;font-weight:600;font-size:14.5px;transition:transform .16s var(--spring),filter .2s,background .2s;white-space:nowrap}
+.btn:active{transform:scale(.96)}
+.btn-pri{background:linear-gradient(180deg,var(--lamp),var(--lamp-dk));color:#2a1a05;box-shadow:0 8px 22px -8px rgba(242,182,90,.7)}
+.btn-pri:active{filter:brightness(1.06)}
+.btn-ghost{background:var(--night3);color:var(--birch);border:1px solid var(--line2)}
+.btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none}
+
+/* section titles */
+.sec-h{display:flex;align-items:center;justify-content:space-between;margin:26px 4px 13px}
+.sec-h h3{font-family:var(--fd);font-size:19px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
+.sec-h .pill{font-size:11px;font-weight:600;color:var(--lamp);background:rgba(242,182,90,.12);border:1px solid rgba(242,182,90,.25);padding:4px 10px;border-radius:999px}
+.sec-h .lnk{font-size:13px;color:var(--birch3);font-weight:500;display:flex;align-items:center;gap:3px}
+.sec-h .lnk:active{color:var(--lamp)}
+
+/* quick tiles grid on dashboard */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{background:var(--night2);border:1px solid var(--line);border-radius:var(--r);padding:15px 15px 14px;text-align:left;display:flex;flex-direction:column;gap:10px;min-height:104px;transition:transform .18s var(--spring),border-color .2s,background .2s}
+.tile:active{transform:scale(.96);border-color:var(--line2);background:var(--night3)}
+.tile .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:rgba(242,182,90,.12)}
+.tile .ic svg{width:21px;height:21px;stroke:var(--lamp);stroke-width:1.8;fill:none}
+.tile.t-moss .ic{background:rgba(127,178,149,.14)} .tile.t-moss .ic svg{stroke:var(--moss)}
+.tile.t-ember .ic{background:rgba(232,118,90,.14)} .tile.t-ember .ic svg{stroke:var(--ember)}
+.tile .lbl{font-weight:600;font-size:15px;line-height:1.1}
+.tile .meta{font-size:12.5px;color:var(--birch3);margin-top:-4px}
+.tile .bar{height:5px;border-radius:3px;background:var(--night);overflow:hidden;margin-top:auto}
+.tile .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--lamp),var(--ember));border-radius:3px;transition:width .6s var(--out)}
+
+/* list rows */
+.list{display:flex;flex-direction:column;gap:9px}
+.row{display:flex;align-items:center;gap:13px;padding:14px 15px;background:var(--night2);border:1px solid var(--line);border-radius:var(--r-s);transition:background .2s,transform .15s,opacity .3s}
+.row:active{background:var(--night3)}
+.check{width:26px;height:26px;border-radius:9px;border:2px solid var(--line2);flex:none;display:grid;place-items:center;transition:all .22s var(--spring)}
+.check svg{width:15px;height:15px;stroke:#1a2a0f;stroke-width:3;fill:none;stroke-dasharray:20;stroke-dashoffset:20;transition:stroke-dashoffset .3s .05s}
+.row.done .check{background:var(--moss);border-color:var(--moss)}
+.row.done .check svg{stroke-dashoffset:0}
+.row .txt{flex:1;min-width:0}
+.row .txt .nm{font-weight:500;font-size:15px;line-height:1.2;transition:color .25s}
+.row .txt .sub{font-size:12.5px;color:var(--birch3);margin-top:2px}
+.row.done .txt .nm{color:var(--birch3);text-decoration:line-through;text-decoration-color:var(--line2)}
+.row .tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--night3);color:var(--birch2);border:1px solid var(--line);flex:none}
+.row .tag.who{color:var(--lamp);border-color:rgba(242,182,90,.3)}
+.row .grip{color:var(--birch3);flex:none;opacity:.5}
+
+/* segmented control */
+.seg{display:flex;gap:4px;background:var(--night2);border:1px solid var(--line);border-radius:13px;padding:4px;margin:2px 0 16px}
+.seg button{flex:1;height:38px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--birch3);transition:color .2s}
+.seg button.on{background:var(--night3);color:var(--lamp);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+
+/* add input */
+.adder{display:flex;gap:9px;margin-top:14px}
+.adder input{flex:1;height:48px;background:var(--night2);border:1px solid var(--line2);border-radius:13px;padding:0 16px;color:var(--birch);font-size:15px}
+.adder input::placeholder{color:var(--birch3)}
+.adder input:focus{outline:none;border-color:var(--lamp)}
+.adder .btn{width:48px;padding:0;flex:none}
+
+/* memory / photo strip */
+.strip{display:flex;gap:11px;overflow-x:auto;padding:2px 0 6px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.strip::-webkit-scrollbar{display:none}
+.snap{flex:none;width:138px;scroll-snap-align:start}
+.snap .ph{height:168px;border-radius:var(--r-s);background-size:cover;background-position:center;position:relative;border:1px solid var(--line2);overflow:hidden}
+.snap .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(8,16,19,.7),transparent 55%)}
+.snap .cap{position:absolute;left:10px;bottom:9px;right:10px;z-index:1;font-size:12px;color:var(--birch);font-weight:500;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.snap .react{position:absolute;top:8px;right:8px;z-index:1;font-size:16px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+
+/* photo grid */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pcell{aspect-ratio:1;border-radius:var(--r-s);background-size:cover;background-position:center;position:relative;border:1px solid var(--line2);overflow:hidden;transition:transform .18s var(--spring)}
+.pcell:active{transform:scale(.96)}
+.pcell .rb{position:absolute;bottom:8px;left:8px;display:flex;gap:4px}
+.pcell .rb span{width:26px;height:26px;border-radius:50%;background:rgba(14,26,31,.7);backdrop-filter:blur(6px);display:grid;place-items:center;font-size:14px;border:1px solid var(--line2)}
+
+/* agenda mini calendar */
+.cal{background:var(--night2);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-h .m{font-family:var(--fd);font-size:18px;font-weight:600}
+.cal-h button{width:36px;height:36px;border-radius:10px;background:var(--night3);border:1px solid var(--line);display:grid;place-items:center}
+.cal-h button:active{background:var(--night)}
+.cal-h button svg{width:16px;height:16px;stroke:var(--birch);stroke-width:2;fill:none}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal-grid .dow{font-size:10.5px;color:var(--birch3);text-align:center;font-weight:600;text-transform:uppercase;padding-bottom:4px}
+.cal-grid .d{aspect-ratio:1;display:grid;place-items:center;font-size:13.5px;border-radius:10px;color:var(--birch2);position:relative;transition:background .2s}
+.cal-grid .d:active{background:var(--night3)}
+.cal-grid .d.muted{color:var(--birch3);opacity:.4}
+.cal-grid .d.stay{background:rgba(242,182,90,.16);color:var(--lamp);font-weight:600}
+.cal-grid .d.stay.s0{border-top-left-radius:10px;border-bottom-left-radius:10px}
+.cal-grid .d.today{box-shadow:inset 0 0 0 2px var(--lamp)}
+.cal-grid .d.today::after{content:"";position:absolute;bottom:5px;width:4px;height:4px;border-radius:50%;background:var(--ember)}
+
+/* contact rows */
+.ct{display:flex;align-items:center;gap:13px;padding:13px 15px;background:var(--night2);border:1px solid var(--line);border-radius:var(--r-s)}
+.ct:active{background:var(--night3)}
+.ct .av{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-weight:700;font-size:15px;color:var(--night);flex:none}
+.ct .info{flex:1;min-width:0}
+.ct .info .nm{font-weight:600;font-size:15px}
+.ct .info .rl{font-size:12.5px;color:var(--birch3);margin-top:1px}
+.ct .call{width:42px;height:42px;border-radius:12px;background:rgba(127,178,149,.14);border:1px solid rgba(127,178,149,.3);display:grid;place-items:center;flex:none}
+.ct .call:active{transform:scale(.92)}
+.ct .call svg{width:18px;height:18px;stroke:var(--moss);stroke-width:2;fill:none}
+
+/* procedure cards */
+.proc{display:flex;align-items:center;gap:14px;padding:16px;background:var(--night2);border:1px solid var(--line);border-radius:var(--r);transition:background .2s,transform .15s}
+.proc:active{background:var(--night3);transform:scale(.99)}
+.proc .em{font-size:26px;width:48px;height:48px;border-radius:14px;background:var(--night3);display:grid;place-items:center;flex:none}
+.proc .pinfo{flex:1}.proc .pinfo .nm{font-weight:600;font-size:15.5px}.proc .pinfo .st{font-size:12.5px;color:var(--birch3);margin-top:2px}
+.proc .chev{color:var(--birch3)}
+
+/* ── FAB ── */
+.fab{position:absolute;right:20px;bottom:calc(var(--safe-b) + 92px);z-index:6;width:58px;height:58px;border-radius:50%;background:linear-gradient(180deg,var(--lamp),var(--lamp-dk));display:grid;place-items:center;box-shadow:0 12px 30px -8px rgba(242,182,90,.7),0 0 0 1px rgba(242,182,90,.4);transition:transform .2s var(--spring)}
+.fab:active{transform:scale(.9) rotate(90deg)}
+.fab svg{width:26px;height:26px;stroke:#2a1a05;stroke-width:2.4;fill:none}
+
+/* ── Bottom dock nav ── */
+.dock{position:absolute;left:0;right:0;bottom:0;z-index:5;padding:10px 12px calc(var(--safe-b) + 10px);background:linear-gradient(to top,var(--night) 62%,transparent);}
+.dock-in{display:flex;align-items:center;gap:2px;background:var(--glass);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border:1px solid var(--line2);border-radius:20px;padding:7px;box-shadow:0 14px 40px -10px rgba(0,0,0,.7)}
+.nav{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0;border-radius:13px;position:relative;transition:background .25s}
+.nav svg{width:23px;height:23px;stroke:var(--birch3);stroke-width:1.8;fill:none;transition:stroke .25s,transform .25s var(--spring)}
+.nav span{font-size:9.5px;font-weight:600;color:var(--birch3);transition:color .25s;letter-spacing:.01em}
+.nav.on{background:rgba(242,182,90,.13)}
+.nav.on svg{stroke:var(--lamp);transform:translateY(-1px)}
+.nav.on span{color:var(--lamp)}
+.nav:active{transform:scale(.92)}
+
+/* overflow nav button opens sheet of extra sections */
+/* ── Sheet (detail / add / more) ── */
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(6,12,14,.6);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .3s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--night2);border:1px solid var(--line2);border-bottom:none;border-radius:26px 26px 0 0;padding:10px 20px calc(var(--safe-b) + 22px);transform:translateY(102%);transition:transform .42s var(--out);max-height:86vh;overflow-y:auto;box-shadow:0 -20px 60px rgba(0,0,0,.5)}
+.sheet.on{transform:none}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--line2);margin:4px auto 16px}
+.sheet h3{font-family:var(--fd);font-size:22px;font-weight:600;margin-bottom:4px}
+.sheet .lead{color:var(--birch3);font-size:13.5px;margin-bottom:18px}
+.sheet .opt{display:flex;align-items:center;gap:14px;padding:15px;border-radius:14px;background:var(--night3);border:1px solid var(--line);margin-bottom:10px;transition:transform .15s;width:100%;text-align:left}
+.sheet .opt:active{transform:scale(.98)}
+.sheet .opt .ic{width:40px;height:40px;border-radius:12px;background:rgba(242,182,90,.12);display:grid;place-items:center;flex:none}
+.sheet .opt .ic svg{width:21px;height:21px;stroke:var(--lamp);stroke-width:1.8;fill:none}
+.sheet .opt .ot{flex:1}.sheet .opt .ot .nm{font-weight:600;font-size:15px}.sheet .opt .ot .ds{font-size:12.5px;color:var(--birch3)}
+
+/* steps for procedure detail */
+.step{display:flex;gap:14px;padding:4px 0}
+.step .sn{width:30px;height:30px;border-radius:50%;border:2px solid var(--lamp);color:var(--lamp);display:grid;place-items:center;font-weight:700;font-size:13px;flex:none;background:rgba(242,182,90,.08)}
+.step .sx{flex:1;padding-top:3px;font-size:14.5px;line-height:1.45;color:var(--birch2)}
+.step:not(:last-child) .sn::after{content:"";position:absolute;width:2px;height:26px;background:var(--line2);margin-top:46px}
+.step{position:relative}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(var(--safe-b) + 120px);transform:translateX(-50%) translateY(20px);z-index:40;background:var(--birch);color:var(--night);font-weight:600;font-size:13.5px;padding:12px 18px;border-radius:13px;box-shadow:0 12px 30px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:all .35s var(--spring);display:flex;align-items:center;gap:9px;max-width:84%}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast svg{width:18px;height:18px;stroke:var(--moss);stroke-width:2.5;fill:none;flex:none}
+
+.empty{text-align:center;padding:34px 20px;color:var(--birch3)}
+.empty .em{font-size:34px;margin-bottom:8px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.05s!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="aurora"><b></b><b></b><b></b></div>
+
+  <header class="hdr">
+    <div class="brand">
+      <div class="lantern">
+        <div class="glow"></div>
+        <svg viewBox="0 0 42 46" fill="none">
+          <path d="M14 6h14l-2 4H16l-2-4Z" fill="#193238" stroke="#C7BBA6" stroke-width="1.3"/>
+          <rect x="11" y="10" width="20" height="26" rx="4" fill="#13262B" stroke="#C7BBA6" stroke-width="1.3"/>
+          <rect x="15" y="14" width="12" height="18" rx="2" fill="url(#lg)"/>
+          <path d="M21 16c3 3 3 7 0 10-3-3-3-7 0-10Z" fill="#F2B65A"/>
+          <path d="M18 40h6M21 36v8" stroke="#C7BBA6" stroke-width="1.3"/>
+          <defs><radialGradient id="lg" cx="0.5" cy="0.45" r="0.6"><stop stop-color="#F2B65A"/><stop offset="1" stop-color="#7a4a14"/></radialGradient></defs>
+        </svg>
+      </div>
+      <div class="brand-txt">
+        <div class="eyebrow">Notre chalet</div>
+        <h1>La veillée</h1>
+      </div>
+    </div>
+    <button class="hdr-act" onclick="openMore()" aria-label="Réglages">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9c.2.61.78 1 1.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </header>
+
+  <main class="scroll" id="scroll">
+    <!-- ACCUEIL -->
+    <section class="view on" id="v-dashboard">
+      <p class="greet">Bonsoir <b>Marc</b> — le poêle est froid, mais plus pour longtemps.</p>
+
+      <div class="hero">
+        <span class="kick"><span class="dot"></span>Prochain séjour</span>
+        <h2>Fin de semaine au lac</h2>
+        <div class="when">Vendredi 4 → dimanche 6 juillet · 2 nuits</div>
+        <div class="count"><span class="n" id="dday">4</span><span class="u">jours avant de remettre une bûche dans le poêle</span></div>
+        <div class="hero-row">
+          <button class="btn btn-pri" onclick="go('calendar')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Voir l'agenda</button>
+          <button class="btn btn-ghost" onclick="go('packing')"><svg viewBox="0 0 24 24"><path d="M9 4h6a1 1 0 011 1v1H8V5a1 1 0 011-1z"/><rect x="4" y="6" width="16" height="15" rx="2"/></svg>Bagages</button>
+        </div>
+      </div>
+
+      <div class="sec-h"><h3>D'un coup d'œil</h3></div>
+      <div class="tiles">
+        <button class="tile" onclick="go('tasks')">
+          <div class="ic"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+          <div class="lbl">Tâches</div>
+          <div class="meta" id="m-tasks">2 sur 5 faites</div>
+          <div class="bar"><i id="b-tasks" style="width:40%"></i></div>
+        </button>
+        <button class="tile t-moss" onclick="go('packing')">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M9 4h6a1 1 0 011 1v1H8V5a1 1 0 011-1z"/><rect x="4" y="6" width="16" height="15" rx="2"/><path d="M12 11v6"/></svg></div>
+          <div class="lbl">Bagages</div>
+          <div class="meta" id="m-pack">3 sur 6 prêts</div>
+          <div class="bar"><i id="b-pack" style="width:50%"></i></div>
+        </button>
+        <button class="tile t-ember" onclick="go('courses')">
+          <div class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg></div>
+          <div class="lbl">Épicerie</div>
+          <div class="meta" id="m-course">5 à acheter</div>
+          <div class="bar"><i id="b-course" style="width:16%"></i></div>
+        </button>
+        <button class="tile" onclick="go('photos')">
+          <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
+          <div class="lbl">Souvenirs</div>
+          <div class="meta">28 photos partagées</div>
+          <div class="bar"><i style="width:100%"></i></div>
+        </button>
+      </div>
+
+      <div class="sec-h"><h3>Derniers souvenirs</h3><button class="lnk" onclick="go('photos')">Tout voir ›</button></div>
+      <div class="strip" id="dash-strip"></div>
+
+      <div class="sec-h"><h3>À ne pas oublier</h3><span class="pill" id="pill-due">3 cette semaine</span></div>
+      <div class="list" id="dash-tasks"></div>
+    </section>
+
+    <!-- TÂCHES -->
+    <section class="view" id="v-tasks">
+      <div class="sec-h"><h3>Tâches du chalet</h3><span class="pill" id="t-pill">2/5</span></div>
+      <div class="seg" id="t-seg">
+        <button class="on" onclick="filterTasks('all',this)">Toutes</button>
+        <button onclick="filterTasks('todo',this)">À faire</button>
+        <button onclick="filterTasks('done',this)">Faites</button>
+      </div>
+      <div class="list" id="task-list"></div>
+      <div class="adder">
+        <input id="task-in" placeholder="Ajouter une tâche…" enterkeyhint="done" onkeydown="if(event.key==='Enter')addTask()">
+        <button class="btn btn-pri" onclick="addTask()" aria-label="Ajouter"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+    </section>
+
+    <!-- BAGAGES -->
+    <section class="view" id="v-packing">
+      <div class="sec-h"><h3>Bagages</h3><span class="pill" id="p-pill">3/6</span></div>
+      <p class="greet" style="margin-top:0">Coche au fur et à mesure que ça entre dans le sac.</p>
+      <div class="list" id="pack-list"></div>
+      <div class="adder">
+        <input id="pack-in" placeholder="Ajouter à la valise…" enterkeyhint="done" onkeydown="if(event.key==='Enter')addPack()">
+        <button class="btn btn-pri" onclick="addPack()" aria-label="Ajouter"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+    </section>
+
+    <!-- COURSES -->
+    <section class="view" id="v-courses">
+      <div class="sec-h"><h3>Liste d'épicerie</h3><span class="pill" id="c-pill">5 restants</span></div>
+      <div class="list" id="course-list"></div>
+      <div class="adder">
+        <input id="course-in" placeholder="Ajouter un item…" enterkeyhint="done" onkeydown="if(event.key==='Enter')addCourse()">
+        <button class="btn btn-pri" onclick="addCourse()" aria-label="Ajouter"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+    </section>
+
+    <!-- AGENDA -->
+    <section class="view" id="v-calendar">
+      <div class="sec-h"><h3>Agenda</h3></div>
+      <div class="hero" style="border-radius:var(--r);margin-bottom:16px">
+        <span class="kick"><span class="dot"></span>Réservé</span>
+        <h2 style="font-size:24px">4 → 6 juillet</h2>
+        <div class="when">Marc &amp; Élo · 2 nuits · météo : 24°C ☀️</div>
+      </div>
+      <div class="cal">
+        <div class="cal-h">
+          <button onclick="toast('Juin')" aria-label="Mois précédent"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <div class="m">Juillet 2026</div>
+          <button onclick="toast('Août')" aria-label="Mois suivant"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <div class="sec-h"><h3>Détail du séjour</h3></div>
+      <div class="list" id="stay-detail"></div>
+    </section>
+
+    <!-- PHOTOS -->
+    <section class="view" id="v-photos">
+      <div class="sec-h"><h3>Souvenirs du chalet</h3><span class="pill">28</span></div>
+      <p class="greet" style="margin-top:0">Touche une photo pour y laisser un cœur.</p>
+      <div class="pgrid" id="photo-grid"></div>
+    </section>
+
+    <!-- CONTACTS -->
+    <section class="view" id="v-contacts">
+      <div class="sec-h"><h3>Contacts utiles</h3></div>
+      <div class="list" id="contact-list"></div>
+    </section>
+
+    <!-- PROCÉDURES -->
+    <section class="view" id="v-procedures">
+      <div class="sec-h"><h3>Procédures</h3><span class="pill">Le savoir du chalet</span></div>
+      <p class="greet" style="margin-top:0">Les gestes qu'on oublie d'une saison à l'autre.</p>
+      <div class="list" id="proc-list"></div>
+    </section>
+  </main>
+
+  <nav class="dock">
+    <div class="dock-in">
+      <button class="nav on" id="n-dashboard" onclick="go('dashboard')"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg><span>Accueil</span></button>
+      <button class="nav" id="n-tasks" onclick="go('tasks')"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>Tâches</span></button>
+      <button class="nav" id="n-courses" onclick="go('courses')"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg><span>Épicerie</span></button>
+      <button class="nav" id="n-photos" onclick="go('photos')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span>Photos</span></button>
+      <button class="nav" id="n-more" onclick="openMore()"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>Plus</span></button>
+    </div>
+  </nav>
+
+  <div class="scrim" id="scrim" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet"></div>
+  <div class="toast" id="toast"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span id="toast-x">Fait</span></div>
+</div>
+
+<script>
+/* ───────── Données (contenu réel, fr-CA) ───────── */
+const PH = [
+  ['#3a5a4a','Coucher de soleil sur le quai','🌅'],
+  ['#5a4a3a','Premier feu de la saison','🔥'],
+  ['#4a5a6a','Brume du matin sur le lac','🌫️'],
+  ['#6a5a4a','Tarte aux bleuets d\'Élo','🥧'],
+  ['#3a4a5a','Canot au petit matin','🛶'],
+  ['#5a3a4a','Soirée guimauves','🍫'],
+];
+let tasks=[
+  {n:'Vérifier la pompe à eau',who:'Marc',sub:'Avant d\'ouvrir les robinets',done:false},
+  {n:'Rentrer du bois de chauffage',who:'Élo',sub:'Au moins 2 brassées',done:false},
+  {n:'Réparer la moustiquaire',who:'Marc',sub:'Porte du patio',done:false},
+  {n:'Vider le cabanon',who:'Ensemble',sub:'',done:true},
+  {n:'Tester la génératrice',who:'Marc',sub:'',done:true},
+];
+let pack=[
+  {n:'Bottes de pluie',who:'Marc',done:true},{n:'Maillots de bain',who:'Ensemble',done:true},
+  {n:'Chargeurs & batterie',who:'Marc',done:true},{n:'Crème solaire',who:'Élo',done:false},
+  {n:'Imperméables',who:'Ensemble',done:false},{n:'Jeux de société',who:'Élo',done:false},
+];
+let course=[
+  {n:'Café moulu',q:'1 sac',done:false},{n:'Œufs',q:'1 douz.',done:false},
+  {n:'Guimauves',q:'2 sacs',done:false},{n:'Sac de glace',q:'2',done:false},
+  {n:'Allume-feu',q:'1 boîte',done:false},{n:'Pain',q:'1',done:true},
+];
+const contacts=[
+  {n:'Réjean (voisin)',r:'Garde un œil l\'hiver','c':'#7FB295'},
+  {n:'Plombier — Aqua-Nord',r:'Pompe & chauffe-eau','c':'#F2B65A'},
+  {n:'Marina du lac',r:'Quai & ponton','c':'#5a8cc7'},
+  {n:'Service incendie',r:'Caserne secteur nord','c':'#E8765A'},
+];
+const procs=[
+  {e:'🚰',n:'Ouvrir le chalet',st:'7 étapes · printemps',steps:['Ouvrir la valve d\'eau principale au sous-sol.','Amorcer la pompe et vérifier la pression.','Brancher le chauffe-eau, attendre 30 min.','Rouvrir les robinets un à un.','Vérifier sous les éviers (fuites).','Rebrancher le frigo et le congélateur.','Tester la génératrice.']},
+  {e:'🔥',n:'Allumer le poêle à bois',st:'5 étapes',steps:['Ouvrir la clé de tirage complètement.','Papier journal froissé + petit bois en tipi.','Allumer par le bas, laisser la porte entrouverte.','Ajouter des bûches quand la braise est prise.','Régler le tirage à mi-course.']},
+  {e:'❄️',n:'Fermer le chalet',st:'9 étapes · automne',steps:['Couper l\'eau à la valve principale.','Vidanger les tuyaux et le chauffe-eau.','Antigel dans les drains et la toilette.','Vider le frigo, portes entrouvertes.','Couper le propane.','Fermer les volets.','Rentrer le ponton.','Couper le disjoncteur principal sauf gel.','Barrer et aviser Réjean.']},
+];
+
+/* ───────── Helpers ───────── */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let toastT;
+function toast(msg){const t=$('#toast');$('#toast-x').textContent=msg;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),1800);}
+function haptic(){if(navigator.vibrate)navigator.vibrate(8);}
+
+const SECTIONS={dashboard:'Accueil',tasks:'Tâches',packing:'Bagages',courses:'Épicerie',calendar:'Agenda',photos:'Photos',contacts:'Contacts',procedures:'Procédures'};
+let current='dashboard';
+function go(v){
+  current=v;
+  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('on'));
+  const direct={dashboard:1,tasks:1,courses:1,photos:1};
+  $('#n-'+(direct[v]?v:'more'))?.classList.add('on');
+  $('#scroll').scrollTo({top:0,behavior:'smooth'});
+  closeSheet();
+  haptic();
+}
+
+/* ── Render lists ── */
+function tasksFilter(f){return f==='todo'?tasks.filter(t=>!t.done):f==='done'?tasks.filter(t=>t.done):tasks;}
+let tFilter='all';
+function rTasks(){
+  const list=tasksFilter(tFilter);
+  $('#task-list').innerHTML=list.length?list.map(t=>{
+    const i=tasks.indexOf(t);
+    return `<div class="row ${t.done?'done':''}" onclick="toggleTask(${i})">
+      <div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="txt"><div class="nm">${esc(t.n)}</div>${t.sub?`<div class="sub">${esc(t.sub)}</div>`:''}</div>
+      <span class="tag who">${esc(t.who)}</span></div>`;
+  }).join(''):`<div class="empty"><div class="em">🌲</div>Rien ici. Tout est sous contrôle.</div>`;
+  const done=tasks.filter(t=>t.done).length;
+  $('#t-pill').textContent=`${done}/${tasks.length}`;
+  // dashboard mirrors
+  $('#m-tasks').textContent=`${done} sur ${tasks.length} faites`;
+  $('#b-tasks').style.width=(done/tasks.length*100)+'%';
+  const due=tasks.filter(t=>!t.done).slice(0,3);
+  $('#dash-tasks').innerHTML=due.length?due.map(t=>{const i=tasks.indexOf(t);return `<div class="row" onclick="toggleTask(${i});go('tasks')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="txt"><div class="nm">${esc(t.n)}</div></div><span class="tag who">${esc(t.who)}</span></div>`;}).join(''):`<div class="empty">Tout est fait ✨</div>`;
+  $('#pill-due').textContent=`${tasks.filter(t=>!t.done).length} à faire`;
+}
+function toggleTask(i){tasks[i].done=!tasks[i].done;haptic();toast(tasks[i].done?'Tâche faite ✓':'À refaire');rTasks();}
+function filterTasks(f,el){tFilter=f;document.querySelectorAll('#t-seg button').forEach(b=>b.classList.remove('on'));el.classList.add('on');rTasks();}
+function addTask(){const v=$('#task-in').value.trim();if(!v)return;tasks.unshift({n:v,who:'Marc',sub:'',done:false});$('#task-in').value='';tFilter='all';document.querySelectorAll('#t-seg button').forEach((b,i)=>b.classList.toggle('on',i===0));rTasks();toast('Tâche ajoutée');}
+
+function rPack(){
+  $('#pack-list').innerHTML=pack.map((p,i)=>`<div class="row ${p.done?'done':''}" onclick="togglePack(${i})">
+    <div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="txt"><div class="nm">${esc(p.n)}</div></div><span class="tag">${esc(p.who)}</span></div>`).join('');
+  const done=pack.filter(p=>p.done).length;
+  $('#p-pill').textContent=`${done}/${pack.length}`;
+  $('#m-pack').textContent=`${done} sur ${pack.length} prêts`;
+  $('#b-pack').style.width=(done/pack.length*100)+'%';
+}
+function togglePack(i){pack[i].done=!pack[i].done;haptic();rPack();}
+function addPack(){const v=$('#pack-in').value.trim();if(!v)return;pack.push({n:v,who:'Marc',done:false});$('#pack-in').value='';rPack();toast('Ajouté à la valise');}
+
+function rCourse(){
+  $('#course-list').innerHTML=course.map((c,i)=>`<div class="row ${c.done?'done':''}" onclick="toggleCourse(${i})">
+    <div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="txt"><div class="nm">${esc(c.n)}</div></div><span class="tag">${esc(c.q)}</span></div>`).join('');
+  const left=course.filter(c=>!c.done).length;
+  $('#c-pill').textContent=`${left} restants`;
+  $('#m-course').textContent=`${left} à acheter`;
+  $('#b-course').style.width=((course.length-left)/course.length*100)+'%';
+}
+function toggleCourse(i){course[i].done=!course[i].done;haptic();toast(course[i].done?'Dans le panier ✓':'Retiré');rCourse();}
+function addCourse(){const v=$('#course-in').value.trim();if(!v)return;course.unshift({n:v,q:'1',done:false});$('#course-in').value='';rCourse();toast('Item ajouté');}
+
+function rStrip(){
+  $('#dash-strip').innerHTML=PH.slice(0,5).map((p,i)=>`<div class="snap"><div class="ph" style="background:${p[0]}" onclick="go('photos')"><div class="cap">${esc(p[1])}</div>${i<2?`<div class="react">❤️</div>`:''}</div></div>`).join('');
+}
+let reacts={};
+function rPhotos(){
+  $('#photo-grid').innerHTML=PH.concat(PH).map((p,i)=>{
+    const r=reacts[i];
+    return `<div class="pcell" style="background:${p[0]}" onclick="reactPhoto(${i})"><div class="rb">${r?`<span>${r}</span>`:''}<span>${esc(p[2])}</span></div></div>`;
+  }).join('');
+}
+function reactPhoto(i){reacts[i]=reacts[i]==='❤️'?null:'❤️';if(!reacts[i])delete reacts[i];haptic();toast(reacts[i]?'Cœur ajouté ❤️':'Cœur retiré');rPhotos();}
+
+function rContacts(){
+  $('#contact-list').innerHTML=contacts.map(c=>`<div class="ct">
+    <div class="av" style="background:${c.c}">${esc(c.n.split(' ')[0].slice(0,2).toUpperCase())}</div>
+    <div class="info"><div class="nm">${esc(c.n)}</div><div class="rl">${esc(c.r)}</div></div>
+    <button class="call" onclick="event.stopPropagation();toast('Appel — ${esc(c.n)}')" aria-label="Appeler"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0122 16.92z"/></svg></button>
+  </div>`).join('');
+}
+function rProcs(){
+  $('#proc-list').innerHTML=procs.map((p,i)=>`<div class="proc" onclick="openProc(${i})">
+    <div class="em">${p.e}</div>
+    <div class="pinfo"><div class="nm">${esc(p.n)}</div><div class="st">${esc(p.st)}</div></div>
+    <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>`).join('');
+}
+
+/* Calendar */
+function rCal(){
+  const dows=['D','L','M','M','J','V','S'];
+  let html=dows.map(d=>`<div class="dow">${d}</div>`).join('');
+  // July 2026: 1st is Wednesday (idx 3)
+  const first=3,days=31,stayStart=4,stayEnd=6,today=1;
+  for(let i=0;i<first;i++)html+=`<div class="d muted"></div>`;
+  for(let d=1;d<=days;d++){
+    let cls='d';
+    if(d>=stayStart&&d<=stayEnd)cls+=' stay';
+    if(d===today)cls+=' today';
+    html+=`<div class="${cls}" onclick="${d>=stayStart&&d<=stayEnd?`go('calendar');toast('Séjour 4–6 juillet')`:`toast('${d} juillet — libre')`}">${d}</div>`;
+  }
+  $('#cal-grid').innerHTML=html;
+  $('#stay-detail').innerHTML=`
+    <div class="row"><div class="check" style="background:var(--lamp);border-color:var(--lamp)"><svg viewBox="0 0 24 24" style="stroke:#2a1a05"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></div><div class="txt"><div class="nm">Arrivée vendredi soir</div><div class="sub">Souper au chalet · feu si beau temps</div></div></div>
+    <div class="row"><div class="check" style="background:var(--moss);border-color:var(--moss)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="txt"><div class="nm">Samedi — canot le matin</div><div class="sub">Brunch tardif, baignade</div></div></div>
+    <div class="row"><div class="check" style="border-color:var(--line2)"></div><div class="txt"><div class="nm">Départ dimanche 15h</div><div class="sub">Fermer l'eau si besoin</div></div></div>`;
+}
+
+/* Sheet: more sections + settings */
+function openMore(){
+  const items=[
+    ['calendar','Agenda','Séjours, météo et réservations','<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'],
+    ['packing','Bagages','Ce qu\'on apporte','<path d="M9 4h6a1 1 0 011 1v1H8V5a1 1 0 011-1z"/><rect x="4" y="6" width="16" height="15" rx="2"/>'],
+    ['contacts','Contacts','Voisin, plombier, marina','<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>'],
+    ['procedures','Procédures','Ouvrir, chauffer, fermer','<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>'],
+  ];
+  let html=`<div class="grab"></div><h3>Tout le chalet</h3><p class="lead">Les autres carnets de Notre Chalet.</p>`;
+  html+=items.map(it=>`<button class="opt" onclick="go('${it[0]}')"><div class="ic"><svg viewBox="0 0 24 24">${it[3]}</svg></div><div class="ot"><div class="nm">${it[1]}</div><div class="ds">${it[2]}</div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8C9590" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>`).join('');
+  html+=`<div style="height:8px"></div>
+    <button class="opt" onclick="toast('Données synchronisées ✓')"><div class="ic"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></div><div class="ot"><div class="nm">Synchroniser avec Élo</div><div class="ds">Exporter / importer les données</div></div></button>
+    <button class="opt" onclick="toggleTheme()"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2"/></svg></div><div class="ot"><div class="nm">Ambiance</div><div class="ds">Veillée · clair de lune</div></div></button>`;
+  openSheet(html);
+}
+function openProc(i){
+  const p=procs[i];
+  let html=`<div class="grab"></div><h3>${p.e} ${esc(p.n)}</h3><p class="lead">${esc(p.st)}</p>`;
+  html+=p.steps.map((s,n)=>`<div class="step"><div class="sn">${n+1}</div><div class="sx">${esc(s)}</div></div>`).join('');
+  html+=`<button class="btn btn-pri" style="width:100%;margin-top:18px" onclick="toast('Procédure terminée 🎉');closeSheet()">Marquer comme fait</button>`;
+  openSheet(html);
+}
+function openSheet(html){$('#sheet').innerHTML=html;$('#sheet').classList.add('on');$('#scrim').classList.add('on');}
+function closeSheet(){$('#sheet').classList.remove('on');$('#scrim').classList.remove('on');}
+function toggleTheme(){toast('Une seule ambiance pour la veillée 🌙');}
+
+/* init */
+rTasks();rPack();rCourse();rStrip();rPhotos();rContacts();rProcs();rCal();
+</script>
+</body>
+</html>

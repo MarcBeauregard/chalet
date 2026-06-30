@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Notre Chalet — 3 directions</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#1A1410">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161310; --bg2:#211B16; --line:rgba(255,255,255,.1);
+  --t:#F0E9DD; --t2:#A99C8C; --t3:#6F6357;
+  --safe-t:env(safe-area-inset-top); --safe-b:env(safe-area-inset-bottom);
+  --ff:'Inter',-apple-system,system-ui,sans-serif; --fd:'Fraunces',Georgia,serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%}
+body{font-family:var(--ff);background:var(--bg);color:var(--t);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+a{text-decoration:none;color:inherit}
+.wrap{max-width:520px;margin:0 auto;padding:calc(var(--safe-t) + 30px) 20px calc(var(--safe-b) + 36px)}
+.intro{margin-bottom:26px}
+.intro .eyebrow{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--t3);font-weight:600}
+.intro h1{font-family:var(--fd);font-size:32px;font-weight:600;line-height:1.05;letter-spacing:-.02em;margin:10px 0 10px}
+.intro p{color:var(--t2);font-size:14.5px;line-height:1.5;max-width:42ch}
+.intro p b{color:var(--t);font-weight:600}
+
+.card{display:block;border-radius:22px;overflow:hidden;border:1px solid var(--line);margin-bottom:16px;transition:transform .25s var(--ease);position:relative}
+.card:active{transform:scale(.98)}
+.card .top{height:128px;position:relative;overflow:hidden;display:flex;align-items:flex-end;padding:16px}
+.card .num{position:absolute;top:14px;right:16px;font-family:var(--fd);font-size:13px;font-weight:600;opacity:.7}
+.card .chips{display:flex;gap:6px}
+.card .chips i{width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(255,255,255,.5)}
+.card .body{background:var(--bg2);padding:17px 18px 18px}
+.card .body .row{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.card .body h2{font-family:var(--fd);font-size:22px;font-weight:600;letter-spacing:-.01em}
+.card .body .tag{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.card .body p{color:var(--t2);font-size:13.5px;line-height:1.5;margin-top:7px}
+.card .body .open{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-weight:600;font-size:13.5px;color:var(--t)}
+.card .body .open svg{width:15px;height:15px;stroke:currentColor;stroke-width:2.4;fill:none;transition:transform .2s}
+.card:active .body .open svg{transform:translateX(3px)}
+
+/* veillée preview */
+.v-top{background:linear-gradient(150deg,#16302f,#0E1A1F);}
+.v-top .lant{position:absolute;left:18px;top:50%;transform:translateY(-50%);width:46px;height:50px;border-radius:8px;background:radial-gradient(circle at 50% 42%,#F2B65A,#7a4a14 70%);box-shadow:0 0 28px rgba(242,182,90,.55)}
+.v-top .aur{position:absolute;right:-20px;top:-30px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,#3a5a8c,transparent 65%);filter:blur(24px);opacity:.7}
+/* sentier preview */
+.s-top{background:#EAEDE3}
+.s-top .grid{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 17px,rgba(160,170,140,.4) 17px 18px),repeating-linear-gradient(90deg,transparent 0 17px,rgba(160,170,140,.4) 17px 18px)}
+.s-top .route{position:absolute;left:10%;bottom:18px;width:62%;height:2.5px;background:repeating-linear-gradient(90deg,#E0521F 0 7px,transparent 7px 13px);transform:rotate(-12deg);transform-origin:left}
+.s-top .pin{position:absolute;width:14px;height:14px;border-radius:50%;border:3px solid #1E3A28;background:#fff}
+.s-top .pin.a{left:9%;bottom:13px} .s-top .pin.b{right:18%;top:24px;border-color:#E0521F}
+/* mosaïque preview */
+.m-top{background:#F1E7D7;display:flex;gap:9px;padding:14px}
+.m-top span{flex:1;border-radius:12px}
+.m-top .a{background:#E2654A;box-shadow:0 3px 0 #C44C32} .m-top .b{background:#F0AF34;box-shadow:0 3px 0 #D8901A}
+.m-top .c{background:#458BC4;box-shadow:0 3px 0 #326FA3} .m-top .d{background:#3C8C6C;box-shadow:0 3px 0 #2C6E52}
+
+.foot{margin-top:22px;text-align:center;color:var(--t3);font-size:12px;line-height:1.6}
+.foot b{color:var(--t2);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="intro">
+    <div class="eyebrow">Notre Chalet · maquettes</div>
+    <h1>Trois directions,<br>un même chalet</h1>
+    <p>Le même contenu — séjours, tâches, bagages, épicerie, photos — décliné en <b>trois identités complètes</b>. Ouvre-les une à une&nbsp;: chaque bouton fonctionne pour de vrai.</p>
+  </div>
+
+  <a class="card" href="veillee.html">
+    <div class="top v-top"><div class="aur"></div><div class="lant"></div><span class="num">01</span>
+      <div class="chips" style="margin-left:74px"><i style="background:#0E1A1F"></i><i style="background:#F2B65A"></i><i style="background:#E8765A"></i><i style="background:#7FB295"></i></div>
+    </div>
+    <div class="body">
+      <div class="row"><h2>Veillée</h2><span class="tag">Nocturne · chaleureux</span></div>
+      <p>Le chalet le soir, à la lueur de la lampe. Fond d'épinette, aurore qui dérive, et une lanterne qui veille en haut de l'écran.</p>
+      <span class="open">Ouvrir la maquette <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </div>
+  </a>
+
+  <a class="card" href="sentier.html">
+    <div class="top s-top"><div class="grid"></div><div class="route"></div><div class="pin a"></div><div class="pin b"></div><span class="num" style="color:#55603F">02</span>
+      <div class="chips"><i style="background:#1E3A28;border-color:rgba(0,0,0,.25)"></i><i style="background:#E0521F;border-color:rgba(0,0,0,.25)"></i><i style="background:#256474;border-color:rgba(0,0,0,.25)"></i><i style="background:#EAEDE3;border-color:rgba(0,0,0,.25)"></i></div>
+    </div>
+    <div class="body">
+      <div class="row"><h2>Sentier</h2><span class="tag">Carte topo · plein air</span></div>
+      <p>Un guide de plein air. Carte à courbes de niveau, coordonnées en mono, et des tâches qui deviennent des balises le long d'un sentier.</p>
+      <span class="open">Ouvrir la maquette <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </div>
+  </a>
+
+  <a class="card" href="mosaique.html">
+    <div class="top m-top"><span class="a"></span><span class="b"></span><span class="c"></span><span class="d"></span><span class="num" style="color:#6E635A;z-index:2">03</span></div>
+    <div class="body">
+      <div class="row"><h2>Mosaïque</h2><span class="tag">Babillard · ludique</span></div>
+      <p>Le babillard du frigo. Tuiles colorées qui s'enfoncent au toucher, notes manuscrites, photos en polaroids et réactions autocollants.</p>
+      <span class="open">Ouvrir la maquette <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </div>
+  </a>
+
+  <div class="foot">Pour le plein écran sur iPhone&nbsp;: ouvrir dans Safari → <b>Partager</b> → <b>Sur l'écran d'accueil</b>.</div>
+</div>
+</body>
+</html>

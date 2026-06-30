@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Sentier — Notre Chalet</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#EAEDE3">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E7EBDF; --paper2:#F4F6EE; --paper3:#FBFCF8;
+  --ink:#222A1C; --ink2:#55603F; --ink3:#8B9377;
+  --spruce:#1E3A28; --spruce2:#2C5238;
+  --blaze:#E0521F; --blaze-dk:#B83E12;
+  --sky:#256474;
+  --line:#C8D0B8; --line2:#B4BEA0;
+  --r:14px; --r-s:10px;
+  --safe-t:env(safe-area-inset-top); --safe-b:env(safe-area-inset-bottom);
+  --ff:'Inter',-apple-system,system-ui,sans-serif;
+  --fd:'Space Grotesk',var(--ff);
+  --fm:'Space Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.4,0,.2,1); --spring:cubic-bezier(.34,1.4,.5,1); --out:cubic-bezier(.16,1,.3,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:var(--ff);background:var(--paper);color:var(--ink);overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;color:inherit;border:none;background:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--blaze);outline-offset:2px}
+input{font-family:inherit}
+.mono{font-family:var(--fm)}
+
+.app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;background:var(--paper)}
+
+/* contour topo ambient */
+.topo{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.5}
+.topo svg{position:absolute;width:140%;height:auto}
+.topo .t1{top:-8%;left:-22%}
+.topo .t2{bottom:-2%;right:-30%;opacity:.7;transform:rotate(8deg)}
+.cl{fill:none;stroke:var(--line2);stroke-width:1.4}
+
+/* header — trail sign */
+.hdr{position:relative;z-index:3;padding:calc(var(--safe-t) + 14px) 18px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(to bottom,var(--paper),rgba(231,235,223,.4));border-bottom:1.5px solid var(--line)}
+.sign{display:flex;align-items:center;gap:12px;min-width:0}
+.blz{width:40px;height:40px;flex:none;position:relative}
+.blz svg{width:100%;height:100%}
+.sign-txt{min-width:0}
+.sign-txt .coord{font-family:var(--fm);font-size:10px;letter-spacing:.04em;color:var(--blaze);font-weight:700;text-transform:uppercase}
+.sign-txt h1{font-family:var(--fd);font-weight:700;font-size:21px;line-height:1;letter-spacing:-.02em;color:var(--spruce);margin-top:2px}
+.hdr-act{width:42px;height:42px;border-radius:11px;background:var(--paper2);border:1.5px solid var(--line);display:grid;place-items:center;flex:none;transition:transform .15s}
+.hdr-act:active{transform:scale(.92)}
+.hdr-act svg{width:20px;height:20px;stroke:var(--spruce);stroke-width:1.8;fill:none}
+
+.scroll{position:relative;z-index:1;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(var(--safe-b) + 96px)}
+.view{display:none;animation:vin .42s var(--out)}
+.view.on{display:block}
+@keyframes vin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* eyebrow label like map legend */
+.leg{display:flex;align-items:center;gap:8px;font-family:var(--fm);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:0 2px 10px}
+.leg::before{content:"";width:14px;height:2px;background:var(--blaze)}
+.leg.s::before{background:var(--spruce)}
+
+/* hero map card */
+.map{position:relative;border:1.5px solid var(--line2);border-radius:var(--r);overflow:hidden;background:var(--paper3)}
+.map .canvas{position:relative;height:188px;background:
+  repeating-linear-gradient(0deg,transparent,transparent 23px,rgba(200,208,184,.5) 23px,rgba(200,208,184,.5) 24px),
+  repeating-linear-gradient(90deg,transparent,transparent 23px,rgba(200,208,184,.5) 23px,rgba(200,208,184,.5) 24px),
+  var(--paper3)}
+.map .canvas .contour{position:absolute;inset:0}
+.map .canvas .contour path{fill:none;stroke:var(--line2);stroke-width:1.3}
+.map .canvas .lake{position:absolute;left:54%;top:46%;width:90px;height:64px;background:rgba(37,100,116,.16);border:1.5px solid rgba(37,100,116,.4);border-radius:48% 52% 56% 44%/52% 48% 56% 44%}
+.map .canvas .lake::after{content:"Lac Brûlé";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--fm);font-size:8.5px;color:var(--sky);font-weight:700}
+.map .canvas .route{position:absolute;left:0;top:0;width:100%;height:100%}
+.map .canvas .route path{fill:none;stroke:var(--blaze);stroke-width:2.4;stroke-dasharray:6 5;stroke-linecap:round}
+.pin{position:absolute;transform:translate(-50%,-100%);z-index:2}
+.pin .dot{width:16px;height:16px;border-radius:50%;border:3px solid var(--blaze);background:var(--paper3);box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.pin.you .dot{border-color:var(--spruce);background:var(--spruce);box-shadow:0 0 0 0 rgba(30,58,40,.4);animation:ping 2.4s var(--ease) infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(30,58,40,.35)}70%{box-shadow:0 0 0 12px rgba(30,58,40,0)}100%{box-shadow:0 0 0 0 rgba(30,58,40,0)}}
+.pin .lab{font-family:var(--fm);font-size:8.5px;font-weight:700;color:var(--spruce);background:var(--paper3);border:1px solid var(--line2);padding:1px 5px;border-radius:5px;margin-top:3px;white-space:nowrap;transform:translateX(-50%);margin-left:8px}
+.map .info{padding:15px 16px;border-top:1.5px solid var(--line)}
+.map .info .when{font-family:var(--fm);font-size:11px;color:var(--blaze);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.map .info h2{font-family:var(--fd);font-size:24px;font-weight:700;letter-spacing:-.02em;color:var(--spruce);margin:5px 0 3px}
+.map .info .sub{font-size:13.5px;color:var(--ink2)}
+.statline{display:flex;border-top:1.5px solid var(--line);background:var(--paper2)}
+.statline .st{flex:1;padding:11px 8px;text-align:center;border-right:1.5px solid var(--line)}
+.statline .st:last-child{border-right:none}
+.statline .st .v{font-family:var(--fm);font-size:17px;font-weight:700;color:var(--ink)}
+.statline .st .k{font-size:9.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;font-weight:600}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 18px;border-radius:11px;font-weight:600;font-size:14.5px;font-family:var(--fd);transition:transform .15s var(--spring),background .2s;white-space:nowrap}
+.btn:active{transform:scale(.96)}
+.btn-pri{background:var(--blaze);color:#fff;box-shadow:0 3px 0 var(--blaze-dk)}
+.btn-pri:active{box-shadow:0 1px 0 var(--blaze-dk);transform:translateY(2px) scale(.99)}
+.btn-ghost{background:var(--paper2);color:var(--spruce);border:1.5px solid var(--line2)}
+.btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none}
+.row2{display:flex;gap:10px;margin-top:14px}.row2 .btn{flex:1}
+
+/* quick nav cards (dashboard) */
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.qcard{text-align:left;background:var(--paper2);border:1.5px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:8px;transition:transform .15s,border-color .2s}
+.qcard:active{transform:scale(.97);border-color:var(--line2)}
+.qcard .top{display:flex;align-items:center;justify-content:space-between}
+.qcard .ic{width:34px;height:34px;border-radius:9px;background:var(--spruce);display:grid;place-items:center}
+.qcard.b .ic{background:var(--blaze)} .qcard.k .ic{background:var(--sky)}
+.qcard .ic svg{width:19px;height:19px;stroke:#fff;stroke-width:2;fill:none}
+.qcard .frac{font-family:var(--fm);font-size:13px;font-weight:700;color:var(--ink2)}
+.qcard .lbl{font-family:var(--fd);font-weight:600;font-size:15.5px;color:var(--ink)}
+.qcard .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.qcard .bar i{display:block;height:100%;background:var(--spruce);border-radius:3px;transition:width .6s var(--out)}
+.qcard.b .bar i{background:var(--blaze)} .qcard.k .bar i{background:var(--sky)}
+
+/* TRAIL list (tasks) — checkpoints along a route */
+.trail{position:relative;padding-left:8px}
+.trail::before{content:"";position:absolute;left:21px;top:14px;bottom:14px;width:2.5px;background:repeating-linear-gradient(var(--line2),var(--line2) 5px,transparent 5px,transparent 10px)}
+.cp{position:relative;display:flex;gap:15px;align-items:flex-start;padding:7px 0}
+.cp .marker{width:28px;height:28px;border-radius:50%;border:2.5px solid var(--line2);background:var(--paper);flex:none;display:grid;place-items:center;z-index:1;transition:all .25s var(--spring)}
+.cp .marker svg{width:14px;height:14px;stroke:#fff;stroke-width:3;fill:none;opacity:0;transition:opacity .2s}
+.cp.done .marker{background:var(--spruce);border-color:var(--spruce)}
+.cp.done .marker svg{opacity:1}
+.cp .body{flex:1;background:var(--paper2);border:1.5px solid var(--line);border-radius:var(--r-s);padding:12px 14px;min-width:0;transition:background .2s,opacity .3s}
+.cp:active .body{background:var(--paper3)}
+.cp .body .nm{font-weight:600;font-size:15px;font-family:var(--fd);color:var(--ink)}
+.cp .body .meta{display:flex;align-items:center;gap:8px;margin-top:5px}
+.cp .body .who{font-family:var(--fm);font-size:10px;font-weight:700;color:var(--blaze);text-transform:uppercase;letter-spacing:.04em}
+.cp .body .sub{font-size:12px;color:var(--ink3)}
+.cp.done .body .nm{color:var(--ink3);text-decoration:line-through}
+
+/* plain check list (packing / courses) */
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:13px;padding:13px 14px;background:var(--paper2);border:1.5px solid var(--line);border-radius:var(--r-s);transition:background .2s,opacity .3s}
+.item:active{background:var(--paper3)}
+.box{width:24px;height:24px;border-radius:7px;border:2.5px solid var(--line2);flex:none;display:grid;place-items:center;transition:all .22s var(--spring)}
+.box svg{width:13px;height:13px;stroke:#fff;stroke-width:3.2;fill:none;opacity:0;transition:opacity .18s}
+.item.done .box{background:var(--blaze);border-color:var(--blaze)}
+.item.done .box svg{opacity:1}
+.item .nm{flex:1;font-weight:500;font-size:15px;color:var(--ink)}
+.item.done .nm{color:var(--ink3);text-decoration:line-through}
+.item .q{font-family:var(--fm);font-size:11px;font-weight:700;color:var(--ink2);background:var(--paper);border:1.5px solid var(--line);padding:3px 8px;border-radius:6px;flex:none}
+
+/* segmented */
+.seg{display:flex;gap:6px;margin:0 0 14px}
+.seg button{flex:1;height:40px;border-radius:9px;font-size:13px;font-weight:600;font-family:var(--fd);color:var(--ink2);background:var(--paper2);border:1.5px solid var(--line);transition:all .2s}
+.seg button.on{background:var(--spruce);color:#fff;border-color:var(--spruce)}
+
+/* adder */
+.adder{display:flex;gap:9px;margin-top:14px}
+.adder input{flex:1;height:48px;background:var(--paper3);border:1.5px solid var(--line2);border-radius:11px;padding:0 15px;color:var(--ink);font-size:15px}
+.adder input::placeholder{color:var(--ink3)}
+.adder input:focus{outline:none;border-color:var(--blaze)}
+.adder .btn{width:48px;padding:0;flex:none}
+
+/* section heading */
+.sh{display:flex;align-items:baseline;justify-content:space-between;margin:24px 2px 12px}
+.sh h3{font-family:var(--fd);font-size:18px;font-weight:700;color:var(--spruce);letter-spacing:-.01em}
+.sh .ct{font-family:var(--fm);font-size:11px;font-weight:700;color:var(--ink3)}
+.sh .lnk{font-family:var(--fm);font-size:11px;font-weight:700;color:var(--blaze);text-transform:uppercase}
+
+/* photo grid — field log polaroids */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.frame{background:var(--paper3);border:1.5px solid var(--line2);border-radius:8px;padding:7px 7px 0;transition:transform .15s}
+.frame:active{transform:scale(.97)}
+.frame .ph{aspect-ratio:1;border-radius:5px;background-size:cover;position:relative;overflow:hidden}
+.frame .ph .tag{position:absolute;top:6px;left:6px;font-family:var(--fm);font-size:8px;font-weight:700;color:#fff;background:rgba(0,0,0,.35);padding:1px 5px;border-radius:4px}
+.frame .cap{padding:7px 3px 8px;font-size:11px;color:var(--ink2);font-weight:500;display:flex;justify-content:space-between;align-items:center}
+.frame .cap .heart{font-size:13px}
+
+/* horizontal strip */
+.strip{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory}
+.strip::-webkit-scrollbar{display:none}
+.strip .frame{flex:none;width:150px;scroll-snap-align:start;margin-bottom:2px}
+
+/* calendar */
+.cal{background:var(--paper2);border:1.5px solid var(--line);border-radius:var(--r);padding:15px}
+.cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-h .m{font-family:var(--fd);font-size:16px;font-weight:700;color:var(--spruce)}
+.cal-h button{width:34px;height:34px;border-radius:9px;background:var(--paper3);border:1.5px solid var(--line);display:grid;place-items:center}
+.cal-h button svg{width:15px;height:15px;stroke:var(--spruce);stroke-width:2;fill:none}
+.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-g .dow{font-family:var(--fm);font-size:9.5px;color:var(--ink3);text-align:center;font-weight:700;padding-bottom:3px}
+.cal-g .d{aspect-ratio:1;display:grid;place-items:center;font-size:13px;font-family:var(--fm);font-weight:700;border-radius:8px;color:var(--ink2);position:relative}
+.cal-g .d.muted{opacity:.3}
+.cal-g .d.stay{background:var(--blaze);color:#fff}
+.cal-g .d.today{box-shadow:inset 0 0 0 2px var(--spruce);color:var(--spruce)}
+
+/* contacts */
+.ct{display:flex;align-items:center;gap:13px;padding:12px 14px;background:var(--paper2);border:1.5px solid var(--line);border-radius:var(--r-s)}
+.ct .av{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;font-family:var(--fd);font-weight:700;font-size:15px;color:#fff;flex:none}
+.ct .info{flex:1;min-width:0}.ct .info .nm{font-family:var(--fd);font-weight:600;font-size:15px}.ct .info .rl{font-size:12px;color:var(--ink3);font-family:var(--fm);margin-top:2px}
+.ct .call{width:42px;height:42px;border-radius:10px;background:var(--spruce);display:grid;place-items:center;flex:none}
+.ct .call:active{transform:scale(.92)}
+.ct .call svg{width:18px;height:18px;stroke:#fff;stroke-width:2;fill:none}
+
+/* procedures */
+.proc{display:flex;align-items:center;gap:13px;padding:14px;background:var(--paper2);border:1.5px solid var(--line);border-radius:var(--r);transition:transform .15s}
+.proc:active{transform:scale(.99)}
+.proc .num{font-family:var(--fm);font-size:11px;font-weight:700;color:var(--blaze);width:30px;flex:none}
+.proc .em{font-size:24px;flex:none}
+.proc .pi{flex:1}.proc .pi .nm{font-family:var(--fd);font-weight:600;font-size:15px}.proc .pi .st{font-family:var(--fm);font-size:11px;color:var(--ink3);margin-top:2px}
+.proc .chev{stroke:var(--ink3)}
+
+/* bottom nav — legend bar */
+.tab{position:absolute;left:0;right:0;bottom:0;z-index:5;display:flex;background:var(--paper2);border-top:1.5px solid var(--line2);padding:8px 6px calc(var(--safe-b) + 8px)}
+.tab button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 0;position:relative}
+.tab button svg{width:22px;height:22px;stroke:var(--ink3);stroke-width:1.9;fill:none;transition:stroke .2s}
+.tab button span{font-family:var(--fm);font-size:9px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.02em;transition:color .2s}
+.tab button.on svg{stroke:var(--blaze)}
+.tab button.on span{color:var(--blaze)}
+.tab button.on::before{content:"";position:absolute;top:-9px;width:26px;height:3px;background:var(--blaze);border-radius:0 0 3px 3px}
+.tab button:active{transform:scale(.92)}
+
+/* sheet */
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(34,42,28,.45);opacity:0;pointer-events:none;transition:opacity .3s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--paper3);border-top:1.5px solid var(--line2);border-radius:18px 18px 0 0;padding:8px 18px calc(var(--safe-b) + 20px);transform:translateY(102%);transition:transform .4s var(--out);max-height:86vh;overflow-y:auto;box-shadow:0 -16px 40px rgba(34,42,28,.2)}
+.sheet.on{transform:none}
+.sheet .grab{width:38px;height:4px;border-radius:2px;background:var(--line2);margin:5px auto 14px}
+.sheet h3{font-family:var(--fd);font-size:20px;font-weight:700;color:var(--spruce)}
+.sheet .lead{font-family:var(--fm);font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em;margin:3px 0 16px}
+.sheet .opt{width:100%;text-align:left;display:flex;align-items:center;gap:13px;padding:14px;border-radius:11px;background:var(--paper2);border:1.5px solid var(--line);margin-bottom:9px;transition:transform .15s}
+.sheet .opt:active{transform:scale(.98)}
+.sheet .opt .ic{width:38px;height:38px;border-radius:10px;background:var(--spruce);display:grid;place-items:center;flex:none}
+.sheet .opt .ic svg{width:20px;height:20px;stroke:#fff;stroke-width:1.9;fill:none}
+.sheet .opt .ot{flex:1}.sheet .opt .ot .nm{font-family:var(--fd);font-weight:600;font-size:15px}.sheet .opt .ot .ds{font-family:var(--fm);font-size:10.5px;color:var(--ink3);margin-top:1px}
+.sheet .opt .chev{stroke:var(--ink3)}
+
+/* procedure steps in sheet */
+.pstep{display:flex;gap:13px;padding:5px 0;position:relative}
+.pstep .n{font-family:var(--fm);width:26px;height:26px;border-radius:7px;background:var(--blaze);color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px;flex:none}
+.pstep .x{flex:1;font-size:14.5px;line-height:1.45;color:var(--ink2);padding-top:3px}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(var(--safe-b) + 110px);transform:translateX(-50%) translateY(16px);z-index:40;background:var(--spruce);color:#fff;font-family:var(--fd);font-weight:600;font-size:13.5px;padding:11px 17px;border-radius:11px;box-shadow:0 10px 26px rgba(34,42,28,.3);opacity:0;pointer-events:none;transition:all .32s var(--spring);display:flex;align-items:center;gap:8px;max-width:84%}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast svg{width:17px;height:17px;stroke:#fff;stroke-width:2.6;fill:none;flex:none}
+.empty{text-align:center;padding:30px;color:var(--ink3);font-family:var(--fm);font-size:12px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.05s!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topo">
+    <svg class="t1" viewBox="0 0 400 300"><g class="cl">
+      <path d="M40 150C40 90 120 50 200 60s150 40 150 100-90 110-170 100S40 210 40 150Z"/>
+      <path d="M70 150C70 105 130 75 200 84s120 36 120 84-72 90-138 82S70 195 70 150Z"/>
+      <path d="M100 150c0-32 48-56 100-48s90 30 90 66-54 70-104 62S100 182 100 150Z"/>
+      <path d="M130 150c0-22 34-40 70-34s62 22 62 46-38 50-72 44S130 172 130 150Z"/>
+      <path d="M160 150c0-13 22-24 44-20s38 14 36 28-24 30-44 26S160 163 160 150Z"/>
+    </g></svg>
+    <svg class="t2" viewBox="0 0 400 300"><g class="cl">
+      <path d="M50 150C50 100 130 70 210 78s140 42 140 92-84 96-160 88S50 200 50 150Z"/>
+      <path d="M90 150c0-38 60-62 130-54s100 34 100 70-66 80-128 72S90 188 90 150Z"/>
+      <path d="M130 150c0-26 42-44 84-38s72 26 70 52-46 58-90 50S130 176 130 150Z"/>
+    </g></svg>
+  </div>
+
+  <header class="hdr">
+    <div class="sign">
+      <div class="blz">
+        <svg viewBox="0 0 40 40" fill="none">
+          <path d="M6 34L20 6l14 28H6Z" fill="#1E3A28" stroke="#222A1C" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M13.5 34L20 21l6.5 13" fill="#E0521F"/>
+          <circle cx="20" cy="14.5" r="2.4" fill="#F4F6EE"/>
+        </svg>
+      </div>
+      <div class="sign-txt">
+        <div class="coord">46°48′N · 71°12′O</div>
+        <h1>Notre Chalet</h1>
+      </div>
+    </div>
+    <button class="hdr-act" onclick="openMore()" aria-label="Réglages">
+      <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+    </button>
+  </header>
+
+  <main class="scroll" id="scroll">
+    <!-- ACCUEIL -->
+    <section class="view on" id="v-dashboard">
+      <div class="leg">Prochaine sortie · J−4</div>
+      <div class="map">
+        <div class="canvas">
+          <svg class="contour" viewBox="0 0 360 188" preserveAspectRatio="none"><path d="M-10 60C60 40 120 70 180 55s140-25 200-5"/><path d="M-10 110C70 95 130 120 190 105s130-20 190 0"/><path d="M-10 150C60 140 140 160 200 148s120-12 180 4"/></svg>
+          <div class="lake"></div>
+          <svg class="route" viewBox="0 0 360 188" preserveAspectRatio="none"><path d="M40 168 C 90 150 70 110 130 100 S 200 90 250 70"/></svg>
+          <div class="pin you" style="left:11%;top:90%"><div class="dot"></div><div class="lab">Maison</div></div>
+          <div class="pin" style="left:70%;top:38%"><div class="dot"></div><div class="lab">Le chalet</div></div>
+        </div>
+        <div class="info">
+          <div class="when">Vendredi 4 → Dimanche 6 juillet</div>
+          <h2>Fin de semaine au lac</h2>
+          <div class="sub">Marc &amp; Élo · 2 nuits sous les épinettes</div>
+        </div>
+        <div class="statline">
+          <div class="st"><div class="v">214<span style="font-size:11px"> km</span></div><div class="k">Route</div></div>
+          <div class="st"><div class="v">24°C</div><div class="k">Samedi ☀</div></div>
+          <div class="st"><div class="v">J−4</div><div class="k">Départ</div></div>
+        </div>
+      </div>
+      <div class="row2">
+        <button class="btn btn-pri" onclick="go('calendar')"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Préparer la sortie</button>
+        <button class="btn btn-ghost" onclick="go('packing')"><svg viewBox="0 0 24 24"><path d="M9 4h6a1 1 0 011 1v1H8V5a1 1 0 011-1z"/><rect x="4" y="6" width="16" height="15" rx="2"/></svg></button>
+      </div>
+
+      <div class="sh"><h3>Le terrain</h3></div>
+      <div class="qgrid">
+        <button class="qcard" onclick="go('tasks')">
+          <div class="top"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><div class="frac" id="f-tasks">2/5</div></div>
+          <div class="lbl">Tâches</div><div class="bar"><i id="b-tasks" style="width:40%"></i></div>
+        </button>
+        <button class="qcard b" onclick="go('courses')">
+          <div class="top"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg></div><div class="frac" id="f-course">1/6</div></div>
+          <div class="lbl">Épicerie</div><div class="bar"><i id="b-course" style="width:16%"></i></div>
+        </button>
+        <button class="qcard k" onclick="go('packing')">
+          <div class="top"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 4h6a1 1 0 011 1v1H8V5a1 1 0 011-1z"/><rect x="4" y="6" width="16" height="15" rx="2"/></svg></div><div class="frac" id="f-pack">3/6</div></div>
+          <div class="lbl">Bagages</div><div class="bar"><i id="b-pack" style="width:50%"></i></div>
+        </button>
+        <button class="qcard" onclick="go('procedures')" style="border-style:dashed">
+          <div class="top"><div class="ic" style="background:var(--ink2)"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="frac">3</div></div>
+          <div class="lbl">Procédures</div><div class="bar"><i style="width:100%;background:var(--ink2)"></i></div>
+        </button>
+      </div>
+
+      <div class="sh"><h3>Carnet de terrain</h3><button class="lnk" onclick="go('photos')">Tout ›</button></div>
+      <div class="strip" id="dash-strip"></div>
+    </section>
+
+    <!-- TÂCHES (trail) -->
+    <section class="view" id="v-tasks">
+      <div class="leg s">Sentier de préparation</div>
+      <div class="sh" style="margin-top:0"><h3>Tâches du chalet</h3><span class="ct" id="t-ct">2/5 checkpoints</span></div>
+      <div class="seg" id="t-seg">
+        <button class="on" onclick="ft('all',this)">Tout</button>
+        <button onclick="ft('todo',this)">À faire</button>
+        <button onclick="ft('done',this)">Fait</button>
+      </div>
+      <div class="trail" id="task-list"></div>
+      <div class="adder">
+        <input id="task-in" placeholder="Ajouter un checkpoint…" enterkeyhint="done" onkeydown="if(event.key==='Enter')addTask()">
+        <button class="btn btn-pri" onclick="addTask()" aria-label="Ajouter"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+    </section>
+
+    <!-- BAGAGES -->
+    <section class="view" id="v-packing">
+      <div class="leg">Équipement à embarquer</div>
+      <div class="sh" style="margin-top:0"><h3>Bagages</h3><span class="ct" id="p-ct">3/6</span></div>
+      <div class="list" id="pack-list"></div>
+      <div class="adder">
+        <input id="pack-in" placeholder="Ajouter à embarquer…" enterkeyhint="done" onkeydown="if(event.key==='Enter')addPack()">
+        <button class="btn btn-pri" onclick="addPack()" aria-label="Ajouter"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+    </section>
+
+    <!-- COURSES -->
+    <section class="view" id="v-courses">
+      <div class="leg">Ravitaillement</div>
+      <div class="sh" style="margin-top:0"><h3>Épicerie</h3><span class="ct" id="c-ct">5 restants</span></div>
+      <div class="list" id="course-list"></div>
+      <div class="adder">
+        <input id="course-in" placeholder="Ajouter un item…" enterkeyhint="done" onkeydown="if(event.key==='Enter')addCourse()">
+        <button class="btn btn-pri" onclick="addCourse()" aria-label="Ajouter"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+    </section>
+
+    <!-- AGENDA -->
+    <section class="view" id="v-calendar">
+      <div class="leg">Réservations du lac</div>
+      <div class="cal">
+        <div class="cal-h">
+          <button onclick="toast('Juin 2026')" aria-label="Précédent"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <div class="m">Juillet 2026</div>
+          <button onclick="toast('Août 2026')" aria-label="Suivant"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+        </div>
+        <div class="cal-g" id="cal-g"></div>
+      </div>
+      <div class="sh"><h3>Plan de match</h3></div>
+      <div class="trail" id="stay-detail"></div>
+    </section>
+
+    <!-- PHOTOS -->
+    <section class="view" id="v-photos">
+      <div class="leg">Carnet de terrain · 28 entrées</div>
+      <div class="sh" style="margin-top:0"><h3>Souvenirs</h3><span class="ct">Touche pour ❤</span></div>
+      <div class="pgrid" id="photo-grid"></div>
+    </section>
+
+    <!-- CONTACTS -->
+    <section class="view" id="v-contacts">
+      <div class="leg">Répertoire du secteur</div>
+      <div class="sh" style="margin-top:0"><h3>Contacts</h3></div>
+      <div class="list" id="contact-list"></div>
+    </section>
+
+    <!-- PROCÉDURES -->
+    <section class="view" id="v-procedures">
+      <div class="leg">Le savoir du chalet</div>
+      <div class="sh" style="margin-top:0"><h3>Procédures</h3><span class="ct">3 fiches</span></div>
+      <div class="list" id="proc-list"></div>
+    </section>
+  </main>
+
+  <nav class="tab">
+    <button class="on" id="n-dashboard" onclick="go('dashboard')"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg><span>Carte</span></button>
+    <button id="n-tasks" onclick="go('tasks')"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>Tâches</span></button>
+    <button id="n-courses" onclick="go('courses')"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg><span>Épicerie</span></button>
+    <button id="n-photos" onclick="go('photos')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span>Carnet</span></button>
+    <button id="n-more" onclick="openMore()"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg><span>Plus</span></button>
+  </nav>
+
+  <div class="scrim" id="scrim" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet"></div>
+  <div class="toast" id="toast"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span id="toast-x">Fait</span></div>
+</div>
+
+<script>
+const PH=[['#3a5a4a','Coucher sur le quai','📍 J3'],['#6a5238','Premier feu','📍 J2'],['#46606e','Brume du matin','📍 J1'],['#7a6a4a','Tarte aux bleuets','📍 J2'],['#3a4a5e','Canot à l\'aube','📍 J3'],['#5a3a4a','Soirée guimauves','📍 J1']];
+let tasks=[
+  {n:'Vérifier la pompe à eau',who:'Marc',sub:'Avant les robinets',done:false},
+  {n:'Rentrer du bois',who:'Élo',sub:'2 brassées min.',done:false},
+  {n:'Réparer la moustiquaire',who:'Marc',sub:'Porte du patio',done:false},
+  {n:'Vider le cabanon',who:'Ensemble',sub:'',done:true},
+  {n:'Tester la génératrice',who:'Marc',sub:'',done:true},
+];
+let pack=[{n:'Bottes de pluie',who:'Marc',done:true},{n:'Maillots',who:'Ensemble',done:true},{n:'Chargeurs',who:'Marc',done:true},{n:'Crème solaire',who:'Élo',done:false},{n:'Imperméables',who:'Ensemble',done:false},{n:'Jeux de société',who:'Élo',done:false}];
+let course=[{n:'Café moulu',q:'1 sac',done:false},{n:'Œufs',q:'1 douz',done:false},{n:'Guimauves',q:'2 sacs',done:false},{n:'Sac de glace',q:'×2',done:false},{n:'Allume-feu',q:'1 bte',done:false},{n:'Pain',q:'×1',done:true}];
+const contacts=[{n:'Réjean (voisin)',r:'garde l\'hiver',c:'#1E3A28'},{n:'Plombier Aqua-Nord',r:'pompe / chauffe-eau',c:'#E0521F'},{n:'Marina du lac',r:'quai / ponton',c:'#256474'},{n:'Service incendie',r:'caserne nord',c:'#B83E12'}];
+const procs=[
+  {e:'🚰',n:'Ouvrir le chalet',st:'7 étapes · printemps',steps:['Ouvrir la valve d\'eau principale au sous-sol.','Amorcer la pompe, vérifier la pression.','Brancher le chauffe-eau, attendre 30 min.','Rouvrir les robinets un à un.','Vérifier sous les éviers (fuites).','Rebrancher frigo et congélateur.','Tester la génératrice.']},
+  {e:'🔥',n:'Allumer le poêle',st:'5 étapes',steps:['Ouvrir la clé de tirage à fond.','Papier froissé + petit bois en tipi.','Allumer par le bas, porte entrouverte.','Ajouter des bûches sur la braise.','Régler le tirage à mi-course.']},
+  {e:'❄️',n:'Fermer le chalet',st:'9 étapes · automne',steps:['Couper l\'eau à la valve principale.','Vidanger tuyaux et chauffe-eau.','Antigel dans les drains.','Vider le frigo, portes ouvertes.','Couper le propane.','Fermer les volets.','Rentrer le ponton.','Couper le disjoncteur sauf gel.','Barrer et aviser Réjean.']},
+];
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let toastT;function toast(m){$('#toast-x').textContent=m;$('#toast').classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>$('#toast').classList.remove('on'),1700);}
+function haptic(){if(navigator.vibrate)navigator.vibrate(8);}
+
+let current='dashboard';
+function go(v){
+  current=v;
+  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));
+  document.querySelectorAll('.tab button').forEach(n=>n.classList.remove('on'));
+  const direct={dashboard:1,tasks:1,courses:1,photos:1};
+  $('#n-'+(direct[v]?v:'more'))?.classList.add('on');
+  $('#scroll').scrollTo({top:0,behavior:'smooth'});closeSheet();haptic();
+}
+
+let tFilter='all';
+function tf(f){return f==='todo'?tasks.filter(t=>!t.done):f==='done'?tasks.filter(t=>t.done):tasks;}
+function rTasks(){
+  const l=tf(tFilter);
+  $('#task-list').innerHTML=l.length?l.map(t=>{const i=tasks.indexOf(t);
+    return `<div class="cp ${t.done?'done':''}" onclick="tg(${i})"><div class="marker"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="body"><div class="nm">${esc(t.n)}</div><div class="meta"><span class="who">${esc(t.who)}</span>${t.sub?`<span class="sub">${esc(t.sub)}</span>`:''}</div></div></div>`;
+  }).join(''):`<div class="empty">Aucun checkpoint ici.</div>`;
+  const d=tasks.filter(t=>t.done).length;
+  $('#t-ct').textContent=`${d}/${tasks.length} checkpoints`;
+  $('#f-tasks').textContent=`${d}/${tasks.length}`;$('#b-tasks').style.width=(d/tasks.length*100)+'%';
+}
+function tg(i){tasks[i].done=!tasks[i].done;haptic();toast(tasks[i].done?'Checkpoint atteint ✓':'Rouvert');rTasks();}
+function ft(f,el){tFilter=f;document.querySelectorAll('#t-seg button').forEach(b=>b.classList.remove('on'));el.classList.add('on');rTasks();}
+function addTask(){const v=$('#task-in').value.trim();if(!v)return;tasks.unshift({n:v,who:'Marc',sub:'',done:false});$('#task-in').value='';tFilter='all';document.querySelectorAll('#t-seg button').forEach((b,i)=>b.classList.toggle('on',i===0));rTasks();toast('Checkpoint ajouté');}
+
+function rPack(){
+  $('#pack-list').innerHTML=pack.map((p,i)=>`<div class="item ${p.done?'done':''}" onclick="pg(${i})"><div class="box"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="nm">${esc(p.n)}</div><div class="q">${esc(p.who)}</div></div>`).join('');
+  const d=pack.filter(p=>p.done).length;$('#p-ct').textContent=`${d}/${pack.length}`;$('#f-pack').textContent=`${d}/${pack.length}`;$('#b-pack').style.width=(d/pack.length*100)+'%';
+}
+function pg(i){pack[i].done=!pack[i].done;haptic();rPack();}
+function addPack(){const v=$('#pack-in').value.trim();if(!v)return;pack.push({n:v,who:'Marc',done:false});$('#pack-in').value='';rPack();toast('Embarqué');}
+
+function rCourse(){
+  $('#course-list').innerHTML=course.map((c,i)=>`<div class="item ${c.done?'done':''}" onclick="cg(${i})"><div class="box"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="nm">${esc(c.n)}</div><div class="q">${esc(c.q)}</div></div>`).join('');
+  const left=course.filter(c=>!c.done).length;$('#c-ct').textContent=`${left} restants`;$('#f-course').textContent=`${course.length-left}/${course.length}`;$('#b-course').style.width=((course.length-left)/course.length*100)+'%';
+}
+function cg(i){course[i].done=!course[i].done;haptic();toast(course[i].done?'Dans le panier ✓':'Retiré');rCourse();}
+function addCourse(){const v=$('#course-in').value.trim();if(!v)return;course.unshift({n:v,q:'×1',done:false});$('#course-in').value='';rCourse();toast('Ajouté');}
+
+function rStrip(){$('#dash-strip').innerHTML=PH.slice(0,5).map((p,i)=>`<div class="frame" onclick="go('photos')"><div class="ph" style="background:${p[0]}"><div class="tag mono">${esc(p[2])}</div></div><div class="cap">${esc(p[1])}${i<2?`<span class="heart">❤</span>`:''}</div></div>`).join('');}
+let reacts={};
+function rPhotos(){$('#photo-grid').innerHTML=PH.concat(PH).map((p,i)=>`<div class="frame" onclick="rp(${i})"><div class="ph" style="background:${p[0]}"><div class="tag mono">${esc(p[2])}</div></div><div class="cap">${esc(p[1])}<span class="heart">${reacts[i]?'❤':'♡'}</span></div></div>`).join('');}
+function rp(i){reacts[i]=!reacts[i];haptic();toast(reacts[i]?'Aimé ❤':'Retiré');rPhotos();}
+
+function rContacts(){$('#contact-list').innerHTML=contacts.map(c=>`<div class="ct"><div class="av" style="background:${c.c}">${esc(c.n.slice(0,2).toUpperCase())}</div><div class="info"><div class="nm">${esc(c.n)}</div><div class="rl">${esc(c.r)}</div></div><button class="call" onclick="event.stopPropagation();toast('Appel — ${esc(c.n.split(' ')[0])}')" aria-label="Appeler"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg></button></div>`).join('');}
+function rProcs(){$('#proc-list').innerHTML=procs.map((p,i)=>`<div class="proc" onclick="openProc(${i})"><div class="num">F${i+1}</div><div class="em">${p.e}</div><div class="pi"><div class="nm">${esc(p.n)}</div><div class="st">${esc(p.st)}</div></div><svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>`).join('');}
+
+function rCal(){
+  const dows=['D','L','M','M','J','V','S'];let h=dows.map(d=>`<div class="dow">${d}</div>`).join('');
+  const first=3,days=31,s0=4,s1=6,today=1;
+  for(let i=0;i<first;i++)h+=`<div class="d muted"></div>`;
+  for(let d=1;d<=days;d++){let c='d';if(d>=s0&&d<=s1)c+=' stay';if(d===today)c+=' today';h+=`<div class="${c}" onclick="${d>=s0&&d<=s1?`toast('Séjour 4–6 juillet')`:`toast('${d} juillet — libre')`}">${d}</div>`;}
+  $('#cal-g').innerHTML=h;
+  $('#stay-detail').innerHTML=`
+    <div class="cp done"><div class="marker"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="body"><div class="nm">Vendredi — arrivée</div><div class="meta"><span class="who">18h</span><span class="sub">Souper, feu si beau</span></div></div></div>
+    <div class="cp"><div class="marker"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="body"><div class="nm">Samedi — canot &amp; baignade</div><div class="meta"><span class="who">AM</span><span class="sub">Brunch tardif</span></div></div></div>
+    <div class="cp"><div class="marker"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="body"><div class="nm">Dimanche — départ</div><div class="meta"><span class="who">15h</span><span class="sub">Fermer l\'eau au besoin</span></div></div></div>`;
+}
+
+function openMore(){
+  const items=[
+    ['calendar','Agenda','sejours · meteo','<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>'],
+    ['packing','Bagages','equipement','<path d="M9 4h6a1 1 0 011 1v1H8V5a1 1 0 011-1z"/><rect x="4" y="6" width="16" height="15" rx="2"/>'],
+    ['contacts','Contacts','repertoire secteur','<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>'],
+    ['procedures','Procédures','savoir du chalet','<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>'],
+  ];
+  let h=`<div class="grab"></div><h3>Tout le chalet</h3><p class="lead">Les autres fiches du carnet</p>`;
+  h+=items.map(it=>`<button class="opt" onclick="go('${it[0]}')"><div class="ic"><svg viewBox="0 0 24 24">${it[3]}</svg></div><div class="ot"><div class="nm">${it[1]}</div><div class="ds">${it[2]}</div></div><svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>`).join('');
+  h+=`<div style="height:6px"></div>
+    <button class="opt" onclick="toast('Données synchronisées ✓')"><div class="ic" style="background:var(--blaze)"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></div><div class="ot"><div class="nm">Synchroniser avec Élo</div><div class="ds">exporter / importer json</div></div></button>`;
+  openSheet(h);
+}
+function openProc(i){const p=procs[i];let h=`<div class="grab"></div><h3>${p.e} ${esc(p.n)}</h3><p class="lead">${esc(p.st)}</p>`;
+  h+=p.steps.map((s,n)=>`<div class="pstep"><div class="n">${n+1}</div><div class="x">${esc(s)}</div></div>`).join('');
+  h+=`<button class="btn btn-pri" style="width:100%;margin-top:16px" onclick="toast('Fiche complétée 🎉');closeSheet()">Marquer comme fait</button>`;openSheet(h);}
+function openSheet(h){$('#sheet').innerHTML=h;$('#sheet').classList.add('on');$('#scrim').classList.add('on');}
+function closeSheet(){$('#sheet').classList.remove('on');$('#scrim').classList.remove('on');}
+
+rTasks();rPack();rCourse();rStrip();rPhotos();rContacts();rProcs();rCal();
+</script>
+</body>
+</html>
